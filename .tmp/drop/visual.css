@@ -17,12 +17,13 @@
   border-spacing: 0;
   font-family: "Segoe UI", sans-serif;
   font-size: 12px;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
 }
 .matrix-table thead {
   position: sticky;
   top: 0;
   z-index: 10;
-  background-color: #f4f4f4;
 }
 .matrix-table th {
   padding: 10px;
@@ -100,7 +101,7 @@
 .matrix-table.with-borders td {
   border-style: var(--border-style, solid);
   border-width: 0;
-  border-color: var(--border-color, #ddd);
+  border-color: var(--border-color, #ffffff);
 }
 .matrix-table.with-horizontal-borders th,
 .matrix-table.with-horizontal-borders td {

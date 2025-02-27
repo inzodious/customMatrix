@@ -72,7 +72,7 @@ class BorderSettings extends FormattingSettingsCard {
     color = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
         name: "color",
         displayName: "Border Color",
-        value: { value: "#CCCCCC" },
+        value: { value: "#FFFFF" },
         instanceKind: 3 /* powerbi.VisualEnumerationInstanceKinds.ConstantOrRule */
     });
     width = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({

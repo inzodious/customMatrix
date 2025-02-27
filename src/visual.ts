@@ -185,12 +185,17 @@ export class Visual implements IVisual {
         let total = 0;
         
         for (const child of parentNode.children) {
-            // Access the value for the specific column
-            if (child.values && child.values[columnIndex] && 
-                child.values[columnIndex].value !== null && 
-                child.values[columnIndex].value !== undefined &&
-                typeof child.values[columnIndex].value === 'number') {
-                total += child.values[columnIndex].value;
+            if (child.children && child.children.length > 0) {
+                // Recursively get subtotals from children
+                total += this.calculateSubtotalForColumn(child, columnIndex);
+            } else {
+                // Leaf node with values
+                if (child.values && child.values[columnIndex] && 
+                    child.values[columnIndex].value !== null && 
+                    child.values[columnIndex].value !== undefined &&
+                    typeof child.values[columnIndex].value === 'number') {
+                    total += child.values[columnIndex].value;
+                }
             }
         }
         

@@ -38,15 +38,18 @@ export class Visual implements IVisual {
         this.formattingSettingsService = new FormattingSettingsService();
         this.updateCount = 0;
         this.expandedRows = new Map<string, boolean>();
-
+    
         // Create main container div
         const container = document.createElement("div");
         container.className = "visual-container";
+        container.style.overflow = "hidden"; // Changed from auto to hidden
         this.target.appendChild(container);
         
         // Create table container
         this.tableDiv = document.createElement("div");
         this.tableDiv.className = "table-container";
+        this.tableDiv.style.overflow = "auto"; // Keep auto here
+        this.tableDiv.style.position = "relative"; // Add this
         container.appendChild(this.tableDiv);
     }
 
@@ -281,13 +284,16 @@ export class Visual implements IVisual {
         const thead = document.createElement("thead");
         const headerRow = document.createElement("tr");
         
-            // Add corner cell
+        // Add corner cell with direct inline styling for maximum specificity
         const cornerCell = document.createElement("th");
-        cornerCell.className = "corner-cell";
-        cornerCell.style.position = 'sticky';
-        cornerCell.style.top = '0';
-        cornerCell.style.left = '0';
-        cornerCell.style.zIndex = '30';
+        cornerCell.className = "row-header column-header"; // Add both classes for CSS
+        cornerCell.setAttribute("style", 
+            "position: sticky !important; " + 
+            "top: 0 !important; " + 
+            "left: 0 !important; " + 
+            "z-index: 1000 !important; " + 
+            "background-color: #e0e0e0;"
+        );
 
         // Apply column header formatting to corner cell
         this.applyColumnHeaderFormatting(cornerCell);

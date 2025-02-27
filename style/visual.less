@@ -1,13 +1,15 @@
+
 .visual-container {
     width: 100%;
     height: 100%;
-    overflow: auto;
+    overflow: hidden; /* Change from auto to hidden */
 }
 
 .table-container {
     width: 100%;
     height: 100%;
     overflow: auto;
+    position: relative; /* Add this */
 }
 
 .matrix-table {
@@ -62,6 +64,27 @@
 .matrix-table .row-header {
     background-color: #e8e8e8;
     text-align: left !important;
+}
+
+/* Update these selectors for better sticky behavior */
+.matrix-table th.column-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.matrix-table th.row-header {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+}
+
+/* This won't be used due to our inline styles, but good for completeness */
+.matrix-table th.row-header.column-header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 10;
 }
 
 /* Rest of the existing styles remain the same */

@@ -39,6 +39,7 @@ declare class FontFormatSettings extends FormattingSettingsCard {
     italic: formattingSettings.ToggleSwitch;
     underline: formattingSettings.ToggleSwitch;
     backgroundColor: formattingSettings.ColorPicker;
+    dataAlignment: formattingSettings.ItemDropdown;
     name: string;
     displayName: string;
     slices: Array<FormattingSettingsSlice>;
@@ -50,6 +51,7 @@ declare class ColumnHeaderFormatSettings extends FormattingSettingsCard {
     backgroundColor: formattingSettings.ColorPicker;
     fontColor: formattingSettings.ColorPicker;
     bold: formattingSettings.ToggleSwitch;
+    alignment: formattingSettings.ItemDropdown;
     name: string;
     displayName: string;
     slices: Array<FormattingSettingsSlice>;
@@ -61,6 +63,7 @@ declare class RowHeaderFormatSettings extends FormattingSettingsCard {
     backgroundColor: formattingSettings.ColorPicker;
     fontColor: formattingSettings.ColorPicker;
     bold: formattingSettings.ToggleSwitch;
+    alignment: formattingSettings.ItemDropdown;
     name: string;
     displayName: string;
     slices: Array<FormattingSettingsSlice>;

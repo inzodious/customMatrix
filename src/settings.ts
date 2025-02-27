@@ -156,13 +156,24 @@ class FontFormatSettings extends FormattingSettingsCard {
         instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
     });
 
+    dataAlignment = new formattingSettings.ItemDropdown({
+        name: "dataAlignment",
+        displayName: "Data Alignment",
+        items: [
+            { displayName: "Left", value: "left" },
+            { displayName: "Center", value: "center" },
+            { displayName: "Right", value: "right" }
+        ],
+        value: { value: "right", displayName: "Right" } // Added displayName
+    });
+
     // Data Cells Font
     name: string = "fontFormat";
     displayName: string = "Values";
     slices: Array<FormattingSettingsSlice> = [
         this.color, this.fontFamily, this.fontSize,
         this.bold, this.italic, this.underline,
-        this.backgroundColor
+        this.backgroundColor, this.dataAlignment
     ];
 }
 
@@ -190,9 +201,20 @@ class ColumnHeaderFormatSettings extends FormattingSettingsCard {
         value: true
     });
 
+    alignment = new formattingSettings.ItemDropdown({
+        name: "alignment",
+        displayName: "Text Alignment",
+        items: [
+            { displayName: "Left", value: "left" },
+            { displayName: "Center", value: "center" },
+            { displayName: "Right", value: "right" }
+        ],
+        value: { value: "center", displayName: "center" } // Default to center alignment
+    });
+
     name: string = "columnHeaderFormat";
     displayName: string = "Column Headers";
-    slices: Array<FormattingSettingsSlice> = [this.backgroundColor, this.fontColor, this.bold];
+    slices: Array<FormattingSettingsSlice> = [this.backgroundColor, this.fontColor, this.bold, this.alignment];
 }
 
 /**
@@ -219,9 +241,20 @@ class RowHeaderFormatSettings extends FormattingSettingsCard {
         value: true
     });
 
+    alignment = new formattingSettings.ItemDropdown({
+        name: "alignment",
+        displayName: "Text Alignment",
+        items: [
+            { displayName: "Left", value: "left" },
+            { displayName: "Center", value: "center" },
+            { displayName: "Right", value: "right" }
+        ],
+        value: { value: "left", displayName: "left"} // Default to center alignment
+    });
+
     name: string = "rowHeaderFormat";
     displayName: string = "Row Headers";
-    slices: Array<FormattingSettingsSlice> = [this.backgroundColor, this.fontColor, this.bold];
+    slices: Array<FormattingSettingsSlice> = [this.backgroundColor, this.fontColor, this.bold, this.alignment];
 }
 
 /**

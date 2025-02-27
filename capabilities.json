@@ -218,6 +218,26 @@
                     "type": {
                         "bool": true
                     }
+                },
+                "alignment": {
+                    "displayName": "Text Alignment",
+                    "description": "Alignment of column header text",
+                    "type": {
+                        "enumeration": [
+                            {
+                                "displayName": "Left",
+                                "value": "left"
+                            },
+                            {
+                                "displayName": "Center",
+                                "value": "center"
+                            },
+                            {
+                                "displayName": "Right",
+                                "value": "right"
+                            }
+                        ]
+                    }
                 }
             }
         },
@@ -252,6 +272,26 @@
                     "description": "Bold text for row headers",
                     "type": {
                         "bool": true
+                    }
+                },
+                "alignment": {
+                    "displayName": "Text Alignment",
+                    "description": "Alignment of row header text",
+                    "type": {
+                        "enumeration": [
+                            {
+                                "displayName": "Left",
+                                "value": "left"
+                            },
+                            {
+                                "displayName": "Center",
+                                "value": "center"
+                            },
+                            {
+                                "displayName": "Right",
+                                "value": "right"
+                            }
+                        ]
                     }
                 }
             }

@@ -143,13 +143,23 @@ class FontFormatSettings extends FormattingSettingsCard {
         value: { value: "#FFFFFF" },
         instanceKind: 3 /* powerbi.VisualEnumerationInstanceKinds.ConstantOrRule */
     });
+    dataAlignment = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ItemDropdown */ .z.PA({
+        name: "dataAlignment",
+        displayName: "Data Alignment",
+        items: [
+            { displayName: "Left", value: "left" },
+            { displayName: "Center", value: "center" },
+            { displayName: "Right", value: "right" }
+        ],
+        value: { value: "right", displayName: "Right" } // Added displayName
+    });
     // Data Cells Font
     name = "fontFormat";
     displayName = "Values";
     slices = [
         this.color, this.fontFamily, this.fontSize,
         this.bold, this.italic, this.underline,
-        this.backgroundColor
+        this.backgroundColor, this.dataAlignment
     ];
 }
 /**
@@ -173,9 +183,19 @@ class ColumnHeaderFormatSettings extends FormattingSettingsCard {
         displayName: "Bold",
         value: true
     });
+    alignment = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ItemDropdown */ .z.PA({
+        name: "alignment",
+        displayName: "Text Alignment",
+        items: [
+            { displayName: "Left", value: "left" },
+            { displayName: "Center", value: "center" },
+            { displayName: "Right", value: "right" }
+        ],
+        value: { value: "center", displayName: "center" } // Default to center alignment
+    });
     name = "columnHeaderFormat";
     displayName = "Column Headers";
-    slices = [this.backgroundColor, this.fontColor, this.bold];
+    slices = [this.backgroundColor, this.fontColor, this.bold, this.alignment];
 }
 /**
  * Row Header Formatting Card
@@ -198,9 +218,19 @@ class RowHeaderFormatSettings extends FormattingSettingsCard {
         displayName: "Bold",
         value: true
     });
+    alignment = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ItemDropdown */ .z.PA({
+        name: "alignment",
+        displayName: "Text Alignment",
+        items: [
+            { displayName: "Left", value: "left" },
+            { displayName: "Center", value: "center" },
+            { displayName: "Right", value: "right" }
+        ],
+        value: { value: "left", displayName: "left" } // Default to center alignment
+    });
     name = "rowHeaderFormat";
     displayName = "Row Headers";
-    slices = [this.backgroundColor, this.fontColor, this.bold];
+    slices = [this.backgroundColor, this.fontColor, this.bold, this.alignment];
 }
 /**
  * Subtotal Formatting Card
@@ -570,6 +600,7 @@ class FormattingSettingsService {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   Kx: () => (/* binding */ Model),
+/* harmony export */   PA: () => (/* binding */ ItemDropdown),
 /* harmony export */   St: () => (/* binding */ CompositeCard),
 /* harmony export */   Tn: () => (/* binding */ SimpleCard),
 /* harmony export */   iB: () => (/* binding */ NumUpDown),
@@ -577,7 +608,7 @@ class FormattingSettingsService {
 /* harmony export */   ks: () => (/* binding */ TextInput),
 /* harmony export */   sk: () => (/* binding */ ColorPicker)
 /* harmony export */ });
-/* unused harmony exports CardGroupEntity, Group, SimpleSlice, AlignmentGroup, Slider, DatePicker, ItemDropdown, AutoDropdown, DurationPicker, ErrorRangeControl, FieldPicker, ItemFlagsSelection, AutoFlagsSelection, TextArea, FontPicker, GradientBar, ImageUpload, ListEditor, ReadOnlyText, ShapeMapSelector, CompositeSlice, FontControl, MarginPadding, Container, ContainerItem */
+/* unused harmony exports CardGroupEntity, Group, SimpleSlice, AlignmentGroup, Slider, DatePicker, AutoDropdown, DurationPicker, ErrorRangeControl, FieldPicker, ItemFlagsSelection, AutoFlagsSelection, TextArea, FontPicker, GradientBar, ImageUpload, ListEditor, ReadOnlyText, ShapeMapSelector, CompositeSlice, FontControl, MarginPadding, Container, ContainerItem */
 /* harmony import */ var _utils_FormattingSettingsUtils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(639);
 /**
  * Powerbi utils components classes for custom visual formatting pane objects
@@ -1240,11 +1271,14 @@ class Visual {
             const headerContent = document.createElement("div");
             headerContent.className = "row-header-content";
             headerContent.style.marginLeft = `${level * 20}px`;
+            headerContent.style.display = "flex"; // Add flex display
+            headerContent.style.alignItems = "center"; // Center items vertically
             // Add toggle button if has children
             if (row.children && row.children.length > 0) {
                 const toggleButton = document.createElement("span");
                 toggleButton.className = "toggle-button";
                 toggleButton.textContent = isExpanded ? "▼" : "►";
+                toggleButton.style.flexShrink = "0"; // Prevent toggle from shrinking
                 toggleButton.onclick = (event) => {
                     event.stopPropagation();
                     // Toggle the expanded state
@@ -1259,16 +1293,25 @@ class Visual {
                 const spacer = document.createElement("span");
                 spacer.className = "toggle-spacer";
                 spacer.textContent = "  ";
+                spacer.style.flexShrink = "0"; // Prevent spacer from shrinking
                 headerContent.appendChild(spacer);
             }
-            // Add the actual row label
+            // Add the actual row label in a separate span for alignment control
             const label = document.createElement("span");
+            label.className = "row-label";
+            label.style.width = "100%"; // Allow label to take remaining space
             // Format date row headers properly
             if (row.isDate || (typeof row.value === 'object' && row.value.epochTimeStamp)) {
                 label.textContent = this.formatDateValue(row.value);
             }
             else {
                 label.textContent = row.value !== null && row.value !== undefined ? String(row.value) : "";
+            }
+            // Apply alignment to the label based on row header format settings
+            if (this.formattingSettings.rowHeaderFormatSettings.alignment &&
+                this.formattingSettings.rowHeaderFormatSettings.alignment.value) {
+                label.style.textAlign = String(this.formattingSettings.rowHeaderFormatSettings.alignment.value.value);
+                label.style.display = "block"; // Ensure block display for text-align to work
             }
             headerContent.appendChild(label);
             rowHeader.appendChild(headerContent);
@@ -1302,6 +1345,11 @@ class Visual {
                     }
                     else {
                         td.textContent = "";
+                    }
+                    // Apply the same alignment as regular data cells
+                    if (this.formattingSettings.fontFormatSettings.dataAlignment &&
+                        this.formattingSettings.fontFormatSettings.dataAlignment.value) {
+                        td.style.textAlign = String(this.formattingSettings.fontFormatSettings.dataAlignment.value.value);
                     }
                     tr.appendChild(td);
                 }
@@ -1412,6 +1460,10 @@ class Visual {
         else {
             headerCell.style.fontWeight = 'normal';
         }
+        // Apply text alignment
+        if (headerFormat.alignment && headerFormat.alignment.value) {
+            headerCell.style.textAlign = String(headerFormat.alignment.value.value);
+        }
     }
     /**
      * Apply formatting to row headers
@@ -1434,6 +1486,10 @@ class Visual {
         }
         else {
             headerCell.style.fontWeight = 'normal';
+        }
+        // Apply text alignment
+        if (headerFormat.alignment && headerFormat.alignment.value) {
+            headerCell.style.textAlign = String(headerFormat.alignment.value.value);
         }
     }
     /**
@@ -1534,12 +1590,16 @@ class Visual {
                 cell.style.backgroundColor = font.backgroundColor.value.value;
             }
         }
+        if (font.dataAlignment && font.dataAlignment.value) {
+            cell.style.textAlign = font.dataAlignment.value.value;
+        }
     }
     // Apply formatting from subtotal settings to level 0 cells
     applySubtotalCellFormatting(cell) {
         if (!this.formattingSettings)
             return;
         const subtotalFormat = this.formattingSettings.subtotalFormatSettings;
+        const fontFormat = this.formattingSettings.fontFormatSettings;
         // Font color
         if (subtotalFormat.fontColor.value.value) {
             cell.style.color = subtotalFormat.fontColor.value.value;
@@ -1554,6 +1614,10 @@ class Visual {
         // Background color
         if (subtotalFormat.backgroundColor.value.value) {
             cell.style.backgroundColor = subtotalFormat.backgroundColor.value.value;
+        }
+        // Important: Apply the same text alignment as regular data cells
+        if (fontFormat.dataAlignment && fontFormat.dataAlignment.value) {
+            cell.style.textAlign = String(fontFormat.dataAlignment.value.value);
         }
     }
     // Helper function to adjust color brightness

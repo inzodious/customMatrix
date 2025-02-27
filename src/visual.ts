@@ -423,12 +423,15 @@ export class Visual implements IVisual {
             const headerContent = document.createElement("div");
             headerContent.className = "row-header-content";
             headerContent.style.marginLeft = `${level * 20}px`;
-            
+            headerContent.style.display = "flex"; // Add flex display
+            headerContent.style.alignItems = "center"; // Center items vertically
+
             // Add toggle button if has children
             if (row.children && row.children.length > 0) {
                 const toggleButton = document.createElement("span");
                 toggleButton.className = "toggle-button";
                 toggleButton.textContent = isExpanded ? "▼" : "►";
+                toggleButton.style.flexShrink = "0"; // Prevent toggle from shrinking
                 toggleButton.onclick = (event) => {
                     event.stopPropagation();
                     // Toggle the expanded state
@@ -442,18 +445,29 @@ export class Visual implements IVisual {
                 const spacer = document.createElement("span");
                 spacer.className = "toggle-spacer";
                 spacer.textContent = "  ";
+                spacer.style.flexShrink = "0"; // Prevent spacer from shrinking
                 headerContent.appendChild(spacer);
             }
             
-            // Add the actual row label
+            // Add the actual row label in a separate span for alignment control
             const label = document.createElement("span");
+            label.className = "row-label";
+            label.style.width = "100%"; // Allow label to take remaining space
+
             // Format date row headers properly
             if (row.isDate || (typeof row.value === 'object' && row.value.epochTimeStamp)) {
                 label.textContent = this.formatDateValue(row.value);
             } else {
                 label.textContent = row.value !== null && row.value !== undefined ? String(row.value) : "";
             }
-            
+
+            // Apply alignment to the label based on row header format settings
+            if (this.formattingSettings.rowHeaderFormatSettings.alignment && 
+                this.formattingSettings.rowHeaderFormatSettings.alignment.value) {
+                label.style.textAlign = String(this.formattingSettings.rowHeaderFormatSettings.alignment.value.value);
+                label.style.display = "block"; // Ensure block display for text-align to work
+            }
+
             headerContent.appendChild(label);
             rowHeader.appendChild(headerContent);
             
@@ -491,6 +505,12 @@ export class Visual implements IVisual {
                         td.textContent = this.formatNumber(subtotal);
                     } else {
                         td.textContent = "";
+                    }
+                    
+                    // Apply the same alignment as regular data cells
+                    if (this.formattingSettings.fontFormatSettings.dataAlignment && 
+                        this.formattingSettings.fontFormatSettings.dataAlignment.value) {
+                        td.style.textAlign = String(this.formattingSettings.fontFormatSettings.dataAlignment.value.value);
                     }
                     
                     tr.appendChild(td);
@@ -610,6 +630,11 @@ export class Visual implements IVisual {
         } else {
             headerCell.style.fontWeight = 'normal';
         }
+
+        // Apply text alignment
+        if (headerFormat.alignment && headerFormat.alignment.value) {
+            headerCell.style.textAlign = String(headerFormat.alignment.value.value);
+        }
     }
     
     /**
@@ -635,6 +660,11 @@ export class Visual implements IVisual {
             headerCell.style.fontWeight = 'bold';
         } else {
             headerCell.style.fontWeight = 'normal';
+        }
+
+        // Apply text alignment
+        if (headerFormat.alignment && headerFormat.alignment.value) {
+            headerCell.style.textAlign = String(headerFormat.alignment.value.value);
         }
     }
     
@@ -754,6 +784,10 @@ export class Visual implements IVisual {
                 cell.style.backgroundColor = font.backgroundColor.value.value;
             }
         }
+
+        if (font.dataAlignment && font.dataAlignment.value) {
+            cell.style.textAlign = font.dataAlignment.value.value;
+        }
     }
     
     // Apply formatting from subtotal settings to level 0 cells
@@ -761,6 +795,7 @@ export class Visual implements IVisual {
         if (!this.formattingSettings) return;
         
         const subtotalFormat = this.formattingSettings.subtotalFormatSettings;
+        const fontFormat = this.formattingSettings.fontFormatSettings;
         
         // Font color
         if (subtotalFormat.fontColor.value.value) {
@@ -779,6 +814,11 @@ export class Visual implements IVisual {
         // Background color
         if (subtotalFormat.backgroundColor.value.value) {
             cell.style.backgroundColor = subtotalFormat.backgroundColor.value.value;
+        }
+        
+        // Important: Apply the same text alignment as regular data cells
+        if (fontFormat.dataAlignment && fontFormat.dataAlignment.value) {
+            cell.style.textAlign = String(fontFormat.dataAlignment.value.value);
         }
     }
     

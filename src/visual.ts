@@ -236,6 +236,26 @@ export class Visual implements IVisual {
         table.style.setProperty('--border-style', 'solid');
     }
     
+    // Initialize expanded state for new nodes
+    private initializeExpandedState(rows: any[], level: number, parentId: string): void {
+        if (!rows) return;
+        
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const nodeId = parentId + this.getNodeId(row, level);
+            
+            // Set to expanded if not already set (default to expanded)
+            if (!this.expandedRows.has(nodeId)) {
+                this.expandedRows.set(nodeId, true); // Default to expanded
+            }
+            
+            // Initialize children recursively
+            if (row.children && row.children.length > 0) {
+                this.initializeExpandedState(row.children, level + 1, nodeId);
+            }
+        }
+    }
+    
     private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): void {
         // Create table
         const table = document.createElement("table");
@@ -281,14 +301,10 @@ export class Visual implements IVisual {
         const thead = document.createElement("thead");
         const headerRow = document.createElement("tr");
         
-        // Add corner cell
+        // Add corner cell that stays fixed when scrolling in both directions
         const cornerCell = document.createElement("th");
-        cornerCell.className = "matrix-corner-cell";
-        cornerCell.style.position = 'sticky';
-        cornerCell.style.top = '0';
-        cornerCell.style.left = '0';
-        cornerCell.style.zIndex = '30';
-
+        cornerCell.className = "matrix-corner-cell column-header row-header";
+        
         // Apply column header formatting to corner cell
         this.applyColumnHeaderFormatting(cornerCell);
         headerRow.appendChild(cornerCell);
@@ -348,26 +364,6 @@ export class Visual implements IVisual {
         
         // Apply global border settings
         this.applyGlobalBorders(table);
-    }
-    
-    // Initialize expanded state for new nodes
-    private initializeExpandedState(rows: any[], level: number, parentId: string): void {
-        if (!rows) return;
-        
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            const nodeId = parentId + this.getNodeId(row, level);
-            
-            // Set to expanded if not already set (default to expanded)
-            if (!this.expandedRows.has(nodeId)) {
-                this.expandedRows.set(nodeId, true); // Default to expanded
-            }
-            
-            // Initialize children recursively
-            if (row.children && row.children.length > 0) {
-                this.initializeExpandedState(row.children, level + 1, nodeId);
-            }
-        }
     }
     
     // Recursive function to render rows with subtotals

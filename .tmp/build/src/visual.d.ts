@@ -21,8 +21,8 @@ export declare class Visual implements IVisual {
     private formatDateValue;
     private calculateSubtotalForColumn;
     private applyGlobalBorders;
-    private createMatrixTable;
     private initializeExpandedState;
+    private createMatrixTable;
     private renderRowsWithSubtotals;
     private formatNumber;
     private applyColumnHeaderFormatting;

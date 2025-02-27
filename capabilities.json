@@ -1,0 +1,361 @@
+{
+    "dataRoles": [
+        {
+            "displayName": "Rows",
+            "name": "rows",
+            "kind": "Grouping"
+        },
+        {
+            "displayName": "Columns",
+            "name": "columns",
+            "kind": "Grouping"
+        },
+        {
+            "displayName": "Values",
+            "name": "values",
+            "kind": "Measure"
+        }
+    ],
+    "objects": {
+        "general": {
+            "displayName": "General",
+            "description": "General settings",
+            "properties": {
+                "fontSize": {
+                    "displayName": "Font Size",
+                    "description": "Select font size",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "showMeasureName": {
+                    "displayName": "Show Measure Name",
+                    "description": "Show measure name when no columns",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "columnWidth": {
+                    "displayName": "Column Width",
+                    "description": "Width of table columns (pixels)",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "enableHover": {
+                    "displayName": "Enable Hover Effects",
+                    "description": "Highlight rows on hover",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "rowHeaderWidth": {
+                "displayName": "Row Header Width",
+                "description": "Width of row header column (pixels)",
+                "type": {
+                    "numeric": true
+                    }
+                }
+            }
+        },
+        "borderSettings": {
+            "displayName": "Borders",
+            "description": "Border settings for all elements",
+            "properties": {
+                "show": {
+                    "displayName": "Show Borders",
+                    "description": "Show cell borders",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "color": {
+                    "displayName": "Border Color",
+                    "description": "Border color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "width": {
+                    "displayName": "Border Width",
+                    "description": "Border width in pixels",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "horizontalBorders": {
+                    "displayName": "Horizontal Borders",
+                    "description": "Show horizontal borders",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "verticalBorders": {
+                    "displayName": "Vertical Borders",
+                    "description": "Show vertical borders",
+                    "type": {
+                        "bool": true
+                    }
+                }
+            }
+        },
+        "fontFormat": {
+            "displayName": "Data Cells",
+            "description": "Data cell formatting options",
+            "properties": {
+                "color": {
+                    "displayName": "Font Color",
+                    "description": "Data cell font color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "fontFamily": {
+                    "displayName": "Font Family",
+                    "description": "Font family",
+                    "type": {
+                        "text": true
+                    }
+                },
+                "fontSize": {
+                    "displayName": "Font Size",
+                    "description": "Font size",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "bold": {
+                    "displayName": "Bold",
+                    "description": "Bold text",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "italic": {
+                    "displayName": "Italic",
+                    "description": "Italic text",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "underline": {
+                    "displayName": "Underline",
+                    "description": "Underline text",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "backgroundColor": {
+                    "displayName": "Background Color",
+                    "description": "Data cell background color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "dataAlignment": {
+                    "displayName": "Data Alignment",
+                    "description": "Alignment of data values in cells",
+                    "type": {
+                        "enumeration": [
+                            {
+                                "displayName": "Left",
+                                "value": "left"
+                            },
+                            {
+                                "displayName": "Center",
+                                "value": "center"
+                            },
+                            {
+                                "displayName": "Right",
+                                "value": "right"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "columnHeaderFormat": {
+            "displayName": "Column Headers",
+            "description": "Column header formatting options",
+            "properties": {
+                "backgroundColor": {
+                    "displayName": "Background Color",
+                    "description": "Background color for column headers",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "fontColor": {
+                    "displayName": "Font Color",
+                    "description": "Font color for column headers",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "bold": {
+                    "displayName": "Bold",
+                    "description": "Bold text for column headers",
+                    "type": {
+                        "bool": true
+                    }
+                }
+            }
+        },
+        "rowHeaderFormat": {
+            "displayName": "Row Headers",
+            "description": "Row header formatting options",
+            "properties": {
+                "backgroundColor": {
+                    "displayName": "Background Color",
+                    "description": "Background color for row headers",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "fontColor": {
+                    "displayName": "Font Color",
+                    "description": "Font color for row headers",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "bold": {
+                    "displayName": "Bold",
+                    "description": "Bold text for row headers",
+                    "type": {
+                        "bool": true
+                    }
+                }
+            }
+        },"blankRowSettings": {
+            "displayName": "Blank Rows",
+            "description": "Settings for blank rows between Level 0 items",
+            "properties": {
+                "enableBlankRows": {
+                    "displayName": "Add Blank Rows",
+                    "description": "Insert blank rows between Level 0 items",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "backgroundColor": {
+                    "displayName": "Background Color",
+                    "description": "Background color for blank rows",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "height": {
+                    "displayName": "Row Height",
+                    "description": "Height of blank rows in pixels",
+                    "type": {
+                        "numeric": true
+                    }
+                }
+            }
+        },
+        "subtotalFormat": {
+            "displayName": "Subtotals",
+            "description": "Subtotal formatting options",
+            "properties": {
+                "backgroundColor": {
+                    "displayName": "Background Color",
+                    "description": "Background color for subtotal cells",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "fontColor": {
+                    "displayName": "Font Color",
+                    "description": "Font color for subtotal cells",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "bold": {
+                    "displayName": "Bold",
+                    "description": "Bold text for subtotals",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "italic": {
+                    "displayName": "Italic",
+                    "description": "Italic text for subtotals",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "applyToLevel0": {
+                    "displayName": "Apply to Top Level",
+                    "description": "Apply subtotal formatting to top level rows",
+                    "type": {
+                        "bool": true
+                    }
+                }
+            }
+        }
+    },
+    "dataViewMappings": [
+        {
+            "matrix": {
+                "rows": {
+                    "for": {
+                        "in": "rows"
+                    }
+                },
+                "columns": {
+                    "for": {
+                        "in": "columns"
+                    }
+                },
+                "values": {
+                    "for": {
+                        "in": "values"
+                    }
+                }
+            }
+        }
+    ],
+    "privileges": []
+  }

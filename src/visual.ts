@@ -281,9 +281,9 @@ export class Visual implements IVisual {
         const thead = document.createElement("thead");
         const headerRow = document.createElement("tr");
         
-            // Add corner cell
+        // Add corner cell
         const cornerCell = document.createElement("th");
-        cornerCell.className = "corner-cell";
+        cornerCell.className = "matrix-corner-cell";
         cornerCell.style.position = 'sticky';
         cornerCell.style.top = '0';
         cornerCell.style.left = '0';

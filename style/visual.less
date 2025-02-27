@@ -47,12 +47,12 @@
 }
 
 .matrix-corner-cell {
-    position: sticky;
-    top: 0;
-    left: 0;       // Ensure it stays aligned with the row header.
-    z-index: 10;   // Adjust z-index so it appears above scrolling cells.
+    position: sticky !important;
+    top: 0 !important;
+    left: 0 !important;       // Ensure it stays aligned with the row header.
+    z-index: 30 !important;   // Higher z-index to stay above all other elements
     background: inherit; // Optional: keep consistent background styling.
-  }
+}
   
 
 .matrix-table .column-header {

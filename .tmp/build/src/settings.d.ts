@@ -7,6 +7,7 @@ import FormattingSettingsModel = formattingSettings.Model;
  */
 declare class GeneralSettings extends FormattingSettingsCard {
     fontSize: formattingSettings.NumUpDown;
+    fontFamily: formattingSettings.TextInput;
     showMeasureName: formattingSettings.ToggleSwitch;
     columnWidth: formattingSettings.NumUpDown;
     enableHover: formattingSettings.ToggleSwitch;
@@ -29,57 +30,53 @@ declare class BorderSettings extends FormattingSettingsCard {
     slices: Array<FormattingSettingsSlice>;
 }
 /**
- * Font Formatting Card
+ * Shared formatting options base class
  */
-declare class FontFormatSettings extends FormattingSettingsCard {
+declare class BaseFormatSettings extends FormattingSettingsCard {
     color: formattingSettings.ColorPicker;
-    fontFamily: formattingSettings.TextInput;
     fontSize: formattingSettings.NumUpDown;
     bold: formattingSettings.ToggleSwitch;
     italic: formattingSettings.ToggleSwitch;
     underline: formattingSettings.ToggleSwitch;
     backgroundColor: formattingSettings.ColorPicker;
-    dataAlignment: formattingSettings.ItemDropdown;
+    alignment: formattingSettings.ItemDropdown;
+    get formattingSlices(): Array<FormattingSettingsSlice>;
+}
+/**
+ * Values Formatting Card
+ */
+declare class FontFormatSettings extends BaseFormatSettings {
     name: string;
     displayName: string;
     slices: Array<FormattingSettingsSlice>;
+    constructor();
 }
 /**
  * Column Header Formatting Card
  */
-declare class ColumnHeaderFormatSettings extends FormattingSettingsCard {
-    backgroundColor: formattingSettings.ColorPicker;
-    fontColor: formattingSettings.ColorPicker;
-    bold: formattingSettings.ToggleSwitch;
-    alignment: formattingSettings.ItemDropdown;
+declare class ColumnHeaderFormatSettings extends BaseFormatSettings {
     name: string;
     displayName: string;
     slices: Array<FormattingSettingsSlice>;
+    constructor();
 }
 /**
  * Row Header Formatting Card
  */
-declare class RowHeaderFormatSettings extends FormattingSettingsCard {
-    backgroundColor: formattingSettings.ColorPicker;
-    fontColor: formattingSettings.ColorPicker;
-    bold: formattingSettings.ToggleSwitch;
-    alignment: formattingSettings.ItemDropdown;
+declare class RowHeaderFormatSettings extends BaseFormatSettings {
     name: string;
     displayName: string;
     slices: Array<FormattingSettingsSlice>;
+    constructor();
 }
 /**
  * Subtotal Formatting Card
  */
-declare class SubtotalFormatSettings extends FormattingSettingsCard {
-    backgroundColor: formattingSettings.ColorPicker;
-    fontColor: formattingSettings.ColorPicker;
-    bold: formattingSettings.ToggleSwitch;
-    italic: formattingSettings.ToggleSwitch;
-    applyToLevel0: formattingSettings.ToggleSwitch;
+declare class SubtotalFormatSettings extends BaseFormatSettings {
     name: string;
     displayName: string;
     slices: Array<FormattingSettingsSlice>;
+    constructor();
 }
 /**
  * Blank Rows Settings Card
@@ -93,6 +90,17 @@ declare class BlankRowSettings extends FormattingSettingsCard {
     slices: Array<FormattingSettingsSlice>;
 }
 /**
+ * Grand Total Settings Card
+ */
+declare class GrandTotalSettings extends BaseFormatSettings {
+    show: formattingSettings.ToggleSwitch;
+    label: formattingSettings.TextInput;
+    name: string;
+    displayName: string;
+    slices: Array<FormattingSettingsSlice>;
+    constructor();
+}
+/**
  * Visual settings model class
  */
 export declare class VisualFormattingSettingsModel extends FormattingSettingsModel {
@@ -103,6 +111,7 @@ export declare class VisualFormattingSettingsModel extends FormattingSettingsMod
     rowHeaderFormatSettings: RowHeaderFormatSettings;
     subtotalFormatSettings: SubtotalFormatSettings;
     blankRowSettings: BlankRowSettings;
-    cards: (GeneralSettings | BorderSettings | FontFormatSettings | ColumnHeaderFormatSettings | RowHeaderFormatSettings | SubtotalFormatSettings | BlankRowSettings)[];
+    grandTotalSettings: GrandTotalSettings;
+    cards: (GeneralSettings | BorderSettings | FontFormatSettings | ColumnHeaderFormatSettings | RowHeaderFormatSettings | SubtotalFormatSettings | BlankRowSettings | GrandTotalSettings)[];
 }
 export {};

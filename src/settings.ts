@@ -25,6 +25,13 @@ class GeneralSettings extends FormattingSettingsCard {
         value: 10
     });
 
+    fontFamily = new formattingSettings.TextInput({
+        name: "fontFamily",
+        displayName: "Font Family",
+        value: "Segoe UI, sans-serif",
+        placeholder: "Enter font family"
+    });
+
     showMeasureName = new formattingSettings.ToggleSwitch({
         name: "showMeasureName",
         displayName: "Show Measure Name",
@@ -52,12 +59,13 @@ class GeneralSettings extends FormattingSettingsCard {
     name: string = "general";
     displayName: string = "General";
     slices: Array<FormattingSettingsSlice> = [
+        this.fontFamily,
         this.fontSize, 
         this.showMeasureName, 
         this.columnWidth, 
         this.rowHeaderWidth,
         this.enableHover
-];
+    ];
 }
 
 /**
@@ -107,21 +115,14 @@ class BorderSettings extends FormattingSettingsCard {
 }
 
 /**
- * Font Formatting Card
+ * Shared formatting options base class
  */
-class FontFormatSettings extends FormattingSettingsCard {
+class BaseFormatSettings extends FormattingSettingsCard {
     color = new formattingSettings.ColorPicker({
         name: "color",
         displayName: "Font Color",
         value: { value: "#000000" },
         instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
-    });
-
-    fontFamily = new formattingSettings.TextInput({
-        name: "fontFamily",
-        displayName: "Font Family",
-        value: "Segoe UI, sans-serif",
-        placeholder: "Enter font family"
     });
 
     fontSize = new formattingSettings.NumUpDown({
@@ -148,7 +149,6 @@ class FontFormatSettings extends FormattingSettingsCard {
         value: false
     });
     
-    // Adding background settings to Font card
     backgroundColor = new formattingSettings.ColorPicker({
         name: "backgroundColor",
         displayName: "Background Color",
@@ -156,152 +156,95 @@ class FontFormatSettings extends FormattingSettingsCard {
         instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
     });
 
-    dataAlignment = new formattingSettings.ItemDropdown({
-        name: "dataAlignment",
-        displayName: "Data Alignment",
+    alignment = new formattingSettings.ItemDropdown({
+        name: "alignment",
+        displayName: "Text Alignment",
         items: [
             { displayName: "Left", value: "left" },
             { displayName: "Center", value: "center" },
             { displayName: "Right", value: "right" }
         ],
-        value: { value: "right", displayName: "Right" } // Added displayName
+        value: { value: "right", displayName: "Right" }
     });
 
-    // Data Cells Font
+    get formattingSlices(): Array<FormattingSettingsSlice> {
+        return [
+            this.color, 
+            this.fontSize,
+            this.bold, 
+            this.italic, 
+            this.underline,
+            this.backgroundColor, 
+            this.alignment
+        ];
+    }
+}
+
+/**
+ * Values Formatting Card
+ */
+class FontFormatSettings extends BaseFormatSettings {
     name: string = "fontFormat";
-    displayName: string = "Values";
-    slices: Array<FormattingSettingsSlice> = [
-        this.color, this.fontFamily, this.fontSize,
-        this.bold, this.italic, this.underline,
-        this.backgroundColor, this.dataAlignment
-    ];
+    displayName: string = "Data Values";
+    slices: Array<FormattingSettingsSlice> = this.formattingSlices;
+
+    constructor() {
+        super();
+        // Default values for data values
+        this.alignment.value = { value: "right", displayName: "Right" };
+        this.backgroundColor.value = { value: "#FFFFFF" };
+    }
 }
 
 /**
  * Column Header Formatting Card
  */
-class ColumnHeaderFormatSettings extends FormattingSettingsCard {
-    backgroundColor = new formattingSettings.ColorPicker({
-        name: "backgroundColor",
-        displayName: "Background Color",
-        value: { value: "#E0E0E0" },
-        instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
-    });
-
-    fontColor = new formattingSettings.ColorPicker({
-        name: "fontColor",
-        displayName: "Font Color",
-        value: { value: "#000000" },
-        instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
-    });
-    
-    bold = new formattingSettings.ToggleSwitch({
-        name: "bold",
-        displayName: "Bold",
-        value: true
-    });
-
-    alignment = new formattingSettings.ItemDropdown({
-        name: "alignment",
-        displayName: "Text Alignment",
-        items: [
-            { displayName: "Left", value: "left" },
-            { displayName: "Center", value: "center" },
-            { displayName: "Right", value: "right" }
-        ],
-        value: { value: "center", displayName: "center" } // Default to center alignment
-    });
-
+class ColumnHeaderFormatSettings extends BaseFormatSettings {
     name: string = "columnHeaderFormat";
     displayName: string = "Column Headers";
-    slices: Array<FormattingSettingsSlice> = [this.backgroundColor, this.fontColor, this.bold, this.alignment];
+    slices: Array<FormattingSettingsSlice> = this.formattingSlices;
+
+    constructor() {
+        super();
+        // Default values for column headers
+        this.alignment.value = { value: "center", displayName: "Center" };
+        this.backgroundColor.value = { value: "#E0E0E0" };
+        this.bold.value = true;
+    }
 }
 
 /**
  * Row Header Formatting Card
  */
-class RowHeaderFormatSettings extends FormattingSettingsCard {
-    backgroundColor = new formattingSettings.ColorPicker({
-        name: "backgroundColor",
-        displayName: "Background Color",
-        value: { value: "#E8E8E8" },
-        instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
-    });
-
-    fontColor = new formattingSettings.ColorPicker({
-        name: "fontColor",
-        displayName: "Font Color",
-        value: { value: "#000000" },
-        instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
-    });
-    
-    bold = new formattingSettings.ToggleSwitch({
-        name: "bold",
-        displayName: "Bold",
-        value: true
-    });
-
-    alignment = new formattingSettings.ItemDropdown({
-        name: "alignment",
-        displayName: "Text Alignment",
-        items: [
-            { displayName: "Left", value: "left" },
-            { displayName: "Center", value: "center" },
-            { displayName: "Right", value: "right" }
-        ],
-        value: { value: "left", displayName: "left"} // Default to center alignment
-    });
-
+class RowHeaderFormatSettings extends BaseFormatSettings {
     name: string = "rowHeaderFormat";
     displayName: string = "Row Headers";
-    slices: Array<FormattingSettingsSlice> = [this.backgroundColor, this.fontColor, this.bold, this.alignment];
+    slices: Array<FormattingSettingsSlice> = this.formattingSlices;
+
+    constructor() {
+        super();
+        // Default values for row headers
+        this.alignment.value = { value: "left", displayName: "Left" };
+        this.backgroundColor.value = { value: "#E8E8E8" };
+        this.bold.value = true;
+    }
 }
 
 /**
  * Subtotal Formatting Card
  */
-class SubtotalFormatSettings extends FormattingSettingsCard {
-    backgroundColor = new formattingSettings.ColorPicker({
-        name: "backgroundColor",
-        displayName: "Background Color",
-        value: { value: "#F0F0F0" },
-        instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
-    });
-
-    fontColor = new formattingSettings.ColorPicker({
-        name: "fontColor",
-        displayName: "Font Color",
-        value: { value: "#000000" },
-        instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
-    });
-    
-    bold = new formattingSettings.ToggleSwitch({
-        name: "bold",
-        displayName: "Bold",
-        value: true
-    });
-    
-    italic = new formattingSettings.ToggleSwitch({
-        name: "italic",
-        displayName: "Italic",
-        value: false
-    });
-
-    applyToLevel0 = new formattingSettings.ToggleSwitch({
-        name: "applyToLevel0",
-        displayName: "Apply to Top Level",
-        value: true
-    });
-
+class SubtotalFormatSettings extends BaseFormatSettings {
     name: string = "subtotalFormat";
     displayName: string = "Subtotals";
-    slices: Array<FormattingSettingsSlice> = [
-        this.backgroundColor, 
-        this.fontColor, 
-        this.bold, 
-        this.italic,
-        this.applyToLevel0
-    ];
+    slices: Array<FormattingSettingsSlice> = this.formattingSlices;
+
+    constructor() {
+        super();
+        // Default values for subtotals
+        this.alignment.value = { value: "right", displayName: "Right" };
+        this.backgroundColor.value = { value: "#F0F0F0" };
+        this.bold.value = true;
+    }
 }
 
 /**
@@ -337,6 +280,40 @@ class BlankRowSettings extends FormattingSettingsCard {
 }
 
 /**
+ * Grand Total Settings Card
+ */
+class GrandTotalSettings extends BaseFormatSettings {
+    show = new formattingSettings.ToggleSwitch({
+        name: "show",
+        displayName: "Show Grand Total",
+        value: true
+    });
+
+    label = new formattingSettings.TextInput({
+        name: "label",
+        displayName: "Total Label",
+        value: "Grand Total",
+        placeholder: "Enter label for total"
+    });
+
+    name: string = "grandTotalSettings";
+    displayName: string = "Grand Total";
+    slices: Array<FormattingSettingsSlice> = [
+        this.show,
+        this.label,
+        ...this.formattingSlices // Get the common formatting options
+    ];
+
+    constructor() {
+        super();
+        // Default values for grand total
+        this.alignment.value = { value: "right", displayName: "Right" };
+        this.backgroundColor.value = { value: "#EEEEEE" };
+        this.bold.value = true;
+    }
+}
+
+/**
  * Visual settings model class
  */
 export class VisualFormattingSettingsModel extends FormattingSettingsModel {
@@ -348,6 +325,7 @@ export class VisualFormattingSettingsModel extends FormattingSettingsModel {
     rowHeaderFormatSettings = new RowHeaderFormatSettings();
     subtotalFormatSettings = new SubtotalFormatSettings();
     blankRowSettings = new BlankRowSettings();
+    grandTotalSettings = new GrandTotalSettings();
 
     cards = [
         this.generalSettings,
@@ -356,6 +334,7 @@ export class VisualFormattingSettingsModel extends FormattingSettingsModel {
         this.columnHeaderFormatSettings,
         this.rowHeaderFormatSettings,
         this.subtotalFormatSettings,
-        this.blankRowSettings
+        this.blankRowSettings,
+        this.grandTotalSettings
     ];
 }

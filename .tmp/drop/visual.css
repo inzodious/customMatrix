@@ -113,6 +113,13 @@
   border-left-width: var(--border-width, 1px);
   border-right-width: var(--border-width, 1px);
 }
+matrix-table tfoot {
+  z-index: 5;
+}
+.matrix-table tfoot th,
+.matrix-table tfoot td {
+  padding: 10px;
+}
 
 
 /*# sourceMappingURL=https://localhost:8080/assets/visual.css.map*/

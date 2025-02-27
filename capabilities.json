@@ -23,9 +23,16 @@
             "properties": {
                 "fontSize": {
                     "displayName": "Font Size",
-                    "description": "Select font size",
+                    "description": "Default font size",
                     "type": {
                         "numeric": true
+                    }
+                },
+                "fontFamily": {
+                    "displayName": "Font Family",
+                    "description": "Default font family for all text",
+                    "type": {
+                        "text": true
                     }
                 },
                 "showMeasureName": {
@@ -50,10 +57,10 @@
                     }
                 },
                 "rowHeaderWidth": {
-                "displayName": "Row Header Width",
-                "description": "Width of row header column (pixels)",
-                "type": {
-                    "numeric": true
+                    "displayName": "Row Header Width",
+                    "description": "Width of row header column (pixels)",
+                    "type": {
+                        "numeric": true
                     }
                 }
             }
@@ -104,7 +111,7 @@
             }
         },
         "fontFormat": {
-            "displayName": "Data Cells",
+            "displayName": "Data Values",
             "description": "Data cell formatting options",
             "properties": {
                 "color": {
@@ -116,13 +123,6 @@
                                 "color": true
                             }
                         }
-                    }
-                },
-                "fontFamily": {
-                    "displayName": "Font Family",
-                    "description": "Font family",
-                    "type": {
-                        "text": true
                     }
                 },
                 "fontSize": {
@@ -164,8 +164,8 @@
                         }
                     }
                 },
-                "dataAlignment": {
-                    "displayName": "Data Alignment",
+                "alignment": {
+                    "displayName": "Text Alignment",
                     "description": "Alignment of data values in cells",
                     "type": {
                         "enumeration": [
@@ -190,18 +190,7 @@
             "displayName": "Column Headers",
             "description": "Column header formatting options",
             "properties": {
-                "backgroundColor": {
-                    "displayName": "Background Color",
-                    "description": "Background color for column headers",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "fontColor": {
+                "color": {
                     "displayName": "Font Color",
                     "description": "Font color for column headers",
                     "type": {
@@ -212,11 +201,43 @@
                         }
                     }
                 },
+                "fontSize": {
+                    "displayName": "Font Size",
+                    "description": "Font size",
+                    "type": {
+                        "numeric": true
+                    }
+                },
                 "bold": {
                     "displayName": "Bold",
                     "description": "Bold text for column headers",
                     "type": {
                         "bool": true
+                    }
+                },
+                "italic": {
+                    "displayName": "Italic",
+                    "description": "Italic text for column headers",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "underline": {
+                    "displayName": "Underline",
+                    "description": "Underline text for column headers",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "backgroundColor": {
+                    "displayName": "Background Color",
+                    "description": "Background color for column headers",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
                     }
                 },
                 "alignment": {
@@ -245,18 +266,7 @@
             "displayName": "Row Headers",
             "description": "Row header formatting options",
             "properties": {
-                "backgroundColor": {
-                    "displayName": "Background Color",
-                    "description": "Background color for row headers",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "fontColor": {
+                "color": {
                     "displayName": "Font Color",
                     "description": "Font color for row headers",
                     "type": {
@@ -267,11 +277,43 @@
                         }
                     }
                 },
+                "fontSize": {
+                    "displayName": "Font Size",
+                    "description": "Font size",
+                    "type": {
+                        "numeric": true
+                    }
+                },
                 "bold": {
                     "displayName": "Bold",
                     "description": "Bold text for row headers",
                     "type": {
                         "bool": true
+                    }
+                },
+                "italic": {
+                    "displayName": "Italic",
+                    "description": "Italic text for row headers",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "underline": {
+                    "displayName": "Underline",
+                    "description": "Underline text for row headers",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "backgroundColor": {
+                    "displayName": "Background Color",
+                    "description": "Background color for row headers",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
                     }
                 },
                 "alignment": {
@@ -295,7 +337,8 @@
                     }
                 }
             }
-        },"blankRowSettings": {
+        },
+        "blankRowSettings": {
             "displayName": "Blank Rows",
             "description": "Settings for blank rows between Level 0 items",
             "properties": {
@@ -330,18 +373,7 @@
             "displayName": "Subtotals",
             "description": "Subtotal formatting options",
             "properties": {
-                "backgroundColor": {
-                    "displayName": "Background Color",
-                    "description": "Background color for subtotal cells",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "fontColor": {
+                "color": {
                     "displayName": "Font Color",
                     "description": "Font color for subtotal cells",
                     "type": {
@@ -350,6 +382,13 @@
                                 "color": true
                             }
                         }
+                    }
+                },
+                "fontSize": {
+                    "displayName": "Font Size",
+                    "description": "Font size",
+                    "type": {
+                        "numeric": true
                     }
                 },
                 "bold": {
@@ -366,11 +405,132 @@
                         "bool": true
                     }
                 },
-                "applyToLevel0": {
-                    "displayName": "Apply to Top Level",
-                    "description": "Apply subtotal formatting to top level rows",
+                "underline": {
+                    "displayName": "Underline",
+                    "description": "Underline text for subtotals",
                     "type": {
                         "bool": true
+                    }
+                },
+                "backgroundColor": {
+                    "displayName": "Background Color",
+                    "description": "Background color for subtotal cells",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "alignment": {
+                    "displayName": "Text Alignment",
+                    "description": "Alignment of subtotal values",
+                    "type": {
+                        "enumeration": [
+                            {
+                                "displayName": "Left",
+                                "value": "left"
+                            },
+                            {
+                                "displayName": "Center",
+                                "value": "center"
+                            },
+                            {
+                                "displayName": "Right",
+                                "value": "right"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "grandTotalSettings": {
+            "displayName": "Grand Total",
+            "description": "Settings for grand total row",
+            "properties": {
+                "show": {
+                    "displayName": "Show Grand Total",
+                    "description": "Show grand total row at the bottom",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "label": {
+                    "displayName": "Total Label",
+                    "description": "Label for the grand total row",
+                    "type": {
+                        "text": true
+                    }
+                },
+                "color": {
+                    "displayName": "Font Color",
+                    "description": "Font color for grand total row",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "fontSize": {
+                    "displayName": "Font Size",
+                    "description": "Font size",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "bold": {
+                    "displayName": "Bold",
+                    "description": "Bold text for grand total",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "italic": {
+                    "displayName": "Italic",
+                    "description": "Italic text for grand total",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "underline": {
+                    "displayName": "Underline",
+                    "description": "Underline text for grand total",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "backgroundColor": {
+                    "displayName": "Background Color",
+                    "description": "Background color for grand total row",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "alignment": {
+                    "displayName": "Text Alignment",
+                    "description": "Alignment of grand total values",
+                    "type": {
+                        "enumeration": [
+                            {
+                                "displayName": "Left",
+                                "value": "left"
+                            },
+                            {
+                                "displayName": "Center",
+                                "value": "center"
+                            },
+                            {
+                                "displayName": "Right",
+                                "value": "right"
+                            }
+                        ]
                     }
                 }
             }
@@ -398,4 +558,4 @@
         }
     ],
     "privileges": []
-  }
+}

@@ -30,6 +30,12 @@ class GeneralSettings extends FormattingSettingsCard {
         displayName: "Font Size",
         value: 10
     });
+    fontFamily = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.TextInput */ .z.ks({
+        name: "fontFamily",
+        displayName: "Font Family",
+        value: "Segoe UI, sans-serif",
+        placeholder: "Enter font family"
+    });
     showMeasureName = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
         name: "showMeasureName",
         displayName: "Show Measure Name",
@@ -53,6 +59,7 @@ class GeneralSettings extends FormattingSettingsCard {
     name = "general";
     displayName = "General";
     slices = [
+        this.fontFamily,
         this.fontSize,
         this.showMeasureName,
         this.columnWidth,
@@ -101,20 +108,14 @@ class BorderSettings extends FormattingSettingsCard {
     ];
 }
 /**
- * Font Formatting Card
+ * Shared formatting options base class
  */
-class FontFormatSettings extends FormattingSettingsCard {
+class BaseFormatSettings extends FormattingSettingsCard {
     color = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
         name: "color",
         displayName: "Font Color",
         value: { value: "#000000" },
         instanceKind: 3 /* powerbi.VisualEnumerationInstanceKinds.ConstantOrRule */
-    });
-    fontFamily = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.TextInput */ .z.ks({
-        name: "fontFamily",
-        displayName: "Font Family",
-        value: "Segoe UI, sans-serif",
-        placeholder: "Enter font family"
     });
     fontSize = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
         name: "fontSize",
@@ -136,142 +137,92 @@ class FontFormatSettings extends FormattingSettingsCard {
         displayName: "Underline",
         value: false
     });
-    // Adding background settings to Font card
     backgroundColor = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
         name: "backgroundColor",
         displayName: "Background Color",
         value: { value: "#FFFFFF" },
         instanceKind: 3 /* powerbi.VisualEnumerationInstanceKinds.ConstantOrRule */
     });
-    dataAlignment = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ItemDropdown */ .z.PA({
-        name: "dataAlignment",
-        displayName: "Data Alignment",
+    alignment = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ItemDropdown */ .z.PA({
+        name: "alignment",
+        displayName: "Text Alignment",
         items: [
             { displayName: "Left", value: "left" },
             { displayName: "Center", value: "center" },
             { displayName: "Right", value: "right" }
         ],
-        value: { value: "right", displayName: "Right" } // Added displayName
+        value: { value: "right", displayName: "Right" }
     });
-    // Data Cells Font
+    get formattingSlices() {
+        return [
+            this.color,
+            this.fontSize,
+            this.bold,
+            this.italic,
+            this.underline,
+            this.backgroundColor,
+            this.alignment
+        ];
+    }
+}
+/**
+ * Values Formatting Card
+ */
+class FontFormatSettings extends BaseFormatSettings {
     name = "fontFormat";
-    displayName = "Values";
-    slices = [
-        this.color, this.fontFamily, this.fontSize,
-        this.bold, this.italic, this.underline,
-        this.backgroundColor, this.dataAlignment
-    ];
+    displayName = "Data Values";
+    slices = this.formattingSlices;
+    constructor() {
+        super();
+        // Default values for data values
+        this.alignment.value = { value: "right", displayName: "Right" };
+        this.backgroundColor.value = { value: "#FFFFFF" };
+    }
 }
 /**
  * Column Header Formatting Card
  */
-class ColumnHeaderFormatSettings extends FormattingSettingsCard {
-    backgroundColor = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
-        name: "backgroundColor",
-        displayName: "Background Color",
-        value: { value: "#E0E0E0" },
-        instanceKind: 3 /* powerbi.VisualEnumerationInstanceKinds.ConstantOrRule */
-    });
-    fontColor = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
-        name: "fontColor",
-        displayName: "Font Color",
-        value: { value: "#000000" },
-        instanceKind: 3 /* powerbi.VisualEnumerationInstanceKinds.ConstantOrRule */
-    });
-    bold = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
-        name: "bold",
-        displayName: "Bold",
-        value: true
-    });
-    alignment = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ItemDropdown */ .z.PA({
-        name: "alignment",
-        displayName: "Text Alignment",
-        items: [
-            { displayName: "Left", value: "left" },
-            { displayName: "Center", value: "center" },
-            { displayName: "Right", value: "right" }
-        ],
-        value: { value: "center", displayName: "center" } // Default to center alignment
-    });
+class ColumnHeaderFormatSettings extends BaseFormatSettings {
     name = "columnHeaderFormat";
     displayName = "Column Headers";
-    slices = [this.backgroundColor, this.fontColor, this.bold, this.alignment];
+    slices = this.formattingSlices;
+    constructor() {
+        super();
+        // Default values for column headers
+        this.alignment.value = { value: "center", displayName: "Center" };
+        this.backgroundColor.value = { value: "#E0E0E0" };
+        this.bold.value = true;
+    }
 }
 /**
  * Row Header Formatting Card
  */
-class RowHeaderFormatSettings extends FormattingSettingsCard {
-    backgroundColor = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
-        name: "backgroundColor",
-        displayName: "Background Color",
-        value: { value: "#E8E8E8" },
-        instanceKind: 3 /* powerbi.VisualEnumerationInstanceKinds.ConstantOrRule */
-    });
-    fontColor = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
-        name: "fontColor",
-        displayName: "Font Color",
-        value: { value: "#000000" },
-        instanceKind: 3 /* powerbi.VisualEnumerationInstanceKinds.ConstantOrRule */
-    });
-    bold = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
-        name: "bold",
-        displayName: "Bold",
-        value: true
-    });
-    alignment = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ItemDropdown */ .z.PA({
-        name: "alignment",
-        displayName: "Text Alignment",
-        items: [
-            { displayName: "Left", value: "left" },
-            { displayName: "Center", value: "center" },
-            { displayName: "Right", value: "right" }
-        ],
-        value: { value: "left", displayName: "left" } // Default to center alignment
-    });
+class RowHeaderFormatSettings extends BaseFormatSettings {
     name = "rowHeaderFormat";
     displayName = "Row Headers";
-    slices = [this.backgroundColor, this.fontColor, this.bold, this.alignment];
+    slices = this.formattingSlices;
+    constructor() {
+        super();
+        // Default values for row headers
+        this.alignment.value = { value: "left", displayName: "Left" };
+        this.backgroundColor.value = { value: "#E8E8E8" };
+        this.bold.value = true;
+    }
 }
 /**
  * Subtotal Formatting Card
  */
-class SubtotalFormatSettings extends FormattingSettingsCard {
-    backgroundColor = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
-        name: "backgroundColor",
-        displayName: "Background Color",
-        value: { value: "#F0F0F0" },
-        instanceKind: 3 /* powerbi.VisualEnumerationInstanceKinds.ConstantOrRule */
-    });
-    fontColor = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ColorPicker */ .z.sk({
-        name: "fontColor",
-        displayName: "Font Color",
-        value: { value: "#000000" },
-        instanceKind: 3 /* powerbi.VisualEnumerationInstanceKinds.ConstantOrRule */
-    });
-    bold = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
-        name: "bold",
-        displayName: "Bold",
-        value: true
-    });
-    italic = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
-        name: "italic",
-        displayName: "Italic",
-        value: false
-    });
-    applyToLevel0 = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
-        name: "applyToLevel0",
-        displayName: "Apply to Top Level",
-        value: true
-    });
+class SubtotalFormatSettings extends BaseFormatSettings {
     name = "subtotalFormat";
     displayName = "Subtotals";
-    slices = [
-        this.backgroundColor,
-        this.fontColor,
-        this.bold,
-        this.italic,
-        this.applyToLevel0
-    ];
+    slices = this.formattingSlices;
+    constructor() {
+        super();
+        // Default values for subtotals
+        this.alignment.value = { value: "right", displayName: "Right" };
+        this.backgroundColor.value = { value: "#F0F0F0" };
+        this.bold.value = true;
+    }
 }
 /**
  * Blank Rows Settings Card
@@ -302,6 +253,36 @@ class BlankRowSettings extends FormattingSettingsCard {
     ];
 }
 /**
+ * Grand Total Settings Card
+ */
+class GrandTotalSettings extends BaseFormatSettings {
+    show = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
+        name: "show",
+        displayName: "Show Grand Total",
+        value: true
+    });
+    label = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.TextInput */ .z.ks({
+        name: "label",
+        displayName: "Total Label",
+        value: "Grand Total",
+        placeholder: "Enter label for total"
+    });
+    name = "grandTotalSettings";
+    displayName = "Grand Total";
+    slices = [
+        this.show,
+        this.label,
+        ...this.formattingSlices // Get the common formatting options
+    ];
+    constructor() {
+        super();
+        // Default values for grand total
+        this.alignment.value = { value: "right", displayName: "Right" };
+        this.backgroundColor.value = { value: "#EEEEEE" };
+        this.bold.value = true;
+    }
+}
+/**
  * Visual settings model class
  */
 class VisualFormattingSettingsModel extends FormattingSettingsModel {
@@ -313,6 +294,7 @@ class VisualFormattingSettingsModel extends FormattingSettingsModel {
     rowHeaderFormatSettings = new RowHeaderFormatSettings();
     subtotalFormatSettings = new SubtotalFormatSettings();
     blankRowSettings = new BlankRowSettings();
+    grandTotalSettings = new GrandTotalSettings();
     cards = [
         this.generalSettings,
         this.borderSettings,
@@ -320,7 +302,8 @@ class VisualFormattingSettingsModel extends FormattingSettingsModel {
         this.columnHeaderFormatSettings,
         this.rowHeaderFormatSettings,
         this.subtotalFormatSettings,
-        this.blankRowSettings
+        this.blankRowSettings,
+        this.grandTotalSettings
     ];
 }
 
@@ -941,60 +924,74 @@ class ContainerItem extends (/* unused pure expression or super */ null && (Name
 
 
 
+// CSS class constants
+const CSS_CLASSES = {
+    VISUAL_CONTAINER: "visual-container",
+    TABLE_CONTAINER: "table-container",
+    MATRIX_TABLE: "matrix-table",
+    HOVER_ENABLED: "hover-enabled",
+    ROW_HEADER: "row-header",
+    COLUMN_HEADER: "column-header",
+    DATA_CELL: "data-cell",
+    SUBTOTAL_CELL: "subtotal-cell",
+    LEVEL_0_ROW: "level-0-row",
+    LEVEL_0_HEADER: "level-0-header",
+    LEVEL_0_SUBTOTAL: "level-0-subtotal",
+    BLANK_ROW: "blank-row",
+    WITH_BORDERS: "with-borders",
+    WITH_HORIZONTAL_BORDERS: "with-horizontal-borders",
+    WITH_VERTICAL_BORDERS: "with-vertical-borders",
+    SUBTOTAL_ROW: "subtotal-row",
+    GRAND_TOTAL_ROW: "grand-total-row",
+};
 class Visual {
+    // DOM elements
     target;
     tableDiv;
-    updateCount;
+    // State tracking
     formattingSettings;
     formattingSettingsService;
-    // Store the host reference
     host;
-    // Track expanded state
     expandedRows;
-    // Store the last options for re-rendering
     lastOptions;
     constructor(options) {
         this.target = options.element;
         this.host = options.host;
         this.formattingSettingsService = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .FormattingSettingsService */ .O();
-        this.updateCount = 0;
         this.expandedRows = new Map();
+        // Create container elements
+        this.createContainerElements();
+    }
+    createContainerElements() {
         // Create main container div
         const container = document.createElement("div");
-        container.className = "visual-container";
-        container.style.overflow = "hidden"; // Changed from auto to hidden
+        container.className = CSS_CLASSES.VISUAL_CONTAINER;
+        container.style.overflow = "hidden";
         this.target.appendChild(container);
         // Create table container
         this.tableDiv = document.createElement("div");
-        this.tableDiv.className = "table-container";
-        this.tableDiv.style.overflow = "auto"; // Keep auto here
-        this.tableDiv.style.position = "relative"; // Add this
+        this.tableDiv.className = CSS_CLASSES.TABLE_CONTAINER;
+        this.tableDiv.style.overflow = "auto";
+        this.tableDiv.style.position = "relative";
         container.appendChild(this.tableDiv);
     }
     update(options) {
-        // Store the complete options object for later re-renders
+        // Store options for later re-renders
         this.lastOptions = options;
-        // Clear any previous content
+        // Clear previous content
         this.tableDiv.innerHTML = "";
         // Get formatting settings
-        if (options && options.dataViews && options.dataViews[0]) {
-            this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(_settings__WEBPACK_IMPORTED_MODULE_1__/* .VisualFormattingSettingsModel */ .S, options.dataViews[0]);
-        }
-        else {
+        if (!options?.dataViews?.[0]) {
             return; // No data to display
         }
+        this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(_settings__WEBPACK_IMPORTED_MODULE_1__/* .VisualFormattingSettingsModel */ .S, options.dataViews[0]);
         try {
-            // Check if we have data
-            if (!options || !options.dataViews || !options.dataViews[0]) {
-                return;
-            }
             const dataView = options.dataViews[0];
             // Check if we have matrix data
             if (!dataView.matrix) {
                 return;
             }
             const matrix = dataView.matrix;
-            // Get measure name
             const measureName = this.getMeasureName(dataView);
             // Create matrix table
             this.createMatrixTable(matrix, measureName);
@@ -1003,28 +1000,41 @@ class Visual {
             console.error("Error in update:", error);
         }
     }
+    // Helper methods for data extraction
     getMeasureName(dataView) {
         // Try to get from matrix valueSources
-        if (dataView.matrix && dataView.matrix.valueSources && dataView.matrix.valueSources.length > 0) {
-            const valueSource = dataView.matrix.valueSources[0];
-            if (valueSource.displayName) {
-                return valueSource.displayName;
-            }
+        if (dataView.matrix?.valueSources?.[0]?.displayName) {
+            return dataView.matrix.valueSources[0].displayName;
         }
         // Try to get from metadata columns with 'values' role
-        if (dataView.metadata && dataView.metadata.columns) {
+        if (dataView.metadata?.columns) {
             const valueColumn = dataView.metadata.columns.find(col => col.roles && (col.roles.values || col.roles.value || col.roles.measures || col.roles.measure));
-            if (valueColumn && valueColumn.displayName) {
+            if (valueColumn?.displayName) {
                 return valueColumn.displayName;
             }
         }
-        // Default fallback
-        return "Amount";
+        return "Amount"; // Default fallback
     }
-    // Generate a unique ID for tracking expanded state
+    // Generate unique ID for tracking expanded state
     getNodeId(node, level) {
         const value = node.value !== null && node.value !== undefined ? String(node.value) : "null";
         return `level_${level}_${value}`;
+    }
+    // Initialize expanded state for all rows
+    initializeExpandedState(rows, level, parentId) {
+        if (!rows)
+            return;
+        for (const row of rows) {
+            const nodeId = parentId + this.getNodeId(row, level);
+            // Set to expanded if not already set (default to expanded)
+            if (!this.expandedRows.has(nodeId)) {
+                this.expandedRows.set(nodeId, true);
+            }
+            // Initialize children recursively
+            if (row.children?.length > 0) {
+                this.initializeExpandedState(row.children, level + 1, nodeId);
+            }
+        }
     }
     // Check if a node is expanded
     isExpanded(nodeId) {
@@ -1034,7 +1044,127 @@ class Visual {
     toggleExpanded(nodeId) {
         this.expandedRows.set(nodeId, !this.isExpanded(nodeId));
     }
-    // Format a date value according to the format string
+    // Main table creation method
+    createMatrixTable(matrix, measureName) {
+        // Create table
+        const table = document.createElement("table");
+        table.className = CSS_CLASSES.MATRIX_TABLE;
+        // Set hover effects based on settings
+        if (this.formattingSettings.generalSettings.enableHover.value) {
+            table.classList.add(CSS_CLASSES.HOVER_ENABLED);
+        }
+        this.tableDiv.appendChild(table);
+        // Check if we have rows
+        if (!matrix.rows?.root) {
+            return;
+        }
+        // Process columns
+        const { columns, columnFormats } = this.processColumns(matrix, measureName);
+        // Create table header
+        this.createTableHeader(table, columns, columnFormats);
+        // Create table body
+        const tbody = document.createElement("tbody");
+        table.appendChild(tbody);
+        // Initialize all new rows to expanded state
+        if (matrix.rows.root.children) {
+            this.initializeExpandedState(matrix.rows.root.children, 0, "");
+        }
+        // Render rows recursively with subtotals
+        if (matrix.rows.root.children) {
+            this.renderRowsWithSubtotals(table, matrix.rows.root.children, columns, 0, "");
+        }
+        // Calculate grand totals
+        const grandTotals = this.calculateGrandTotals(matrix, columns);
+        // Add grand total row
+        this.addGrandTotalRow(table, columns, grandTotals);
+        // Apply all formatting
+        this.applyTableFormatting(table);
+    }
+    // Process columns data
+    processColumns(matrix, measureName) {
+        let columns = [];
+        let columnFormats = [];
+        if (matrix.columns?.root?.children) {
+            columns = matrix.columns.root.children;
+            // Extract column formats if columns are dates
+            if (matrix.columns.levels?.[0]?.sources?.[0]?.format) {
+                const columnSource = matrix.columns.levels[0].sources[0];
+                // Use the same format for all columns if they come from the same source
+                columnFormats = columns.map(() => columnSource.format);
+            }
+        }
+        else {
+            // If no columns, create a single column for the measure
+            columns = [{ value: null }]; // Empty column header
+            columnFormats = [""];
+        }
+        return { columns, columnFormats };
+    }
+    // Create table header
+    createTableHeader(table, columns, columnFormats) {
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+        // Add corner cell
+        const cornerCell = this.createCornerCell();
+        headerRow.appendChild(cornerCell);
+        // Add column headers
+        for (let i = 0; i < columns.length; i++) {
+            const columnHeader = this.createColumnHeader(columns[i], columnFormats[i]);
+            headerRow.appendChild(columnHeader);
+        }
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+    }
+    // Create corner cell (top-left)
+    createCornerCell() {
+        const cornerCell = document.createElement("th");
+        cornerCell.className = `${CSS_CLASSES.ROW_HEADER} ${CSS_CLASSES.COLUMN_HEADER}`;
+        cornerCell.setAttribute("style", "position: sticky !important; " +
+            "top: 0 !important; " +
+            "left: 0 !important; " +
+            "z-index: 1000 !important; " +
+            "background-color: #e0e0e0;");
+        this.applyFormatting(cornerCell, 'columnHeader');
+        return cornerCell;
+    }
+    // Create column header cell
+    createColumnHeader(column, format) {
+        const th = document.createElement("th");
+        th.className = CSS_CLASSES.COLUMN_HEADER;
+        // Apply column width
+        const columnWidth = this.formattingSettings.generalSettings.columnWidth.value;
+        if (columnWidth) {
+            th.style.minWidth = `${columnWidth}px`;
+            th.style.width = `${columnWidth}px`;
+        }
+        // Apply formatting
+        this.applyFormatting(th, 'columnHeader');
+        // Set header text
+        if (column.value !== null && column.value !== undefined) {
+            // Format date headers properly
+            if (column.isDate || (typeof column.value === 'object' && column.value.epochTimeStamp)) {
+                th.textContent = this.formatDateValue(column.value, format || "d");
+            }
+            else {
+                th.textContent = String(column.value);
+            }
+        }
+        else if (this.formattingSettings.generalSettings.showMeasureName.value) {
+            // Use measure name if column is empty and showMeasureName is true
+            th.textContent = this.getMeasureDynamically();
+        }
+        else {
+            th.textContent = "";
+        }
+        return th;
+    }
+    // Helper method to get measure dynamically
+    getMeasureDynamically() {
+        if (!this.lastOptions?.dataViews?.[0])
+            return "Amount";
+        return this.getMeasureName(this.lastOptions.dataViews[0]);
+    }
+    // Format a date value
     formatDateValue(value, format = "M/d/yyyy") {
         if (!value)
             return "";
@@ -1069,186 +1199,14 @@ class Visual {
             return String(value);
         }
     }
-    // Calculate subtotals for a parent node for a specific column index
-    calculateSubtotalForColumn(parentNode, columnIndex) {
-        if (!parentNode || !parentNode.children || parentNode.children.length === 0) {
-            return 0;
-        }
-        let total = 0;
-        for (const child of parentNode.children) {
-            if (child.children && child.children.length > 0) {
-                // Recursively get subtotals from children
-                total += this.calculateSubtotalForColumn(child, columnIndex);
-            }
-            else {
-                // Leaf node with values
-                if (child.values && child.values[columnIndex] &&
-                    child.values[columnIndex].value !== null &&
-                    child.values[columnIndex].value !== undefined &&
-                    typeof child.values[columnIndex].value === 'number') {
-                    total += child.values[columnIndex].value;
-                }
-            }
-        }
-        return total;
-    }
-    // Apply global border settings to all cells
-    applyGlobalBorders(table) {
-        const borderSettings = this.formattingSettings.borderSettings;
-        if (!borderSettings || !borderSettings.show.value) {
-            // If borders are turned off, remove all borders
-            table.classList.remove('with-borders');
-            table.classList.remove('with-horizontal-borders');
-            table.classList.remove('with-vertical-borders');
-            return;
-        }
-        // Get border color and width
-        const borderColor = borderSettings.color.value.value;
-        const borderWidth = borderSettings.width.value;
-        const showHorizontal = borderSettings.horizontalBorders.value;
-        const showVertical = borderSettings.verticalBorders.value;
-        // Set base border style
-        const borderStyle = `${borderWidth}px solid ${borderColor}`;
-        // Add classes based on which borders are enabled
-        table.classList.add('with-borders');
-        if (showHorizontal) {
-            table.classList.add('with-horizontal-borders');
-        }
-        else {
-            table.classList.remove('with-horizontal-borders');
-        }
-        if (showVertical) {
-            table.classList.add('with-vertical-borders');
-        }
-        else {
-            table.classList.remove('with-vertical-borders');
-        }
-        // Set CSS variables for border styling
-        table.style.setProperty('--border-color', borderColor);
-        table.style.setProperty('--border-width', `${borderWidth}px`);
-        table.style.setProperty('--border-style', 'solid');
-    }
-    createMatrixTable(matrix, measureName) {
-        // Create table
-        const table = document.createElement("table");
-        table.className = "matrix-table";
-        // Set hover effects based on settings
-        if (this.formattingSettings.generalSettings.enableHover.value) {
-            table.classList.add("hover-enabled");
-        }
-        this.tableDiv.appendChild(table);
-        // Check if we have rows
-        if (!matrix.rows || !matrix.rows.root) {
-            return;
-        }
-        let columns = [];
-        let columnFormats = [];
-        if (matrix.columns && matrix.columns.root && matrix.columns.root.children) {
-            columns = matrix.columns.root.children;
-            // Extract column formats if columns are dates
-            if (matrix.columns.levels && matrix.columns.levels.length > 0 &&
-                matrix.columns.levels[0].sources && matrix.columns.levels[0].sources.length > 0) {
-                const columnSource = matrix.columns.levels[0].sources[0];
-                if (columnSource.format) {
-                    // Use the same format for all columns if they come from the same source
-                    columnFormats = columns.map(() => columnSource.format);
-                }
-            }
-        }
-        else {
-            // If no columns, create a single column for the measure
-            columns = [{ value: null }]; // Empty column header
-            columnFormats = [""];
-        }
-        // Get column width setting
-        const columnWidth = this.formattingSettings.generalSettings.columnWidth.value;
-        // Create header row
-        const thead = document.createElement("thead");
-        const headerRow = document.createElement("tr");
-        // Add corner cell with direct inline styling for maximum specificity
-        const cornerCell = document.createElement("th");
-        cornerCell.className = "row-header column-header"; // Add both classes for CSS
-        cornerCell.setAttribute("style", "position: sticky !important; " +
-            "top: 0 !important; " +
-            "left: 0 !important; " +
-            "z-index: 1000 !important; " +
-            "background-color: #e0e0e0;");
-        // Apply column header formatting to corner cell
-        this.applyColumnHeaderFormatting(cornerCell);
-        headerRow.appendChild(cornerCell);
-        // Add column headers
-        for (let i = 0; i < columns.length; i++) {
-            const th = document.createElement("th");
-            th.className = "column-header";
-            // Apply column width
-            if (columnWidth) {
-                th.style.minWidth = `${columnWidth}px`;
-                th.style.width = `${columnWidth}px`;
-            }
-            // Apply column header formatting
-            this.applyColumnHeaderFormatting(th);
-            // Set header text
-            const column = columns[i];
-            if (column.value !== null && column.value !== undefined) {
-                // Format date headers properly
-                if (column.isDate || (typeof column.value === 'object' && column.value.epochTimeStamp)) {
-                    th.textContent = this.formatDateValue(column.value, columnFormats[i] || "d");
-                }
-                else {
-                    th.textContent = String(column.value);
-                }
-            }
-            else if (this.formattingSettings.generalSettings.showMeasureName.value) {
-                // Use measure name if column is empty and showMeasureName is true
-                th.textContent = measureName;
-            }
-            else {
-                th.textContent = "";
-            }
-            headerRow.appendChild(th);
-        }
-        thead.appendChild(headerRow);
-        table.appendChild(thead);
-        // Create table body
-        const tbody = document.createElement("tbody");
-        table.appendChild(tbody);
-        // Initialize all new rows to expanded state if not already set
-        if (matrix.rows.root.children) {
-            this.initializeExpandedState(matrix.rows.root.children, 0, "");
-        }
-        // Render rows recursively with subtotals
-        if (matrix.rows.root.children) {
-            this.renderRowsWithSubtotals(table, matrix.rows.root.children, columns, 0, "");
-        }
-        // Apply formatting
-        this.applyFormatting(table);
-        // Apply global border settings
-        this.applyGlobalBorders(table);
-    }
-    // Initialize expanded state for new nodes
-    initializeExpandedState(rows, level, parentId) {
-        if (!rows)
-            return;
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            const nodeId = parentId + this.getNodeId(row, level);
-            // Set to expanded if not already set (default to expanded)
-            if (!this.expandedRows.has(nodeId)) {
-                this.expandedRows.set(nodeId, true); // Default to expanded
-            }
-            // Initialize children recursively
-            if (row.children && row.children.length > 0) {
-                this.initializeExpandedState(row.children, level + 1, nodeId);
-            }
-        }
-    }
     // Recursive function to render rows with subtotals
     renderRowsWithSubtotals(table, rows, columns, level = 0, parentId = "") {
-        if (!rows || rows.length === 0)
+        if (!rows?.length)
             return;
         const tbody = table.querySelector('tbody');
         const columnWidth = this.formattingSettings.generalSettings.columnWidth.value;
-        const applySubtotalToLevel0 = this.formattingSettings.subtotalFormatSettings.applyToLevel0.value;
+        // Always apply subtotal formatting to level0
+        const applySubtotalToLevel0 = true;
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const nodeId = parentId + this.getNodeId(row, level);
@@ -1259,388 +1217,634 @@ class Visual {
             tr.setAttribute("data-node-id", nodeId);
             tr.setAttribute("data-level", String(level));
             if (isLevel0) {
-                tr.classList.add("level-0-row");
+                tr.classList.add(CSS_CLASSES.LEVEL_0_ROW);
             }
-            // Add row header with appropriate indentation
-            const rowHeader = document.createElement("th");
-            rowHeader.className = "row-header";
-            if (isLevel0) {
-                rowHeader.classList.add("level-0-header");
+            if (row.children?.length > 0) {
+                tr.classList.add(CSS_CLASSES.SUBTOTAL_ROW);
             }
-            // Apply row header width
-            const rowHeaderWidth = this.formattingSettings.generalSettings.rowHeaderWidth.value;
-            if (rowHeaderWidth) {
-                rowHeader.style.minWidth = `${rowHeaderWidth}px`;
-                rowHeader.style.width = `${rowHeaderWidth}px`;
-            }
-            // Create header content with indentation and toggle if needed
-            const headerContent = document.createElement("div");
-            headerContent.className = "row-header-content";
-            headerContent.style.marginLeft = `${level * 20}px`;
-            headerContent.style.display = "flex"; // Add flex display
-            headerContent.style.alignItems = "center"; // Center items vertically
-            // Add toggle button if has children
-            if (row.children && row.children.length > 0) {
-                const toggleButton = document.createElement("span");
-                toggleButton.className = "toggle-button";
-                toggleButton.textContent = isExpanded ? "▼" : "►";
-                toggleButton.style.flexShrink = "0"; // Prevent toggle from shrinking
-                toggleButton.onclick = (event) => {
-                    event.stopPropagation();
-                    // Toggle the expanded state
-                    this.toggleExpanded(nodeId);
-                    // Use our improved rendering method
-                    this.renderVisualWithCurrentState();
-                };
-                headerContent.appendChild(toggleButton);
-            }
-            else {
-                // Add a spacer for better alignment
-                const spacer = document.createElement("span");
-                spacer.className = "toggle-spacer";
-                spacer.textContent = "  ";
-                spacer.style.flexShrink = "0"; // Prevent spacer from shrinking
-                headerContent.appendChild(spacer);
-            }
-            // Add the actual row label in a separate span for alignment control
-            const label = document.createElement("span");
-            label.className = "row-label";
-            label.style.width = "100%"; // Allow label to take remaining space
-            // Format date row headers properly
-            if (row.isDate || (typeof row.value === 'object' && row.value.epochTimeStamp)) {
-                label.textContent = this.formatDateValue(row.value);
-            }
-            else {
-                label.textContent = row.value !== null && row.value !== undefined ? String(row.value) : "";
-            }
-            // Apply alignment to the label based on row header format settings
-            if (this.formattingSettings.rowHeaderFormatSettings.alignment &&
-                this.formattingSettings.rowHeaderFormatSettings.alignment.value) {
-                label.style.textAlign = String(this.formattingSettings.rowHeaderFormatSettings.alignment.value.value);
-                label.style.display = "block"; // Ensure block display for text-align to work
-            }
-            headerContent.appendChild(label);
-            rowHeader.appendChild(headerContent);
-            // Apply row header formatting - different for Level 0 if setting enabled
-            if (isLevel0 && applySubtotalToLevel0) {
-                this.applyLevel0HeaderFormatting(rowHeader);
-            }
-            else {
-                this.applyRowHeaderFormatting(rowHeader);
-            }
+            // Add row header - always apply subtotal formatting to level0
+            const rowHeader = this.createRowHeader(row, level, nodeId, isExpanded, isLevel0, true);
             tr.appendChild(rowHeader);
-            // Add data cells 
-            if (row.children && row.children.length > 0) {
-                // Calculate and display subtotals for each column
-                for (let j = 0; j < columns.length; j++) {
-                    const td = document.createElement("td");
-                    td.className = "data-cell subtotal-cell";
-                    if (isLevel0) {
-                        td.classList.add("level-0-subtotal");
-                    }
-                    // Apply column width to cells
-                    if (columnWidth) {
-                        td.style.minWidth = `${columnWidth}px`;
-                        td.style.width = `${columnWidth}px`;
-                    }
-                    // Calculate subtotal for this specific column
-                    const subtotal = this.calculateSubtotalForColumn(row, j);
-                    // Only display the subtotal if it's not zero
-                    if (subtotal !== 0) {
-                        td.textContent = this.formatNumber(subtotal);
-                    }
-                    else {
-                        td.textContent = "";
-                    }
-                    // Apply the same alignment as regular data cells
-                    if (this.formattingSettings.fontFormatSettings.dataAlignment &&
-                        this.formattingSettings.fontFormatSettings.dataAlignment.value) {
-                        td.style.textAlign = String(this.formattingSettings.fontFormatSettings.dataAlignment.value.value);
-                    }
-                    tr.appendChild(td);
-                }
+            // Add data cells
+            if (row.children?.length > 0) {
+                // Create subtotal cells
+                this.addSubtotalCells(tr, row, columns, isLevel0, columnWidth);
             }
             else if (row.values) {
-                // Regular data cells
-                for (let j = 0; j < columns.length; j++) {
-                    const td = document.createElement("td");
-                    td.className = "data-cell";
-                    // Apply column width to cells
-                    if (columnWidth) {
-                        td.style.minWidth = `${columnWidth}px`;
-                        td.style.width = `${columnWidth}px`;
-                    }
-                    // Get cell value
-                    const value = row.values[j];
-                    if (value !== null && value !== undefined) {
-                        if (typeof value === 'number') {
-                            td.textContent = this.formatNumber(value);
-                        }
-                        else if (typeof value === 'object') {
-                            // Extract value from object
-                            if ('value' in value) {
-                                const cellValue = value.value;
-                                if (typeof cellValue === 'number') {
-                                    td.textContent = this.formatNumber(cellValue);
-                                }
-                                else if (cellValue === null || cellValue === undefined ||
-                                    (typeof cellValue === 'object' && Object.keys(cellValue).length === 0)) {
-                                    // Handle empty objects
-                                    td.textContent = "";
-                                }
-                                else {
-                                    td.textContent = String(cellValue);
-                                }
-                            }
-                            else if (Object.keys(value).length === 0) {
-                                // Handle empty objects
-                                td.textContent = "";
-                            }
-                            else {
-                                td.textContent = JSON.stringify(value);
-                            }
-                        }
-                        else {
-                            td.textContent = String(value);
-                        }
-                    }
-                    else {
-                        td.textContent = "";
-                    }
-                    tr.appendChild(td);
-                }
+                // Create regular data cells
+                this.addDataCells(tr, row, columns, columnWidth);
             }
             tbody.appendChild(tr);
             // If this node has children and is expanded, render its children
-            if (row.children && row.children.length > 0 && isExpanded) {
+            if (row.children?.length > 0 && isExpanded) {
                 this.renderRowsWithSubtotals(table, row.children, columns, level + 1, nodeId);
             }
-            // If this is the last row at the bottom level, add a blank row if enabled
-            if ((!row.children || row.children.length === 0) &&
-                i === rows.length - 1 &&
-                this.formattingSettings.blankRowSettings.enableBlankRows.value) {
-                // Create blank row
-                const blankRow = document.createElement("tr");
-                blankRow.className = "blank-row";
-                // Set the height if specified
-                const rowHeight = this.formattingSettings.blankRowSettings.height.value;
-                if (rowHeight > 0) {
-                    blankRow.style.height = `${rowHeight}px`;
-                }
-                // Create a cell that spans all columns
-                const blankCell = document.createElement("td");
-                blankCell.colSpan = columns.length + 1; // +1 for row header column
-                // Apply background color from settings
-                const bgColor = this.formattingSettings.blankRowSettings.backgroundColor.value.value;
-                if (bgColor) {
-                    blankCell.style.backgroundColor = bgColor;
-                }
-                // Add the cell to the row and the row to the table
-                blankRow.appendChild(blankCell);
-                tbody.appendChild(blankRow);
-            }
+            // Add blank row if needed
+            this.addBlankRowIfNeeded(tbody, columns, i, rows.length, row, level);
         }
     }
+    // Create a row header
+    createRowHeader(row, level, nodeId, isExpanded, isLevel0, applySubtotalToLevel0) {
+        const rowHeader = document.createElement("th");
+        rowHeader.className = CSS_CLASSES.ROW_HEADER;
+        if (isLevel0) {
+            rowHeader.classList.add(CSS_CLASSES.LEVEL_0_HEADER);
+        }
+        // Apply row header width
+        const rowHeaderWidth = this.formattingSettings.generalSettings.rowHeaderWidth.value;
+        if (rowHeaderWidth) {
+            rowHeader.style.minWidth = `${rowHeaderWidth}px`;
+            rowHeader.style.width = `${rowHeaderWidth}px`;
+        }
+        // Create header content
+        const headerContent = document.createElement("div");
+        headerContent.className = "row-header-content";
+        headerContent.style.marginLeft = `${level * 20}px`;
+        headerContent.style.display = "flex";
+        headerContent.style.alignItems = "center";
+        // Add toggle button or spacer
+        if (row.children?.length > 0) {
+            const toggleButton = this.createToggleButton(nodeId, isExpanded);
+            headerContent.appendChild(toggleButton);
+        }
+        else {
+            // Add spacer for better alignment
+            const spacer = document.createElement("span");
+            spacer.className = "toggle-spacer";
+            spacer.textContent = "  ";
+            spacer.style.flexShrink = "0";
+            headerContent.appendChild(spacer);
+        }
+        // Add the row label
+        const label = this.createRowLabel(row);
+        headerContent.appendChild(label);
+        rowHeader.appendChild(headerContent);
+        // Apply formatting based on level
+        if (isLevel0 && applySubtotalToLevel0) {
+            this.applyFormatting(rowHeader, 'subtotal');
+        }
+        else {
+            this.applyFormatting(rowHeader, 'rowHeader');
+        }
+        return rowHeader;
+    }
+    // Create toggle button for expanding/collapsing rows
+    createToggleButton(nodeId, isExpanded) {
+        const toggleButton = document.createElement("span");
+        toggleButton.className = "toggle-button";
+        toggleButton.textContent = isExpanded ? "▼" : "►";
+        toggleButton.style.flexShrink = "0";
+        toggleButton.onclick = (event) => {
+            event.stopPropagation();
+            this.toggleExpanded(nodeId);
+            this.renderVisualWithCurrentState();
+        };
+        return toggleButton;
+    }
+    // Create row label element
+    createRowLabel(row) {
+        const label = document.createElement("span");
+        label.className = "row-label";
+        label.style.width = "100%";
+        // Format date row headers properly
+        if (row.isDate || (typeof row.value === 'object' && row.value.epochTimeStamp)) {
+            label.textContent = this.formatDateValue(row.value);
+        }
+        else {
+            label.textContent = row.value !== null && row.value !== undefined ? String(row.value) : "";
+        }
+        // Apply alignment
+        const alignment = this.formattingSettings.rowHeaderFormatSettings.alignment?.value?.value;
+        if (alignment) {
+            label.style.textAlign = String(alignment);
+            label.style.display = "block";
+        }
+        return label;
+    }
+    // Add subtotal cells to a row
+    addSubtotalCells(tr, row, columns, isLevel0, columnWidth) {
+        for (let j = 0; j < columns.length; j++) {
+            const td = document.createElement("td");
+            td.className = `${CSS_CLASSES.DATA_CELL} ${CSS_CLASSES.SUBTOTAL_CELL}`;
+            if (isLevel0) {
+                td.classList.add(CSS_CLASSES.LEVEL_0_SUBTOTAL);
+            }
+            // Apply column width
+            if (columnWidth) {
+                td.style.minWidth = `${columnWidth}px`;
+                td.style.width = `${columnWidth}px`;
+            }
+            // Calculate subtotal
+            const subtotal = this.calculateSubtotalForColumn(row, j);
+            // Only display non-zero subtotals
+            td.textContent = subtotal !== 0 ? this.formatNumber(subtotal) : "";
+            // Apply alignment from subtotal settings for subtotal cells
+            const alignment = this.formattingSettings.subtotalFormatSettings.alignment?.value?.value;
+            if (alignment !== undefined) {
+                td.style.textAlign = alignment.toString();
+            }
+            tr.appendChild(td);
+        }
+    }
+    // Add regular data cells to a row
+    addDataCells(tr, row, // Use any to handle both types
+    columns, columnWidth) {
+        for (let j = 0; j < columns.length; j++) {
+            const td = document.createElement("td");
+            td.className = CSS_CLASSES.DATA_CELL;
+            // Apply column width
+            if (columnWidth) {
+                td.style.minWidth = `${columnWidth}px`;
+                td.style.width = `${columnWidth}px`;
+            }
+            // Get cell value and format it
+            const value = row.values[j];
+            td.textContent = this.formatCellValue(value);
+            tr.appendChild(td);
+        }
+    }
+    // Add blank row if settings indicate one is needed
+    addBlankRowIfNeeded(tbody, columns, currentIndex, totalRows, currentRow, level) {
+        const blankRowSettings = this.formattingSettings.blankRowSettings;
+        // Only add blank rows if the setting is enabled
+        if (!blankRowSettings.enableBlankRows.value) {
+            return;
+        }
+        // Add blank row after each top-level item (level 0) except the last one
+        if (level === 0 && currentIndex < totalRows - 1) {
+            // Create blank row
+            const blankRow = document.createElement("tr");
+            blankRow.className = CSS_CLASSES.BLANK_ROW;
+            // Set the height if specified
+            const rowHeight = blankRowSettings.height.value;
+            if (rowHeight > 0) {
+                blankRow.style.height = `${rowHeight}px`;
+            }
+            // Create a cell that spans all columns
+            const blankCell = document.createElement("td");
+            blankCell.colSpan = columns.length + 1; // +1 for row header column
+            // Apply background color from settings
+            const bgColor = blankRowSettings.backgroundColor.value.value;
+            if (bgColor) {
+                blankCell.style.backgroundColor = bgColor;
+            }
+            // Add the cell to the row and the row to the table
+            blankRow.appendChild(blankCell);
+            tbody.appendChild(blankRow);
+        }
+    }
+    // Format cell value based on type
+    formatCellValue(value) {
+        if (value === null || value === undefined) {
+            return "";
+        }
+        if (typeof value === 'number') {
+            return this.formatNumber(value);
+        }
+        if (typeof value === 'object') {
+            // Extract value from object
+            if ('value' in value) {
+                const cellValue = value.value;
+                if (typeof cellValue === 'number') {
+                    return this.formatNumber(cellValue);
+                }
+                else if (cellValue === null || cellValue === undefined ||
+                    (typeof cellValue === 'object' && Object.keys(cellValue).length === 0)) {
+                    return "";
+                }
+                else {
+                    return String(cellValue);
+                }
+            }
+            else if (Object.keys(value).length === 0) {
+                return "";
+            }
+            else {
+                return JSON.stringify(value);
+            }
+        }
+        return String(value);
+    }
+    // Calculate subtotal for a parent node and column
+    calculateSubtotalForColumn(parentNode, columnIndex) {
+        if (!parentNode?.children?.length) {
+            return 0;
+        }
+        let total = 0;
+        for (const child of parentNode.children) {
+            if (child.children?.length > 0) {
+                // Recursively get subtotals from children
+                total += this.calculateSubtotalForColumn(child, columnIndex);
+            }
+            else {
+                // Leaf node with values
+                if (child.values?.[columnIndex]?.value !== null &&
+                    child.values[columnIndex]?.value !== undefined &&
+                    typeof child.values[columnIndex].value === 'number') {
+                    total += child.values[columnIndex].value;
+                }
+            }
+        }
+        return total;
+    }
+    /**
+ * Calculate grand totals for all columns
+ */
+    calculateGrandTotals(matrix, columns) {
+        const totals = new Array(columns.length).fill(0);
+        // If no rows, return zeros
+        if (!matrix.rows?.root?.children) {
+            return totals;
+        }
+        // Function to recursively process all leaf nodes
+        const processNode = (node, level) => {
+            if (node.children && node.children.length > 0) {
+                // Process children recursively
+                for (const child of node.children) {
+                    processNode(child, level + 1);
+                }
+            }
+            else if (node.values) {
+                // This is a leaf node with values
+                for (let i = 0; i < columns.length; i++) {
+                    if (node.values[i]?.value !== null &&
+                        node.values[i]?.value !== undefined &&
+                        typeof node.values[i].value === 'number') {
+                        totals[i] += node.values[i].value;
+                    }
+                }
+            }
+        };
+        // Process all rows starting from the root
+        for (const row of matrix.rows.root.children) {
+            processNode(row, 0);
+        }
+        return totals;
+    }
+    /**
+     * Create and append grand total row
+     */
+    addGrandTotalRow(table, columns, totals) {
+        const settings = this.formattingSettings;
+        // Check if grand total is enabled
+        if (!settings.grandTotalSettings.show.value) {
+            return;
+        }
+        // Get the footer or create one if it doesn't exist
+        let tfoot = table.querySelector('tfoot');
+        if (!tfoot) {
+            tfoot = document.createElement('tfoot');
+            table.appendChild(tfoot);
+        }
+        else {
+            // Clear existing content
+            tfoot.innerHTML = '';
+        }
+        // Create the grand total row
+        const tr = document.createElement('tr');
+        tr.className = CSS_CLASSES.GRAND_TOTAL_ROW;
+        // Set the row to be sticky to the bottom
+        tr.style.position = 'sticky';
+        tr.style.bottom = '0';
+        tr.style.zIndex = '5';
+        // Create the label cell
+        const labelCell = document.createElement('th');
+        labelCell.textContent = settings.grandTotalSettings.label.value || 'Grand Total';
+        labelCell.style.position = 'sticky';
+        labelCell.style.left = '0';
+        labelCell.style.zIndex = '6'; // Higher than the row to ensure it stays on top
+        tr.appendChild(labelCell);
+        // Create the total cells
+        for (let i = 0; i < columns.length; i++) {
+            const td = document.createElement('td');
+            td.textContent = this.formatNumber(totals[i]);
+            tr.appendChild(td);
+        }
+        // Apply formatting to each cell in the grand total row
+        const cells = tr.querySelectorAll('th, td');
+        cells.forEach(cell => {
+            this.applyFormatting(cell, 'grandTotal');
+        });
+        // Add the row to the footer
+        tfoot.appendChild(tr);
+    }
+    // Format number with locale and decimal places
     formatNumber(value) {
         return value.toLocaleString(undefined, {
             minimumFractionDigits: 0,
             maximumFractionDigits: 2
         });
     }
-    applyColumnHeaderFormatting(headerCell) {
-        if (!this.formattingSettings)
-            return;
-        const headerFormat = this.formattingSettings.columnHeaderFormatSettings;
-        // Apply background color
-        if (headerFormat.backgroundColor.value.value) {
-            headerCell.style.backgroundColor = headerFormat.backgroundColor.value.value;
-        }
-        // Apply font color
-        if (headerFormat.fontColor.value.value) {
-            headerCell.style.color = headerFormat.fontColor.value.value;
-        }
-        // Apply font weight
-        if (headerFormat.bold.value) {
-            headerCell.style.fontWeight = 'bold';
-        }
-        else {
-            headerCell.style.fontWeight = 'normal';
-        }
-        // Apply text alignment
-        if (headerFormat.alignment && headerFormat.alignment.value) {
-            headerCell.style.textAlign = String(headerFormat.alignment.value.value);
-        }
-    }
-    /**
-     * Apply formatting to row headers
-     */
-    applyRowHeaderFormatting(headerCell) {
-        if (!this.formattingSettings)
-            return;
-        const headerFormat = this.formattingSettings.rowHeaderFormatSettings;
-        // Apply background color
-        if (headerFormat.backgroundColor.value.value) {
-            headerCell.style.backgroundColor = headerFormat.backgroundColor.value.value;
-        }
-        // Apply font color
-        if (headerFormat.fontColor.value.value) {
-            headerCell.style.color = headerFormat.fontColor.value.value;
-        }
-        // Apply font weight
-        if (headerFormat.bold.value) {
-            headerCell.style.fontWeight = 'bold';
-        }
-        else {
-            headerCell.style.fontWeight = 'normal';
-        }
-        // Apply text alignment
-        if (headerFormat.alignment && headerFormat.alignment.value) {
-            headerCell.style.textAlign = String(headerFormat.alignment.value.value);
-        }
-    }
-    /**
-     * Apply subtotal formatting to Level 0 row headers
-     */
-    applyLevel0HeaderFormatting(headerCell) {
-        if (!this.formattingSettings)
-            return;
-        const subtotalFormat = this.formattingSettings.subtotalFormatSettings;
-        // Apply background color
-        if (subtotalFormat.backgroundColor.value.value) {
-            headerCell.style.backgroundColor = subtotalFormat.backgroundColor.value.value;
-        }
-        // Apply font color
-        if (subtotalFormat.fontColor.value.value) {
-            headerCell.style.color = subtotalFormat.fontColor.value.value;
-        }
-        // Apply font styling
-        if (subtotalFormat.bold.value) {
-            headerCell.style.fontWeight = 'bold';
-        }
-        else {
-            headerCell.style.fontWeight = 'normal';
-        }
-        if (subtotalFormat.italic.value) {
-            headerCell.style.fontStyle = 'italic';
-        }
-        else {
-            headerCell.style.fontStyle = 'normal';
-        }
-    }
-    applyFormatting(table) {
+    // Apply all formatting to the table
+    applyTableFormatting(table) {
         if (!this.formattingSettings) {
             return;
         }
         try {
-            // Get settings
-            const general = this.formattingSettings.generalSettings;
-            const font = this.formattingSettings.fontFormatSettings;
-            const subtotalFormat = this.formattingSettings.subtotalFormatSettings;
-            const applySubtotalToLevel0 = subtotalFormat.applyToLevel0.value;
             // Apply general font size to table
-            table.style.fontSize = `${general.fontSize.value}pt`;
+            const fontSize = this.formattingSettings.generalSettings.fontSize.value;
+            table.style.fontSize = `${fontSize}pt`;
             // Apply font family
-            if (font.fontFamily.value) {
-                table.style.fontFamily = font.fontFamily.value;
+            const fontFamily = this.formattingSettings.generalSettings.fontFamily.value;
+            if (fontFamily) {
+                table.style.fontFamily = fontFamily;
             }
-            // Get all data cells by type
-            const regularCells = table.querySelectorAll('td.data-cell:not(.subtotal-cell):not(.level-0-subtotal)');
-            const subtotalCells = table.querySelectorAll('td.subtotal-cell:not(.level-0-subtotal)');
-            const level0Cells = table.querySelectorAll('td.level-0-subtotal');
-            // Apply formatting to regular cells
-            regularCells.forEach((cell) => {
-                this.applyDataCellFormatting(cell, font, false, false);
-            });
-            // Apply formatting to subtotal cells with explicit styling
-            subtotalCells.forEach((cell) => {
-                this.applyDataCellFormatting(cell, font, true, false);
-            });
-            // Apply separate formatting to level 0 cells if the setting is enabled
-            level0Cells.forEach((cell) => {
-                if (applySubtotalToLevel0) {
-                    this.applySubtotalCellFormatting(cell);
-                }
-                else {
-                    this.applyDataCellFormatting(cell, font, true, false);
-                }
-            });
+            // Apply formatting to different cell types
+            this.formatCellsByType(table);
+            // Apply global border settings
+            this.applyGlobalBorders(table);
         }
         catch (error) {
             console.error("Error applying formatting:", error);
         }
     }
-    // Helper function to apply data cell formatting
-    applyDataCellFormatting(cell, font, isSubtotal, isLevel0) {
-        // Font color
-        if (font.color.value.value) {
-            cell.style.color = font.color.value.value;
-        }
-        // Font style
-        if (isSubtotal || font.bold.value) {
-            cell.style.fontWeight = 'bold';
-        }
-        if (font.italic.value) {
-            cell.style.fontStyle = 'italic';
-        }
-        if (font.underline.value) {
-            cell.style.textDecoration = 'underline';
-        }
-        // Background color
-        if (font.backgroundColor.value.value) {
-            if (isSubtotal) {
-                // Use a slightly different background for subtotals
-                const subtotalBg = this.adjustColor(font.backgroundColor.value.value, -10);
-                cell.style.backgroundColor = subtotalBg;
-            }
-            else {
-                cell.style.backgroundColor = font.backgroundColor.value.value;
-            }
-        }
-        if (font.dataAlignment && font.dataAlignment.value) {
-            cell.style.textAlign = font.dataAlignment.value.value;
+    // Format cells by type (data, subtotal, etc.)
+    formatCellsByType(table) {
+        // Format by cell type using CSS selectors
+        const regularCells = table.querySelectorAll('td.data-cell:not(.subtotal-cell):not(.level-0-subtotal)');
+        const subtotalCells = table.querySelectorAll('td.subtotal-cell, td.level-0-subtotal');
+        const regularRowHeaders = table.querySelectorAll('tr:not(.subtotal-row) > th.row-header');
+        const subtotalRowHeaders = table.querySelectorAll('tr.subtotal-row > th.row-header');
+        const columnHeaderCells = table.querySelectorAll('th.column-header:not(.row-header)');
+        const cornerCell = table.querySelector('th.row-header.column-header');
+        // Apply formatting to each cell type
+        regularCells.forEach((cell) => {
+            this.applyFormatting(cell, 'data');
+        });
+        subtotalCells.forEach((cell) => {
+            this.applyFormatting(cell, 'subtotal');
+        });
+        regularRowHeaders.forEach((cell) => {
+            this.applyFormatting(cell, 'rowHeader');
+        });
+        subtotalRowHeaders.forEach((cell) => {
+            this.applyFormatting(cell, 'subtotal');
+        });
+        columnHeaderCells.forEach((cell) => {
+            this.applyFormatting(cell, 'columnHeader');
+        });
+        if (cornerCell) {
+            this.applyFormatting(cornerCell, 'columnHeader');
         }
     }
-    // Apply formatting from subtotal settings to level 0 cells
-    applySubtotalCellFormatting(cell) {
-        if (!this.formattingSettings)
+    // Apply formatting to a specific element based on its type
+    applyFormatting(element, type, isSubtotal = false) {
+        const settings = this.formattingSettings;
+        if (!settings)
             return;
-        const subtotalFormat = this.formattingSettings.subtotalFormatSettings;
-        const fontFormat = this.formattingSettings.fontFormatSettings;
-        // Font color
-        if (subtotalFormat.fontColor.value.value) {
-            cell.style.color = subtotalFormat.fontColor.value.value;
+        // Apply global font family from general settings
+        const globalFontFamily = settings.generalSettings.fontFamily.value;
+        if (globalFontFamily) {
+            element.style.fontFamily = globalFontFamily;
         }
-        // Font style
-        if (subtotalFormat.bold.value) {
-            cell.style.fontWeight = 'bold';
+        // If this is a subtotal, override the type
+        if (isSubtotal) {
+            type = 'subtotal';
         }
-        if (subtotalFormat.italic.value) {
-            cell.style.fontStyle = 'italic';
-        }
-        // Background color
-        if (subtotalFormat.backgroundColor.value.value) {
-            cell.style.backgroundColor = subtotalFormat.backgroundColor.value.value;
-        }
-        // Important: Apply the same text alignment as regular data cells
-        if (fontFormat.dataAlignment && fontFormat.dataAlignment.value) {
-            cell.style.textAlign = String(fontFormat.dataAlignment.value.value);
+        switch (type) {
+            case 'data':
+                const font = settings.fontFormatSettings;
+                // Font color
+                if (font.color?.value?.value) {
+                    element.style.color = font.color.value.value;
+                }
+                // Font size
+                if (font.fontSize?.value) {
+                    element.style.fontSize = `${font.fontSize.value}pt`;
+                }
+                // Font styling
+                if (font.bold?.value) {
+                    element.style.fontWeight = 'bold';
+                }
+                else {
+                    element.style.fontWeight = 'normal';
+                }
+                if (font.italic?.value) {
+                    element.style.fontStyle = 'italic';
+                }
+                else {
+                    element.style.fontStyle = 'normal';
+                }
+                if (font.underline?.value) {
+                    element.style.textDecoration = 'underline';
+                }
+                else {
+                    element.style.textDecoration = 'none';
+                }
+                // Background color
+                if (font.backgroundColor?.value?.value) {
+                    element.style.backgroundColor = font.backgroundColor.value.value;
+                }
+                // Alignment
+                if (font.alignment?.value?.value !== undefined) {
+                    element.style.textAlign = font.alignment.value.value.toString();
+                }
+                break;
+            case 'rowHeader':
+                const rowFormat = settings.rowHeaderFormatSettings;
+                // Font color
+                if (rowFormat.color?.value?.value) {
+                    element.style.color = rowFormat.color.value.value;
+                }
+                // Font size
+                if (rowFormat.fontSize?.value) {
+                    element.style.fontSize = `${rowFormat.fontSize.value}pt`;
+                }
+                // Background color
+                if (rowFormat.backgroundColor?.value?.value) {
+                    element.style.backgroundColor = rowFormat.backgroundColor.value.value;
+                }
+                // Font styling
+                if (rowFormat.bold?.value) {
+                    element.style.fontWeight = 'bold';
+                }
+                else {
+                    element.style.fontWeight = 'normal';
+                }
+                if (rowFormat.italic?.value) {
+                    element.style.fontStyle = 'italic';
+                }
+                else {
+                    element.style.fontStyle = 'normal';
+                }
+                if (rowFormat.underline?.value) {
+                    element.style.textDecoration = 'underline';
+                }
+                else {
+                    element.style.textDecoration = 'none';
+                }
+                // Alignment
+                if (rowFormat.alignment?.value?.value !== undefined) {
+                    element.style.textAlign = rowFormat.alignment.value.value.toString();
+                }
+                break;
+            case 'columnHeader':
+                const headerFormat = settings.columnHeaderFormatSettings;
+                // Font color
+                if (headerFormat.color?.value?.value) {
+                    element.style.color = headerFormat.color.value.value;
+                }
+                // Font size
+                if (headerFormat.fontSize?.value) {
+                    element.style.fontSize = `${headerFormat.fontSize.value}pt`;
+                }
+                // Background color
+                if (headerFormat.backgroundColor?.value?.value) {
+                    element.style.backgroundColor = headerFormat.backgroundColor.value.value;
+                }
+                // Font styling
+                if (headerFormat.bold?.value) {
+                    element.style.fontWeight = 'bold';
+                }
+                else {
+                    element.style.fontWeight = 'normal';
+                }
+                if (headerFormat.italic?.value) {
+                    element.style.fontStyle = 'italic';
+                }
+                else {
+                    element.style.fontStyle = 'normal';
+                }
+                if (headerFormat.underline?.value) {
+                    element.style.textDecoration = 'underline';
+                }
+                else {
+                    element.style.textDecoration = 'none';
+                }
+                // Alignment
+                if (headerFormat.alignment?.value?.value !== undefined) {
+                    element.style.textAlign = headerFormat.alignment.value.value.toString();
+                }
+                break;
+            case 'subtotal':
+                const subtotalFormat = settings.subtotalFormatSettings;
+                // Font color
+                if (subtotalFormat.color?.value?.value) {
+                    element.style.color = subtotalFormat.color.value.value;
+                }
+                // Font size
+                if (subtotalFormat.fontSize?.value) {
+                    element.style.fontSize = `${subtotalFormat.fontSize.value}pt`;
+                }
+                // Background color
+                if (subtotalFormat.backgroundColor?.value?.value) {
+                    element.style.backgroundColor = subtotalFormat.backgroundColor.value.value;
+                }
+                // Font styling
+                if (subtotalFormat.bold?.value) {
+                    element.style.fontWeight = 'bold';
+                }
+                else {
+                    element.style.fontWeight = 'normal';
+                }
+                if (subtotalFormat.italic?.value) {
+                    element.style.fontStyle = 'italic';
+                }
+                else {
+                    element.style.fontStyle = 'normal';
+                }
+                if (subtotalFormat.underline?.value) {
+                    element.style.textDecoration = 'underline';
+                }
+                else {
+                    element.style.textDecoration = 'none';
+                }
+                // Alignment
+                if (subtotalFormat.alignment?.value?.value !== undefined) {
+                    element.style.textAlign = subtotalFormat.alignment.value.value.toString();
+                }
+                break;
+            case 'grandTotal':
+                const grandTotalFormat = settings.grandTotalSettings;
+                // Font color
+                if (grandTotalFormat.color?.value?.value) {
+                    element.style.color = grandTotalFormat.color.value.value;
+                }
+                // Font size
+                if (grandTotalFormat.fontSize?.value) {
+                    element.style.fontSize = `${grandTotalFormat.fontSize.value}pt`;
+                }
+                // Background color
+                if (grandTotalFormat.backgroundColor?.value?.value) {
+                    element.style.backgroundColor = grandTotalFormat.backgroundColor.value.value;
+                }
+                // Font styling
+                if (grandTotalFormat.bold?.value) {
+                    element.style.fontWeight = 'bold';
+                }
+                else {
+                    element.style.fontWeight = 'normal';
+                }
+                if (grandTotalFormat.italic?.value) {
+                    element.style.fontStyle = 'italic';
+                }
+                else {
+                    element.style.fontStyle = 'normal';
+                }
+                if (grandTotalFormat.underline?.value) {
+                    element.style.textDecoration = 'underline';
+                }
+                else {
+                    element.style.textDecoration = 'none';
+                }
+                // Apply alignment to the data cells, but not the label
+                if (element.tagName === 'TD' && grandTotalFormat.alignment?.value?.value !== undefined) {
+                    element.style.textAlign = grandTotalFormat.alignment.value.value.toString();
+                }
+                else if (element.tagName === 'TH') {
+                    // The label cell should align left
+                    element.style.textAlign = 'left';
+                }
+                break;
         }
     }
-    // Helper function to adjust color brightness
+    // Apply border settings to the table
+    applyGlobalBorders(table) {
+        const borderSettings = this.formattingSettings.borderSettings;
+        if (!borderSettings?.show?.value) {
+            // If borders are turned off, remove all border classes
+            table.classList.remove(CSS_CLASSES.WITH_BORDERS);
+            table.classList.remove(CSS_CLASSES.WITH_HORIZONTAL_BORDERS);
+            table.classList.remove(CSS_CLASSES.WITH_VERTICAL_BORDERS);
+            return;
+        }
+        // Get border properties
+        const borderColor = borderSettings.color.value.value;
+        const borderWidth = borderSettings.width.value;
+        const showHorizontal = borderSettings.horizontalBorders.value;
+        const showVertical = borderSettings.verticalBorders.value;
+        // Add classes based on which borders are enabled
+        table.classList.add(CSS_CLASSES.WITH_BORDERS);
+        if (showHorizontal) {
+            table.classList.add(CSS_CLASSES.WITH_HORIZONTAL_BORDERS);
+        }
+        else {
+            table.classList.remove(CSS_CLASSES.WITH_HORIZONTAL_BORDERS);
+        }
+        if (showVertical) {
+            table.classList.add(CSS_CLASSES.WITH_VERTICAL_BORDERS);
+        }
+        else {
+            table.classList.remove(CSS_CLASSES.WITH_VERTICAL_BORDERS);
+        }
+        // Set CSS variables for border styling
+        table.style.setProperty('--border-color', borderColor);
+        table.style.setProperty('--border-width', `${borderWidth}px`);
+        table.style.setProperty('--border-style', 'solid');
+    }
+    // Helper method to adjust color brightness
     adjustColor(color, amount) {
         // Handle empty or invalid colors
         if (!color || color === 'transparent' || color === 'inherit' || color === 'initial') {
             return color;
         }
         try {
-            // Default to a light gray if we can't parse the color
-            let defaultColor = '#f0f0f0';
             // Convert hex to RGB
             let hex = color;
             if (hex.startsWith('#')) {
                 hex = hex.slice(1);
             }
-            // If not a proper hex color, return a default slightly darker color
+            // If not a proper hex color, return a default color
             if (!/^[0-9A-Fa-f]{3}$|^[0-9A-Fa-f]{6}$/.test(hex)) {
                 return amount < 0 ? '#e0e0e0' : '#f5f5f5';
             }
@@ -1656,36 +1860,27 @@ class Visual {
             return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
         }
         catch (error) {
-            // Return a default color if there's an error
             console.error("Error adjusting color:", error);
             return amount < 0 ? '#e0e0e0' : '#f5f5f5';
         }
     }
-    // Helper method for controlled re-rendering of the visual
+    // Optimized re-rendering when toggling rows
     renderVisualWithCurrentState() {
         // Use a small timeout to ensure DOM updates
         setTimeout(() => {
             if (this.lastOptions) {
                 try {
-                    // Store current scroll position to restore after rebuild
+                    // Store current scroll position
                     const scrollTop = this.tableDiv.scrollTop;
                     const scrollLeft = this.tableDiv.scrollLeft;
-                    // Clear current content
+                    // Clear and rebuild the table
                     this.tableDiv.innerHTML = "";
-                    // Check if we have data
-                    if (!this.lastOptions || !this.lastOptions.dataViews || !this.lastOptions.dataViews[0]) {
+                    const dataView = this.lastOptions?.dataViews?.[0];
+                    if (!dataView?.matrix)
                         return;
-                    }
-                    const dataView = this.lastOptions.dataViews[0];
-                    // Check if we have matrix data
-                    if (!dataView.matrix) {
-                        return;
-                    }
-                    const matrix = dataView.matrix;
-                    // Get measure name
+                    // Get measure name and rebuild the table
                     const measureName = this.getMeasureName(dataView);
-                    // Rebuild the matrix table
-                    this.createMatrixTable(matrix, measureName);
+                    this.createMatrixTable(dataView.matrix, measureName);
                     // Restore scroll position
                     this.tableDiv.scrollTop = scrollTop;
                     this.tableDiv.scrollLeft = scrollLeft;
@@ -1694,7 +1889,7 @@ class Visual {
                     console.error("Error in visual re-render:", error);
                 }
             }
-        }, 10); // Small delay to ensure DOM updates first
+        }, 10);
     }
     getFormattingModel() {
         return this.formattingSettingsService.buildFormattingModel(this.formattingSettings);

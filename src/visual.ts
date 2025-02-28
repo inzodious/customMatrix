@@ -327,11 +327,8 @@ export class Visual implements IVisual {
             } else {
                 th.textContent = String(column.value);
             }
-        } else if (this.formattingSettings.generalSettings.showMeasureName.value) {
-            // Use measure name if column is empty and showMeasureName is true
-            th.textContent = this.getMeasureDynamically();
         } else {
-            th.textContent = "";
+            th.textContent = this.getMeasureDynamically();
         }
         
         return th;

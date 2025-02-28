@@ -31,13 +31,6 @@ class GeneralSettings extends FormattingSettingsCard {
         value: "Segoe UI, sans-serif",
         placeholder: "Enter font family"
     });
-
-    showMeasureName = new formattingSettings.ToggleSwitch({
-        name: "showMeasureName",
-        displayName: "Show Measure Name",
-        value: true
-    });
-    
     columnWidth = new formattingSettings.NumUpDown({
         name: "columnWidth",
         displayName: "Column Width",
@@ -61,7 +54,6 @@ class GeneralSettings extends FormattingSettingsCard {
     slices: Array<FormattingSettingsSlice> = [
         this.fontFamily,
         this.fontSize, 
-        this.showMeasureName, 
         this.columnWidth, 
         this.rowHeaderWidth,
         this.enableHover

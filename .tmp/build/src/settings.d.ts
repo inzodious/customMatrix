@@ -8,7 +8,6 @@ import FormattingSettingsModel = formattingSettings.Model;
 declare class GeneralSettings extends FormattingSettingsCard {
     fontSize: formattingSettings.NumUpDown;
     fontFamily: formattingSettings.TextInput;
-    showMeasureName: formattingSettings.ToggleSwitch;
     columnWidth: formattingSettings.NumUpDown;
     enableHover: formattingSettings.ToggleSwitch;
     rowHeaderWidth: formattingSettings.NumUpDown;

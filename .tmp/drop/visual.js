@@ -3,3332 +3,6 @@ var customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG;
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 3:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   inherit: () => (/* binding */ inherit),
-/* harmony export */   inheritSingle: () => (/* binding */ inheritSingle),
-/* harmony export */   overrideArray: () => (/* binding */ overrideArray)
-/* harmony export */ });
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-/**
- * Returns a new object with the provided obj as its prototype.
- */
-function inherit(obj, extension) {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    function wrapCtor() { }
-    wrapCtor.prototype = obj;
-    const inherited = new wrapCtor();
-    if (extension)
-        extension(inherited);
-    return inherited;
-}
-/**
- * Returns a new object with the provided obj as its prototype
- * if, and only if, the prototype has not been previously set
- */
-function inheritSingle(obj) {
-    const proto = Object.getPrototypeOf(obj);
-    if (proto === Object.prototype || proto === Array.prototype)
-        obj = inherit(obj);
-    return obj;
-}
-/**
- * Uses the provided callback function to selectively replace contents in the provided array.
- * @return A new array with those values overriden
- * or undefined if no overrides are necessary.
- */
-function overrideArray(prototype, override) {
-    if (!prototype)
-        return;
-    let overwritten;
-    for (let i = 0, len = prototype.length; i < len; i++) {
-        const value = override(prototype[i]);
-        if (value) {
-            if (!overwritten)
-                overwritten = inherit(prototype);
-            overwritten[i] = value;
-        }
-    }
-    return overwritten;
-}
-//# sourceMappingURL=prototype.js.map
-
-/***/ }),
-
-/***/ 52:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-/*
-*  Power BI Visualizations
-*
-*  Copyright (c) Microsoft Corporation
-*  All rights reserved.
-*  MIT License
-*
-*  Permission is hereby granted, free of charge, to any person obtaining a copy
-*  of this software and associated documentation files (the ""Software""), to deal
-*  in the Software without restriction, including without limitation the rights
-*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-*  copies of the Software, and to permit persons to whom the Software is
-*  furnished to do so, subject to the following conditions:
-*
-*  The above copyright notice and this permission notice shall be included in
-*  all copies or substantial portions of the Software.
-*
-*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-*  THE SOFTWARE.
-*/
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.calculateExactDigitsPrecision = exports.getDisplayUnits = exports.formatListOr = exports.formatListAnd = exports.getFormatStringByColumn = exports.getFormatString = exports.createDisplayUnitSystem = exports.formatVariantMeasureValue = exports.format = exports.create = exports.checkValueInBounds = exports.createDefaultFormatter = exports.setLocaleOptions = exports.getFormatMetadata = exports.getLocalizedString = exports.DefaultDateFormat = exports.DefaultNumericFormat = exports.DefaultIntegerFormat = void 0;
-var displayUnitSystem_1 = __webpack_require__(746);
-var displayUnitSystemType_1 = __webpack_require__(346);
-var stringExtensions = __webpack_require__(262);
-var formattingService_1 = __webpack_require__(510);
-var dateTimeSequence_1 = __webpack_require__(628);
-var powerbi_visuals_utils_typeutils_1 = __webpack_require__(317);
-var powerbi_visuals_utils_dataviewutils_1 = __webpack_require__(597);
-// powerbi.extensibility.utils.type
-var ValueType = powerbi_visuals_utils_typeutils_1.valueType.ValueType;
-var PrimitiveType = powerbi_visuals_utils_typeutils_1.valueType.PrimitiveType;
-var StringExtensions = stringExtensions;
-var BeautifiedFormat = {
-    "0.00 %;-0.00 %;0.00 %": "Percentage",
-    "0.0 %;-0.0 %;0.0 %": "Percentage1",
-};
-exports.DefaultIntegerFormat = "g";
-exports.DefaultNumericFormat = "#,0.00";
-exports.DefaultDateFormat = "d";
-var defaultLocalizedStrings = {
-    "NullValue": "(Blank)",
-    "BooleanTrue": "True",
-    "BooleanFalse": "False",
-    "NaNValue": "NaN",
-    "InfinityValue": "+Infinity",
-    "NegativeInfinityValue": "-Infinity",
-    "RestatementComma": "{0}, {1}",
-    "RestatementCompoundAnd": "{0} and {1}",
-    "RestatementCompoundOr": "{0} or {1}",
-    "DisplayUnitSystem_EAuto_Title": "Auto",
-    "DisplayUnitSystem_E0_Title": "None",
-    "DisplayUnitSystem_E3_LabelFormat": "{0}K",
-    "DisplayUnitSystem_E3_Title": "Thousands",
-    "DisplayUnitSystem_E6_LabelFormat": "{0}M",
-    "DisplayUnitSystem_E6_Title": "Millions",
-    "DisplayUnitSystem_E9_LabelFormat": "{0}bn",
-    "DisplayUnitSystem_E9_Title": "Billions",
-    "DisplayUnitSystem_E12_LabelFormat": "{0}T",
-    "DisplayUnitSystem_E12_Title": "Trillions",
-    "Percentage": "#,0.##%",
-    "Percentage1": "#,0.#%",
-    "TableTotalLabel": "Total",
-    "Tooltip_HighlightedValueDisplayName": "Highlighted",
-    "Funnel_PercentOfFirst": "Percent of first",
-    "Funnel_PercentOfPrevious": "Percent of previous",
-    "Funnel_PercentOfFirst_Highlight": "Percent of first (highlighted)",
-    "Funnel_PercentOfPrevious_Highlight": "Percent of previous (highlighted)",
-    // Geotagging strings
-    "GeotaggingString_Continent": "continent",
-    "GeotaggingString_Continents": "continents",
-    "GeotaggingString_Country": "country",
-    "GeotaggingString_Countries": "countries",
-    "GeotaggingString_State": "state",
-    "GeotaggingString_States": "states",
-    "GeotaggingString_City": "city",
-    "GeotaggingString_Cities": "cities",
-    "GeotaggingString_Town": "town",
-    "GeotaggingString_Towns": "towns",
-    "GeotaggingString_Province": "province",
-    "GeotaggingString_Provinces": "provinces",
-    "GeotaggingString_County": "county",
-    "GeotaggingString_Counties": "counties",
-    "GeotaggingString_Village": "village",
-    "GeotaggingString_Villages": "villages",
-    "GeotaggingString_Post": "post",
-    "GeotaggingString_Zip": "zip",
-    "GeotaggingString_Code": "code",
-    "GeotaggingString_Place": "place",
-    "GeotaggingString_Places": "places",
-    "GeotaggingString_Address": "address",
-    "GeotaggingString_Addresses": "addresses",
-    "GeotaggingString_Street": "street",
-    "GeotaggingString_Streets": "streets",
-    "GeotaggingString_Longitude": "longitude",
-    "GeotaggingString_Longitude_Short": "lon",
-    "GeotaggingString_Longitude_Short2": "long",
-    "GeotaggingString_Latitude": "latitude",
-    "GeotaggingString_Latitude_Short": "lat",
-    "GeotaggingString_PostalCode": "postal code",
-    "GeotaggingString_PostalCodes": "postal codes",
-    "GeotaggingString_ZipCode": "zip code",
-    "GeotaggingString_ZipCodes": "zip codes",
-    "GeotaggingString_Territory": "territory",
-    "GeotaggingString_Territories": "territories",
-};
-function beautify(format) {
-    var key = BeautifiedFormat[format];
-    if (key)
-        return defaultLocalizedStrings[key] || format;
-    return format;
-}
-function describeUnit(exponent) {
-    var exponentLookup = (exponent === -1) ? "Auto" : exponent.toString();
-    var title = defaultLocalizedStrings["DisplayUnitSystem_E" + exponentLookup + "_Title"];
-    var format = (exponent <= 0) ? "{0}" : defaultLocalizedStrings["DisplayUnitSystem_E" + exponentLookup + "_LabelFormat"];
-    if (title || format)
-        return { title: title, format: format };
-}
-function getLocalizedString(stringId) {
-    return defaultLocalizedStrings[stringId];
-}
-exports.getLocalizedString = getLocalizedString;
-// NOTE: Define default locale options, but these can be overriden by setLocaleOptions.
-var localizationOptions = {
-    nullValue: defaultLocalizedStrings["NullValue"],
-    trueValue: defaultLocalizedStrings["BooleanTrue"],
-    falseValue: defaultLocalizedStrings["BooleanFalse"],
-    NaN: defaultLocalizedStrings["NaNValue"],
-    infinity: defaultLocalizedStrings["InfinityValue"],
-    negativeInfinity: defaultLocalizedStrings["NegativeInfinityValue"],
-    beautify: function (format) { return beautify(format); },
-    describe: function (exponent) { return describeUnit(exponent); },
-    restatementComma: defaultLocalizedStrings["RestatementComma"],
-    restatementCompoundAnd: defaultLocalizedStrings["RestatementCompoundAnd"],
-    restatementCompoundOr: defaultLocalizedStrings["RestatementCompoundOr"],
-};
-var MaxScaledDecimalPlaces = 2;
-var MaxValueForDisplayUnitRounding = 1000;
-var MinIntegerValueForDisplayUnits = 10000;
-var MinPrecisionForDisplayUnits = 2;
-var DateTimeMetadataColumn = {
-    displayName: "",
-    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.DateTime),
-};
-function getFormatMetadata(format) {
-    return formattingService_1.numberFormat.getCustomFormatMetadata(format);
-}
-exports.getFormatMetadata = getFormatMetadata;
-function setLocaleOptions(options) {
-    localizationOptions = options;
-    displayUnitSystem_1.DefaultDisplayUnitSystem.RESET();
-    displayUnitSystem_1.WholeUnitsDisplayUnitSystem.RESET();
-}
-exports.setLocaleOptions = setLocaleOptions;
-function createDefaultFormatter(formatString, allowFormatBeautification, cultureSelector) {
-    var formatBeautified = allowFormatBeautification
-        ? localizationOptions.beautify(formatString)
-        : formatString;
-    return {
-        format: function (value) {
-            if (value == null) {
-                return localizationOptions.nullValue;
-            }
-            return formatCore({
-                value: value,
-                cultureSelector: cultureSelector,
-                format: formatBeautified
-            });
-        }
-    };
-}
-exports.createDefaultFormatter = createDefaultFormatter;
-/**
- * Check that provided value is in provided bounds. If not -- replace it by minimal or maximal replacement value
- * @param targetNum checking value
- * @param min minimal bound of value
- * @param max maximal bound of value
- * @param lessMinReplacement value that will be returned if checking value is lesser than minimal
- * @param greaterMaxReplacement value that will be returned if checking value is greater than maximal
- */
-function checkValueInBounds(targetNum, min, max, lessMinReplacement, greaterMaxReplacement) {
-    if (lessMinReplacement === void 0) { lessMinReplacement = min; }
-    if (greaterMaxReplacement === void 0) { greaterMaxReplacement = max; }
-    if (max !== undefined && max !== null) {
-        targetNum = targetNum <= max ? targetNum : greaterMaxReplacement;
-    }
-    if (min !== undefined && min !== null) {
-        targetNum = targetNum > min ? targetNum : lessMinReplacement;
-    }
-    return targetNum;
-}
-exports.checkValueInBounds = checkValueInBounds;
-// Creates an IValueFormatter to be used for a range of values.
-function create(options) {
-    var format = options.allowFormatBeautification
-        ? localizationOptions.beautify(options.format)
-        : options.format;
-    var cultureSelector = options.cultureSelector;
-    if (shouldUseNumericDisplayUnits(options)) {
-        var displayUnitSystem_2 = createDisplayUnitSystem(options.displayUnitSystemType);
-        var singleValueFormattingMode_1 = !!options.formatSingleValues;
-        displayUnitSystem_2.update(Math.max(Math.abs(options.value || 0), Math.abs(options.value2 || 0)));
-        var forcePrecision_1 = options.precision != null;
-        var decimals_1;
-        if (forcePrecision_1)
-            decimals_1 = -options.precision;
-        else if (displayUnitSystem_2.displayUnit && displayUnitSystem_2.displayUnit.value > 1)
-            decimals_1 = -MaxScaledDecimalPlaces;
-        return {
-            format: function (value) {
-                var formattedValue = getStringFormat(value, true /*nullsAreBlank*/);
-                if (!StringExtensions.isNullOrUndefinedOrWhiteSpaceString(formattedValue)) {
-                    return formattedValue;
-                }
-                // Round to Double.DEFAULT_PRECISION
-                if (value
-                    && !displayUnitSystem_2.isScalingUnit()
-                    && Math.abs(value) < MaxValueForDisplayUnitRounding
-                    && !forcePrecision_1) {
-                    value = powerbi_visuals_utils_typeutils_1.double.roundToPrecision(value);
-                }
-                if (singleValueFormattingMode_1) {
-                    return displayUnitSystem_2.formatSingleValue(value, format, decimals_1, forcePrecision_1, cultureSelector);
-                }
-                else {
-                    return displayUnitSystem_2.format(value, format, decimals_1, forcePrecision_1, cultureSelector);
-                }
-            },
-            displayUnit: displayUnitSystem_2.displayUnit,
-            options: options
-        };
-    }
-    if (shouldUseDateUnits(options.value, options.value2, options.tickCount)) {
-        var unit_1 = dateTimeSequence_1.DateTimeSequence.GET_INTERVAL_UNIT(options.value /* minDate */, options.value2 /* maxDate */, options.tickCount);
-        return {
-            format: function (value) {
-                if (value == null) {
-                    return localizationOptions.nullValue;
-                }
-                var formatString = formattingService_1.formattingService.dateFormatString(unit_1);
-                return formatCore({
-                    value: value,
-                    cultureSelector: cultureSelector,
-                    format: formatString,
-                });
-            },
-            options: options
-        };
-    }
-    return createDefaultFormatter(format, false, cultureSelector);
-}
-exports.create = create;
-function format(value, format, allowFormatBeautification, cultureSelector) {
-    if (value == null) {
-        return localizationOptions.nullValue;
-    }
-    var formatString = allowFormatBeautification
-        ? localizationOptions.beautify(format)
-        : format;
-    return formatCore({
-        value: value,
-        cultureSelector: cultureSelector,
-        format: formatString
-    });
-}
-exports.format = format;
-/**
- * Value formatting function to handle variant measures.
- * For a Date/Time value within a non-date/time field, it's formatted with the default date/time formatString instead of as a number
- * @param {any} value Value to be formatted
- * @param {DataViewMetadataColumn} column Field which the value belongs to
- * @param {DataViewObjectPropertyIdentifier} formatStringProp formatString Property ID
- * @param {boolean} nullsAreBlank? Whether to show "(Blank)" instead of empty string for null values
- * @returns Formatted value
- */
-function formatVariantMeasureValue(value, column, formatStringProp, nullsAreBlank, cultureSelector) {
-    // If column type is not datetime, but the value is of time datetime,
-    // then use the default date format string
-    if (!(column && column.type && column.type.dateTime) && value instanceof Date) {
-        var valueFormat = getFormatString(DateTimeMetadataColumn, null, false);
-        return formatCore({
-            value: value,
-            nullsAreBlank: nullsAreBlank,
-            cultureSelector: cultureSelector,
-            format: valueFormat
-        });
-    }
-    else {
-        var valueFormat = getFormatString(column, formatStringProp);
-        return formatCore({
-            value: value,
-            nullsAreBlank: nullsAreBlank,
-            cultureSelector: cultureSelector,
-            format: valueFormat
-        });
-    }
-}
-exports.formatVariantMeasureValue = formatVariantMeasureValue;
-function createDisplayUnitSystem(displayUnitSystemType) {
-    if (displayUnitSystemType == null)
-        return new displayUnitSystem_1.DefaultDisplayUnitSystem(localizationOptions.describe);
-    switch (displayUnitSystemType) {
-        case displayUnitSystemType_1.DisplayUnitSystemType.Default:
-            return new displayUnitSystem_1.DefaultDisplayUnitSystem(localizationOptions.describe);
-        case displayUnitSystemType_1.DisplayUnitSystemType.WholeUnits:
-            return new displayUnitSystem_1.WholeUnitsDisplayUnitSystem(localizationOptions.describe);
-        case displayUnitSystemType_1.DisplayUnitSystemType.Verbose:
-            return new displayUnitSystem_1.NoDisplayUnitSystem();
-        case displayUnitSystemType_1.DisplayUnitSystemType.DataLabels:
-            return new displayUnitSystem_1.DataLabelsDisplayUnitSystem(localizationOptions.describe);
-        default:
-            return new displayUnitSystem_1.DefaultDisplayUnitSystem(localizationOptions.describe);
-    }
-}
-exports.createDisplayUnitSystem = createDisplayUnitSystem;
-function shouldUseNumericDisplayUnits(options) {
-    var value = options.value;
-    var value2 = options.value2;
-    var format = options.format;
-    // For singleValue visuals like card, gauge we don't want to roundoff data to the nearest thousands so format the whole number / integers below 10K to not use display units
-    if (options.formatSingleValues && format) {
-        if (Math.abs(value) < MinIntegerValueForDisplayUnits) {
-            var isCustomFormat = !formattingService_1.numberFormat.isStandardFormat(format);
-            if (isCustomFormat) {
-                var precision = formattingService_1.numberFormat.getCustomFormatMetadata(format, true /*calculatePrecision*/).precision;
-                if (precision < MinPrecisionForDisplayUnits)
-                    return false;
-            }
-            else if (powerbi_visuals_utils_typeutils_1.double.isInteger(value))
-                return false;
-        }
-    }
-    if ((typeof value === "number") || (typeof value2 === "number")) {
-        return true;
-    }
-}
-function shouldUseDateUnits(value, value2, tickCount) {
-    // must check both value and value2 because we'll need to get an interval for date units
-    return (value instanceof Date) && (value2 instanceof Date) && (tickCount !== undefined && tickCount !== null);
-}
-/*
-    * Get the column format. Order of precendence is:
-    *  1. Column format
-    *  2. Default PowerView policy for column type
-    */
-function getFormatString(column, formatStringProperty, suppressTypeFallback) {
-    if (column) {
-        if (formatStringProperty) {
-            var propertyValue = powerbi_visuals_utils_dataviewutils_1.dataViewObjects.getValue(column.objects, formatStringProperty);
-            if (propertyValue)
-                return propertyValue;
-        }
-        if (!suppressTypeFallback) {
-            var columnType = column.type;
-            if (columnType) {
-                if (columnType.dateTime)
-                    return exports.DefaultDateFormat;
-                if (columnType.integer) {
-                    if (columnType.temporal && columnType.temporal.year)
-                        return "0";
-                    return exports.DefaultIntegerFormat;
-                }
-                if (columnType.numeric)
-                    return exports.DefaultNumericFormat;
-            }
-        }
-    }
-}
-exports.getFormatString = getFormatString;
-function getFormatStringByColumn(column, suppressTypeFallback) {
-    if (column) {
-        if (column.format) {
-            return column.format;
-        }
-        if (!suppressTypeFallback) {
-            var columnType = column.type;
-            if (columnType) {
-                if (columnType.dateTime) {
-                    return exports.DefaultDateFormat;
-                }
-                if (columnType.integer) {
-                    if (columnType.temporal && columnType.temporal.year) {
-                        return "0";
-                    }
-                    return exports.DefaultIntegerFormat;
-                }
-                if (columnType.numeric) {
-                    return exports.DefaultNumericFormat;
-                }
-            }
-        }
-    }
-    return undefined;
-}
-exports.getFormatStringByColumn = getFormatStringByColumn;
-function formatListCompound(strings, conjunction) {
-    var result;
-    if (!strings) {
-        return null;
-    }
-    var length = strings.length;
-    if (length > 0) {
-        result = strings[0];
-        var lastIndex = length - 1;
-        for (var i = 1, len = lastIndex; i < len; i++) {
-            var value = strings[i];
-            result = StringExtensions.format(localizationOptions.restatementComma, result, value);
-        }
-        if (length > 1) {
-            var value = strings[lastIndex];
-            result = StringExtensions.format(conjunction, result, value);
-        }
-    }
-    else {
-        result = null;
-    }
-    return result;
-}
-// The returned string will look like 'A, B, ..., and C'
-function formatListAnd(strings) {
-    return formatListCompound(strings, localizationOptions.restatementCompoundAnd);
-}
-exports.formatListAnd = formatListAnd;
-// The returned string will look like 'A, B, ..., or C'
-function formatListOr(strings) {
-    return formatListCompound(strings, localizationOptions.restatementCompoundOr);
-}
-exports.formatListOr = formatListOr;
-function formatCore(options) {
-    var value = options.value, format = options.format, nullsAreBlank = options.nullsAreBlank, cultureSelector = options.cultureSelector;
-    var formattedValue = getStringFormat(value, nullsAreBlank ? nullsAreBlank : false);
-    if (!StringExtensions.isNullOrUndefinedOrWhiteSpaceString(formattedValue)) {
-        return formattedValue;
-    }
-    return formattingService_1.formattingService.formatValue(value, format, cultureSelector);
-}
-function getStringFormat(value, nullsAreBlank) {
-    if (value == null && nullsAreBlank) {
-        return localizationOptions.nullValue;
-    }
-    if (value === true) {
-        return localizationOptions.trueValue;
-    }
-    if (value === false) {
-        return localizationOptions.falseValue;
-    }
-    if (typeof value === "number" && isNaN(value)) {
-        return localizationOptions.NaN;
-    }
-    if (value === Number.NEGATIVE_INFINITY) {
-        return localizationOptions.negativeInfinity;
-    }
-    if (value === Number.POSITIVE_INFINITY) {
-        return localizationOptions.infinity;
-    }
-    return "";
-}
-function getDisplayUnits(displayUnitSystemType) {
-    var displayUnitSystem = createDisplayUnitSystem(displayUnitSystemType);
-    return displayUnitSystem.units;
-}
-exports.getDisplayUnits = getDisplayUnits;
-/**
- * Precision calculating function to build values showing minimum 3 digits as 3.56 or 25.7 or 754 or 2345
- * @param {number} inputValue Value to be basement for precision calculation
- * @param {string} format Format that will be used for value formatting (to detect percentage values)
- * @param {number} displayUnits Dispaly units that will be used for value formatting (to correctly calculate precision)
- * @param {number} digitsNum Number of visible digits, including digits before separator
- * @returns calculated precision
- */
-function calculateExactDigitsPrecision(inputValue, format, displayUnits, digitsNum) {
-    if (!inputValue && inputValue !== 0) {
-        return 0;
-    }
-    var precision = 0;
-    var inPercent = format && format.indexOf("%") !== -1;
-    var value = inPercent ? inputValue * 100 : inputValue;
-    value = displayUnits > 0 ? value / displayUnits : value;
-    var leftPartLength = parseInt(value).toString().length;
-    if ((inPercent || displayUnits > 0) && leftPartLength >= digitsNum) {
-        return 0;
-    }
-    // Auto units, calculate final value 
-    if (displayUnits === 0) {
-        var unitsDegree = Math.floor(leftPartLength / 3);
-        unitsDegree = leftPartLength % 3 === 0 ? unitsDegree - 1 : unitsDegree;
-        var divider = Math.pow(1000, unitsDegree);
-        if (divider > 0) {
-            value = value / divider;
-        }
-    }
-    leftPartLength = parseInt(value).toString().length;
-    var restOfDiv = leftPartLength % digitsNum;
-    if (restOfDiv === 0) {
-        precision = 0;
-    }
-    else {
-        precision = digitsNum - restOfDiv;
-    }
-    return precision;
-}
-exports.calculateExactDigitsPrecision = calculateExactDigitsPrecision;
-//# sourceMappingURL=valueFormatter.js.map
-
-/***/ }),
-
-/***/ 73:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ephemeralStorageService = exports.EphemeralStorageService = void 0;
-var EphemeralStorageService = /** @class */ (function () {
-    function EphemeralStorageService(clearCacheInterval) {
-        this.cache = {};
-        this.clearCacheInterval = (clearCacheInterval != null)
-            ? clearCacheInterval
-            : EphemeralStorageService.defaultClearCacheInterval;
-        this.clearCache();
-    }
-    EphemeralStorageService.prototype.getData = function (key) {
-        return this.cache[key];
-    };
-    EphemeralStorageService.prototype.setData = function (key, data) {
-        var _this = this;
-        this.cache[key] = data;
-        if (this.clearCacheTimerId == null) {
-            this.clearCacheTimerId = setTimeout(function () { return _this.clearCache(); }, this.clearCacheInterval);
-        }
-    };
-    EphemeralStorageService.prototype.clearCache = function () {
-        this.cache = {};
-        this.clearCacheTimerId = undefined;
-    };
-    EphemeralStorageService.defaultClearCacheInterval = (1000 * 60 * 60 * 24); // 1 day
-    return EphemeralStorageService;
-}());
-exports.EphemeralStorageService = EphemeralStorageService;
-exports.ephemeralStorageService = new EphemeralStorageService();
-//# sourceMappingURL=ephemeralStorageService.js.map
-
-/***/ }),
-
-/***/ 84:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   ExtendedType: () => (/* binding */ ExtendedType),
-/* harmony export */   FormattingType: () => (/* binding */ FormattingType),
-/* harmony export */   GeographyType: () => (/* binding */ GeographyType),
-/* harmony export */   MiscellaneousType: () => (/* binding */ MiscellaneousType),
-/* harmony export */   PrimitiveType: () => (/* binding */ PrimitiveType),
-/* harmony export */   ScriptType: () => (/* binding */ ScriptType),
-/* harmony export */   TemporalType: () => (/* binding */ TemporalType),
-/* harmony export */   ValueType: () => (/* binding */ ValueType)
-/* harmony export */ });
-/* harmony import */ var _extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(865);
-/* harmony import */ var _jsonComparer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(732);
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-// powerbi.extensibility.utils.type
-
-
-/** Describes a data value type, including a primitive type and extended type if any (derived from data category). */
-class ValueType {
-    /** Do not call the ValueType constructor directly. Use the ValueType.fromXXX methods. */
-    constructor(underlyingType, category, enumType, variantTypes) {
-        this.underlyingType = underlyingType;
-        this.category = category;
-        if (_extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(underlyingType, ExtendedType.Temporal)) {
-            this.temporalType = new TemporalType(underlyingType);
-        }
-        if (_extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(underlyingType, ExtendedType.Geography)) {
-            this.geographyType = new GeographyType(underlyingType);
-        }
-        if (_extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(underlyingType, ExtendedType.Miscellaneous)) {
-            this.miscType = new MiscellaneousType(underlyingType);
-        }
-        if (_extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(underlyingType, ExtendedType.Formatting)) {
-            this.formattingType = new FormattingType(underlyingType);
-        }
-        if (_extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(underlyingType, ExtendedType.Enumeration)) {
-            this.enumType = enumType;
-        }
-        if (_extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(underlyingType, ExtendedType.Scripting)) {
-            this.scriptingType = new ScriptType(underlyingType);
-        }
-        if (_extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(underlyingType, ExtendedType.Variant)) {
-            this.variationTypes = variantTypes;
-        }
-    }
-    /** Creates or retrieves a ValueType object based on the specified ValueTypeDescriptor. */
-    static fromDescriptor(descriptor) {
-        descriptor = descriptor || {};
-        // Simplified primitive types
-        if (descriptor.text)
-            return ValueType.fromExtendedType(ExtendedType.Text);
-        if (descriptor.integer)
-            return ValueType.fromExtendedType(ExtendedType.Integer);
-        if (descriptor.numeric)
-            return ValueType.fromExtendedType(ExtendedType.Double);
-        if (descriptor.bool)
-            return ValueType.fromExtendedType(ExtendedType.Boolean);
-        if (descriptor.dateTime)
-            return ValueType.fromExtendedType(ExtendedType.DateTime);
-        if (descriptor.duration)
-            return ValueType.fromExtendedType(ExtendedType.Duration);
-        if (descriptor.binary)
-            return ValueType.fromExtendedType(ExtendedType.Binary);
-        if (descriptor.none)
-            return ValueType.fromExtendedType(ExtendedType.None);
-        // Extended types
-        if (descriptor.scripting) {
-            if (descriptor.scripting.source)
-                return ValueType.fromExtendedType(ExtendedType.ScriptSource);
-        }
-        if (descriptor.enumeration)
-            return ValueType.fromEnum(descriptor.enumeration);
-        if (descriptor.temporal) {
-            if (descriptor.temporal.year)
-                return ValueType.fromExtendedType(ExtendedType.Years_Integer);
-            if (descriptor.temporal.quarter)
-                return ValueType.fromExtendedType(ExtendedType.Quarters_Integer);
-            if (descriptor.temporal.month)
-                return ValueType.fromExtendedType(ExtendedType.Months_Integer);
-            if (descriptor.temporal.day)
-                return ValueType.fromExtendedType(ExtendedType.DayOfMonth_Integer);
-            if (descriptor.temporal.paddedDateTableDate)
-                return ValueType.fromExtendedType(ExtendedType.PaddedDateTableDates);
-        }
-        if (descriptor.geography) {
-            if (descriptor.geography.address)
-                return ValueType.fromExtendedType(ExtendedType.Address);
-            if (descriptor.geography.city)
-                return ValueType.fromExtendedType(ExtendedType.City);
-            if (descriptor.geography.continent)
-                return ValueType.fromExtendedType(ExtendedType.Continent);
-            if (descriptor.geography.country)
-                return ValueType.fromExtendedType(ExtendedType.Country);
-            if (descriptor.geography.county)
-                return ValueType.fromExtendedType(ExtendedType.County);
-            if (descriptor.geography.region)
-                return ValueType.fromExtendedType(ExtendedType.Region);
-            if (descriptor.geography.postalCode)
-                return ValueType.fromExtendedType(ExtendedType.PostalCode_Text);
-            if (descriptor.geography.stateOrProvince)
-                return ValueType.fromExtendedType(ExtendedType.StateOrProvince);
-            if (descriptor.geography.place)
-                return ValueType.fromExtendedType(ExtendedType.Place);
-            if (descriptor.geography.latitude)
-                return ValueType.fromExtendedType(ExtendedType.Latitude_Double);
-            if (descriptor.geography.longitude)
-                return ValueType.fromExtendedType(ExtendedType.Longitude_Double);
-        }
-        if (descriptor.misc) {
-            if (descriptor.misc.image)
-                return ValueType.fromExtendedType(ExtendedType.Image);
-            if (descriptor.misc.imageUrl)
-                return ValueType.fromExtendedType(ExtendedType.ImageUrl);
-            if (descriptor.misc.webUrl)
-                return ValueType.fromExtendedType(ExtendedType.WebUrl);
-            if (descriptor.misc.barcode)
-                return ValueType.fromExtendedType(ExtendedType.Barcode_Text);
-        }
-        if (descriptor.formatting) {
-            if (descriptor.formatting.color)
-                return ValueType.fromExtendedType(ExtendedType.Color);
-            if (descriptor.formatting.formatString)
-                return ValueType.fromExtendedType(ExtendedType.FormatString);
-            if (descriptor.formatting.alignment)
-                return ValueType.fromExtendedType(ExtendedType.Alignment);
-            if (descriptor.formatting.labelDisplayUnits)
-                return ValueType.fromExtendedType(ExtendedType.LabelDisplayUnits);
-            if (descriptor.formatting.fontSize)
-                return ValueType.fromExtendedType(ExtendedType.FontSize);
-            if (descriptor.formatting.labelDensity)
-                return ValueType.fromExtendedType(ExtendedType.LabelDensity);
-        }
-        if (descriptor.extendedType) {
-            return ValueType.fromExtendedType(descriptor.extendedType);
-        }
-        if (descriptor.operations) {
-            if (descriptor.operations.searchEnabled)
-                return ValueType.fromExtendedType(ExtendedType.SearchEnabled);
-        }
-        if (descriptor.variant) {
-            const variantTypes = descriptor.variant.map((variantType) => ValueType.fromDescriptor(variantType));
-            return ValueType.fromVariant(variantTypes);
-        }
-        return ValueType.fromExtendedType(ExtendedType.Null);
-    }
-    /** Advanced: Generally use fromDescriptor instead. Creates or retrieves a ValueType object for the specified ExtendedType. */
-    static fromExtendedType(extendedType) {
-        extendedType = extendedType || ExtendedType.Null;
-        const primitiveType = getPrimitiveType(extendedType), category = getCategoryFromExtendedType(extendedType);
-        return ValueType.fromPrimitiveTypeAndCategory(primitiveType, category);
-    }
-    /** Creates or retrieves a ValueType object for the specified PrimitiveType and data category. */
-    static fromPrimitiveTypeAndCategory(primitiveType, category) {
-        primitiveType = primitiveType || PrimitiveType.Null;
-        category = category || null;
-        let id = primitiveType.toString();
-        if (category)
-            id += "|" + category;
-        return ValueType.typeCache[id] || (ValueType.typeCache[id] = new ValueType(toExtendedType(primitiveType, category), category));
-    }
-    /** Creates a ValueType to describe the given IEnumType. */
-    static fromEnum(enumType) {
-        return new ValueType(ExtendedType.Enumeration, null, enumType);
-    }
-    /** Creates a ValueType to describe the given Variant type. */
-    static fromVariant(variantTypes) {
-        return new ValueType(ExtendedType.Variant, /* category */ null, /* enumType */ null, variantTypes);
-    }
-    /** Determines if the specified type is compatible from at least one of the otherTypes. */
-    static isCompatibleTo(typeDescriptor, otherTypes) {
-        const valueType = ValueType.fromDescriptor(typeDescriptor);
-        for (const otherType of otherTypes) {
-            const otherValueType = ValueType.fromDescriptor(otherType);
-            if (otherValueType.isCompatibleFrom(valueType))
-                return true;
-        }
-        return false;
-    }
-    /** Determines if the instance ValueType is convertable from the 'other' ValueType. */
-    isCompatibleFrom(other) {
-        const otherPrimitiveType = other.primitiveType;
-        if (this === other ||
-            this.primitiveType === otherPrimitiveType ||
-            otherPrimitiveType === PrimitiveType.Null ||
-            // Return true if both types are numbers
-            (this.numeric && other.numeric))
-            return true;
-        return false;
-    }
-    /**
-     * Determines if the instance ValueType is equal to the 'other' ValueType
-     * @param {ValueType} other the other ValueType to check equality against
-     * @returns True if the instance ValueType is equal to the 'other' ValueType
-     */
-    equals(other) {
-        return (0,_jsonComparer__WEBPACK_IMPORTED_MODULE_1__.equals)(this, other);
-    }
-    /** Gets the exact primitive type of this ValueType. */
-    get primitiveType() {
-        return getPrimitiveType(this.underlyingType);
-    }
-    /** Gets the exact extended type of this ValueType. */
-    get extendedType() {
-        return this.underlyingType;
-    }
-    /** Gets the data category string (if any) for this ValueType. */
-    get categoryString() {
-        return this.category;
-    }
-    // Simplified primitive types
-    /** Indicates whether the type represents text values. */
-    get text() {
-        return this.primitiveType === PrimitiveType.Text;
-    }
-    /** Indicates whether the type represents any numeric value. */
-    get numeric() {
-        return _extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(this.underlyingType, ExtendedType.Numeric);
-    }
-    /** Indicates whether the type represents integer numeric values. */
-    get integer() {
-        return this.primitiveType === PrimitiveType.Integer;
-    }
-    /** Indicates whether the type represents Boolean values. */
-    get bool() {
-        return this.primitiveType === PrimitiveType.Boolean;
-    }
-    /** Indicates whether the type represents any date/time values. */
-    get dateTime() {
-        return this.primitiveType === PrimitiveType.DateTime ||
-            this.primitiveType === PrimitiveType.Date ||
-            this.primitiveType === PrimitiveType.Time;
-    }
-    /** Indicates whether the type represents duration values. */
-    get duration() {
-        return this.primitiveType === PrimitiveType.Duration;
-    }
-    /** Indicates whether the type represents binary values. */
-    get binary() {
-        return this.primitiveType === PrimitiveType.Binary;
-    }
-    /** Indicates whether the type represents none values. */
-    get none() {
-        return this.primitiveType === PrimitiveType.None;
-    }
-    // Extended types
-    /** Returns an object describing temporal values represented by the type, if it represents a temporal type. */
-    get temporal() {
-        return this.temporalType;
-    }
-    /** Returns an object describing geographic values represented by the type, if it represents a geographic type. */
-    get geography() {
-        return this.geographyType;
-    }
-    /** Returns an object describing the specific values represented by the type, if it represents a miscellaneous extended type. */
-    get misc() {
-        return this.miscType;
-    }
-    /** Returns an object describing the formatting values represented by the type, if it represents a formatting type. */
-    get formatting() {
-        return this.formattingType;
-    }
-    /** Returns an object describing the enum values represented by the type, if it represents an enumeration type. */
-    get enumeration() {
-        return this.enumType;
-    }
-    get scripting() {
-        return this.scriptingType;
-    }
-    /** Returns an array describing the variant values represented by the type, if it represents an Variant type. */
-    get variant() {
-        return this.variationTypes;
-    }
-}
-ValueType.typeCache = {};
-class ScriptType {
-    constructor(underlyingType) {
-        this.underlyingType = underlyingType;
-    }
-    get source() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.ScriptSource);
-    }
-}
-class TemporalType {
-    constructor(underlyingType) {
-        this.underlyingType = underlyingType;
-    }
-    get year() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Years);
-    }
-    get quarter() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Quarters);
-    }
-    get month() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Months);
-    }
-    get day() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.DayOfMonth);
-    }
-    get paddedDateTableDate() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.PaddedDateTableDates);
-    }
-}
-class GeographyType {
-    constructor(underlyingType) {
-        this.underlyingType = underlyingType;
-    }
-    get address() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Address);
-    }
-    get city() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.City);
-    }
-    get continent() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Continent);
-    }
-    get country() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Country);
-    }
-    get county() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.County);
-    }
-    get region() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Region);
-    }
-    get postalCode() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.PostalCode);
-    }
-    get stateOrProvince() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.StateOrProvince);
-    }
-    get place() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Place);
-    }
-    get latitude() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Latitude);
-    }
-    get longitude() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Longitude);
-    }
-}
-class MiscellaneousType {
-    constructor(underlyingType) {
-        this.underlyingType = underlyingType;
-    }
-    get image() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Image);
-    }
-    get imageUrl() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.ImageUrl);
-    }
-    get webUrl() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.WebUrl);
-    }
-    get barcode() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Barcode);
-    }
-}
-class FormattingType {
-    constructor(underlyingType) {
-        this.underlyingType = underlyingType;
-    }
-    get color() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Color);
-    }
-    get formatString() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.FormatString);
-    }
-    get alignment() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Alignment);
-    }
-    get labelDisplayUnits() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.LabelDisplayUnits);
-    }
-    get fontSize() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.FontSize);
-    }
-    get labelDensity() {
-        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.LabelDensity);
-    }
-}
-/** Defines primitive value types. Must be consistent with types defined by server conceptual schema. */
-var PrimitiveType;
-(function (PrimitiveType) {
-    PrimitiveType[PrimitiveType["Null"] = 0] = "Null";
-    PrimitiveType[PrimitiveType["Text"] = 1] = "Text";
-    PrimitiveType[PrimitiveType["Decimal"] = 2] = "Decimal";
-    PrimitiveType[PrimitiveType["Double"] = 3] = "Double";
-    PrimitiveType[PrimitiveType["Integer"] = 4] = "Integer";
-    PrimitiveType[PrimitiveType["Boolean"] = 5] = "Boolean";
-    PrimitiveType[PrimitiveType["Date"] = 6] = "Date";
-    PrimitiveType[PrimitiveType["DateTime"] = 7] = "DateTime";
-    PrimitiveType[PrimitiveType["DateTimeZone"] = 8] = "DateTimeZone";
-    PrimitiveType[PrimitiveType["Time"] = 9] = "Time";
-    PrimitiveType[PrimitiveType["Duration"] = 10] = "Duration";
-    PrimitiveType[PrimitiveType["Binary"] = 11] = "Binary";
-    PrimitiveType[PrimitiveType["None"] = 12] = "None";
-    PrimitiveType[PrimitiveType["Variant"] = 13] = "Variant";
-})(PrimitiveType || (PrimitiveType = {}));
-var PrimitiveTypeStrings;
-(function (PrimitiveTypeStrings) {
-    PrimitiveTypeStrings[PrimitiveTypeStrings["Null"] = 0] = "Null";
-    PrimitiveTypeStrings[PrimitiveTypeStrings["Text"] = 1] = "Text";
-    PrimitiveTypeStrings[PrimitiveTypeStrings["Decimal"] = 2] = "Decimal";
-    PrimitiveTypeStrings[PrimitiveTypeStrings["Double"] = 3] = "Double";
-    PrimitiveTypeStrings[PrimitiveTypeStrings["Integer"] = 4] = "Integer";
-    PrimitiveTypeStrings[PrimitiveTypeStrings["Boolean"] = 5] = "Boolean";
-    PrimitiveTypeStrings[PrimitiveTypeStrings["Date"] = 6] = "Date";
-    PrimitiveTypeStrings[PrimitiveTypeStrings["DateTime"] = 7] = "DateTime";
-    PrimitiveTypeStrings[PrimitiveTypeStrings["DateTimeZone"] = 8] = "DateTimeZone";
-    PrimitiveTypeStrings[PrimitiveTypeStrings["Time"] = 9] = "Time";
-    PrimitiveTypeStrings[PrimitiveTypeStrings["Duration"] = 10] = "Duration";
-    PrimitiveTypeStrings[PrimitiveTypeStrings["Binary"] = 11] = "Binary";
-    PrimitiveTypeStrings[PrimitiveTypeStrings["None"] = 12] = "None";
-    PrimitiveTypeStrings[PrimitiveTypeStrings["Variant"] = 13] = "Variant";
-})(PrimitiveTypeStrings || (PrimitiveTypeStrings = {}));
-/** Defines extended value types, which include primitive types and known data categories constrained to expected primitive types. */
-var ExtendedType;
-(function (ExtendedType) {
-    // Flags (1 << 8-15 range [0xFF00])
-    // Important: Enum members must be declared before they are used in TypeScript.
-    ExtendedType[ExtendedType["Numeric"] = 256] = "Numeric";
-    ExtendedType[ExtendedType["Temporal"] = 512] = "Temporal";
-    ExtendedType[ExtendedType["Geography"] = 1024] = "Geography";
-    ExtendedType[ExtendedType["Miscellaneous"] = 2048] = "Miscellaneous";
-    ExtendedType[ExtendedType["Formatting"] = 4096] = "Formatting";
-    ExtendedType[ExtendedType["Scripting"] = 8192] = "Scripting";
-    // Primitive types (0-255 range [0xFF] | flags)
-    // The member names and base values must match those in PrimitiveType.
-    ExtendedType[ExtendedType["Null"] = 0] = "Null";
-    ExtendedType[ExtendedType["Text"] = 1] = "Text";
-    ExtendedType[ExtendedType["Decimal"] = 258] = "Decimal";
-    ExtendedType[ExtendedType["Double"] = 259] = "Double";
-    ExtendedType[ExtendedType["Integer"] = 260] = "Integer";
-    ExtendedType[ExtendedType["Boolean"] = 5] = "Boolean";
-    ExtendedType[ExtendedType["Date"] = 518] = "Date";
-    ExtendedType[ExtendedType["DateTime"] = 519] = "DateTime";
-    ExtendedType[ExtendedType["DateTimeZone"] = 520] = "DateTimeZone";
-    ExtendedType[ExtendedType["Time"] = 521] = "Time";
-    ExtendedType[ExtendedType["Duration"] = 10] = "Duration";
-    ExtendedType[ExtendedType["Binary"] = 11] = "Binary";
-    ExtendedType[ExtendedType["None"] = 12] = "None";
-    ExtendedType[ExtendedType["Variant"] = 13] = "Variant";
-    // Extended types (0-32767 << 16 range [0xFFFF0000] | corresponding primitive type | flags)
-    // Temporal
-    ExtendedType[ExtendedType["Years"] = 66048] = "Years";
-    ExtendedType[ExtendedType["Years_Text"] = 66049] = "Years_Text";
-    ExtendedType[ExtendedType["Years_Integer"] = 66308] = "Years_Integer";
-    ExtendedType[ExtendedType["Years_Date"] = 66054] = "Years_Date";
-    ExtendedType[ExtendedType["Years_DateTime"] = 66055] = "Years_DateTime";
-    ExtendedType[ExtendedType["Months"] = 131584] = "Months";
-    ExtendedType[ExtendedType["Months_Text"] = 131585] = "Months_Text";
-    ExtendedType[ExtendedType["Months_Integer"] = 131844] = "Months_Integer";
-    ExtendedType[ExtendedType["Months_Date"] = 131590] = "Months_Date";
-    ExtendedType[ExtendedType["Months_DateTime"] = 131591] = "Months_DateTime";
-    ExtendedType[ExtendedType["PaddedDateTableDates"] = 197127] = "PaddedDateTableDates";
-    ExtendedType[ExtendedType["Quarters"] = 262656] = "Quarters";
-    ExtendedType[ExtendedType["Quarters_Text"] = 262657] = "Quarters_Text";
-    ExtendedType[ExtendedType["Quarters_Integer"] = 262916] = "Quarters_Integer";
-    ExtendedType[ExtendedType["Quarters_Date"] = 262662] = "Quarters_Date";
-    ExtendedType[ExtendedType["Quarters_DateTime"] = 262663] = "Quarters_DateTime";
-    ExtendedType[ExtendedType["DayOfMonth"] = 328192] = "DayOfMonth";
-    ExtendedType[ExtendedType["DayOfMonth_Text"] = 328193] = "DayOfMonth_Text";
-    ExtendedType[ExtendedType["DayOfMonth_Integer"] = 328452] = "DayOfMonth_Integer";
-    ExtendedType[ExtendedType["DayOfMonth_Date"] = 328198] = "DayOfMonth_Date";
-    ExtendedType[ExtendedType["DayOfMonth_DateTime"] = 328199] = "DayOfMonth_DateTime";
-    // Geography
-    ExtendedType[ExtendedType["Address"] = 6554625] = "Address";
-    ExtendedType[ExtendedType["City"] = 6620161] = "City";
-    ExtendedType[ExtendedType["Continent"] = 6685697] = "Continent";
-    ExtendedType[ExtendedType["Country"] = 6751233] = "Country";
-    ExtendedType[ExtendedType["County"] = 6816769] = "County";
-    ExtendedType[ExtendedType["Region"] = 6882305] = "Region";
-    ExtendedType[ExtendedType["PostalCode"] = 6947840] = "PostalCode";
-    ExtendedType[ExtendedType["PostalCode_Text"] = 6947841] = "PostalCode_Text";
-    ExtendedType[ExtendedType["PostalCode_Integer"] = 6948100] = "PostalCode_Integer";
-    ExtendedType[ExtendedType["StateOrProvince"] = 7013377] = "StateOrProvince";
-    ExtendedType[ExtendedType["Place"] = 7078913] = "Place";
-    ExtendedType[ExtendedType["Latitude"] = 7144448] = "Latitude";
-    ExtendedType[ExtendedType["Latitude_Decimal"] = 7144706] = "Latitude_Decimal";
-    ExtendedType[ExtendedType["Latitude_Double"] = 7144707] = "Latitude_Double";
-    ExtendedType[ExtendedType["Longitude"] = 7209984] = "Longitude";
-    ExtendedType[ExtendedType["Longitude_Decimal"] = 7210242] = "Longitude_Decimal";
-    ExtendedType[ExtendedType["Longitude_Double"] = 7210243] = "Longitude_Double";
-    // Miscellaneous
-    ExtendedType[ExtendedType["Image"] = 13109259] = "Image";
-    ExtendedType[ExtendedType["ImageUrl"] = 13174785] = "ImageUrl";
-    ExtendedType[ExtendedType["WebUrl"] = 13240321] = "WebUrl";
-    ExtendedType[ExtendedType["Barcode"] = 13305856] = "Barcode";
-    ExtendedType[ExtendedType["Barcode_Text"] = 13305857] = "Barcode_Text";
-    ExtendedType[ExtendedType["Barcode_Integer"] = 13306116] = "Barcode_Integer";
-    // Formatting
-    ExtendedType[ExtendedType["Color"] = 19664897] = "Color";
-    ExtendedType[ExtendedType["FormatString"] = 19730433] = "FormatString";
-    ExtendedType[ExtendedType["Alignment"] = 20058113] = "Alignment";
-    ExtendedType[ExtendedType["LabelDisplayUnits"] = 20123649] = "LabelDisplayUnits";
-    ExtendedType[ExtendedType["FontSize"] = 20189443] = "FontSize";
-    ExtendedType[ExtendedType["LabelDensity"] = 20254979] = "LabelDensity";
-    // Enumeration
-    ExtendedType[ExtendedType["Enumeration"] = 26214401] = "Enumeration";
-    // Scripting
-    ExtendedType[ExtendedType["ScriptSource"] = 32776193] = "ScriptSource";
-    // NOTE: To avoid confusion, underscores should be used only to delimit primitive type variants of an extended type
-    // (e.g. Year_Integer or Latitude_Double above)
-    // Operations
-    ExtendedType[ExtendedType["SearchEnabled"] = 65541] = "SearchEnabled";
-})(ExtendedType || (ExtendedType = {}));
-var ExtendedTypeStrings;
-(function (ExtendedTypeStrings) {
-    ExtendedTypeStrings[ExtendedTypeStrings["Numeric"] = 256] = "Numeric";
-    ExtendedTypeStrings[ExtendedTypeStrings["Temporal"] = 512] = "Temporal";
-    ExtendedTypeStrings[ExtendedTypeStrings["Geography"] = 1024] = "Geography";
-    ExtendedTypeStrings[ExtendedTypeStrings["Miscellaneous"] = 2048] = "Miscellaneous";
-    ExtendedTypeStrings[ExtendedTypeStrings["Formatting"] = 4096] = "Formatting";
-    ExtendedTypeStrings[ExtendedTypeStrings["Scripting"] = 8192] = "Scripting";
-    ExtendedTypeStrings[ExtendedTypeStrings["Null"] = 0] = "Null";
-    ExtendedTypeStrings[ExtendedTypeStrings["Text"] = 1] = "Text";
-    ExtendedTypeStrings[ExtendedTypeStrings["Decimal"] = 258] = "Decimal";
-    ExtendedTypeStrings[ExtendedTypeStrings["Double"] = 259] = "Double";
-    ExtendedTypeStrings[ExtendedTypeStrings["Integer"] = 260] = "Integer";
-    ExtendedTypeStrings[ExtendedTypeStrings["Boolean"] = 5] = "Boolean";
-    ExtendedTypeStrings[ExtendedTypeStrings["Date"] = 518] = "Date";
-    ExtendedTypeStrings[ExtendedTypeStrings["DateTime"] = 519] = "DateTime";
-    ExtendedTypeStrings[ExtendedTypeStrings["DateTimeZone"] = 520] = "DateTimeZone";
-    ExtendedTypeStrings[ExtendedTypeStrings["Time"] = 521] = "Time";
-    ExtendedTypeStrings[ExtendedTypeStrings["Duration"] = 10] = "Duration";
-    ExtendedTypeStrings[ExtendedTypeStrings["Binary"] = 11] = "Binary";
-    ExtendedTypeStrings[ExtendedTypeStrings["None"] = 12] = "None";
-    ExtendedTypeStrings[ExtendedTypeStrings["Variant"] = 13] = "Variant";
-    ExtendedTypeStrings[ExtendedTypeStrings["Years"] = 66048] = "Years";
-    ExtendedTypeStrings[ExtendedTypeStrings["Years_Text"] = 66049] = "Years_Text";
-    ExtendedTypeStrings[ExtendedTypeStrings["Years_Integer"] = 66308] = "Years_Integer";
-    ExtendedTypeStrings[ExtendedTypeStrings["Years_Date"] = 66054] = "Years_Date";
-    ExtendedTypeStrings[ExtendedTypeStrings["Years_DateTime"] = 66055] = "Years_DateTime";
-    ExtendedTypeStrings[ExtendedTypeStrings["Months"] = 131584] = "Months";
-    ExtendedTypeStrings[ExtendedTypeStrings["Months_Text"] = 131585] = "Months_Text";
-    ExtendedTypeStrings[ExtendedTypeStrings["Months_Integer"] = 131844] = "Months_Integer";
-    ExtendedTypeStrings[ExtendedTypeStrings["Months_Date"] = 131590] = "Months_Date";
-    ExtendedTypeStrings[ExtendedTypeStrings["Months_DateTime"] = 131591] = "Months_DateTime";
-    ExtendedTypeStrings[ExtendedTypeStrings["PaddedDateTableDates"] = 197127] = "PaddedDateTableDates";
-    ExtendedTypeStrings[ExtendedTypeStrings["Quarters"] = 262656] = "Quarters";
-    ExtendedTypeStrings[ExtendedTypeStrings["Quarters_Text"] = 262657] = "Quarters_Text";
-    ExtendedTypeStrings[ExtendedTypeStrings["Quarters_Integer"] = 262916] = "Quarters_Integer";
-    ExtendedTypeStrings[ExtendedTypeStrings["Quarters_Date"] = 262662] = "Quarters_Date";
-    ExtendedTypeStrings[ExtendedTypeStrings["Quarters_DateTime"] = 262663] = "Quarters_DateTime";
-    ExtendedTypeStrings[ExtendedTypeStrings["DayOfMonth"] = 328192] = "DayOfMonth";
-    ExtendedTypeStrings[ExtendedTypeStrings["DayOfMonth_Text"] = 328193] = "DayOfMonth_Text";
-    ExtendedTypeStrings[ExtendedTypeStrings["DayOfMonth_Integer"] = 328452] = "DayOfMonth_Integer";
-    ExtendedTypeStrings[ExtendedTypeStrings["DayOfMonth_Date"] = 328198] = "DayOfMonth_Date";
-    ExtendedTypeStrings[ExtendedTypeStrings["DayOfMonth_DateTime"] = 328199] = "DayOfMonth_DateTime";
-    ExtendedTypeStrings[ExtendedTypeStrings["Address"] = 6554625] = "Address";
-    ExtendedTypeStrings[ExtendedTypeStrings["City"] = 6620161] = "City";
-    ExtendedTypeStrings[ExtendedTypeStrings["Continent"] = 6685697] = "Continent";
-    ExtendedTypeStrings[ExtendedTypeStrings["Country"] = 6751233] = "Country";
-    ExtendedTypeStrings[ExtendedTypeStrings["County"] = 6816769] = "County";
-    ExtendedTypeStrings[ExtendedTypeStrings["Region"] = 6882305] = "Region";
-    ExtendedTypeStrings[ExtendedTypeStrings["PostalCode"] = 6947840] = "PostalCode";
-    ExtendedTypeStrings[ExtendedTypeStrings["PostalCode_Text"] = 6947841] = "PostalCode_Text";
-    ExtendedTypeStrings[ExtendedTypeStrings["PostalCode_Integer"] = 6948100] = "PostalCode_Integer";
-    ExtendedTypeStrings[ExtendedTypeStrings["StateOrProvince"] = 7013377] = "StateOrProvince";
-    ExtendedTypeStrings[ExtendedTypeStrings["Place"] = 7078913] = "Place";
-    ExtendedTypeStrings[ExtendedTypeStrings["Latitude"] = 7144448] = "Latitude";
-    ExtendedTypeStrings[ExtendedTypeStrings["Latitude_Decimal"] = 7144706] = "Latitude_Decimal";
-    ExtendedTypeStrings[ExtendedTypeStrings["Latitude_Double"] = 7144707] = "Latitude_Double";
-    ExtendedTypeStrings[ExtendedTypeStrings["Longitude"] = 7209984] = "Longitude";
-    ExtendedTypeStrings[ExtendedTypeStrings["Longitude_Decimal"] = 7210242] = "Longitude_Decimal";
-    ExtendedTypeStrings[ExtendedTypeStrings["Longitude_Double"] = 7210243] = "Longitude_Double";
-    ExtendedTypeStrings[ExtendedTypeStrings["Image"] = 13109259] = "Image";
-    ExtendedTypeStrings[ExtendedTypeStrings["ImageUrl"] = 13174785] = "ImageUrl";
-    ExtendedTypeStrings[ExtendedTypeStrings["WebUrl"] = 13240321] = "WebUrl";
-    ExtendedTypeStrings[ExtendedTypeStrings["Barcode"] = 13305856] = "Barcode";
-    ExtendedTypeStrings[ExtendedTypeStrings["Barcode_Text"] = 13305857] = "Barcode_Text";
-    ExtendedTypeStrings[ExtendedTypeStrings["Barcode_Integer"] = 13306116] = "Barcode_Integer";
-    ExtendedTypeStrings[ExtendedTypeStrings["Color"] = 19664897] = "Color";
-    ExtendedTypeStrings[ExtendedTypeStrings["FormatString"] = 19730433] = "FormatString";
-    ExtendedTypeStrings[ExtendedTypeStrings["Alignment"] = 20058113] = "Alignment";
-    ExtendedTypeStrings[ExtendedTypeStrings["LabelDisplayUnits"] = 20123649] = "LabelDisplayUnits";
-    ExtendedTypeStrings[ExtendedTypeStrings["FontSize"] = 20189443] = "FontSize";
-    ExtendedTypeStrings[ExtendedTypeStrings["LabelDensity"] = 20254979] = "LabelDensity";
-    ExtendedTypeStrings[ExtendedTypeStrings["Enumeration"] = 26214401] = "Enumeration";
-    ExtendedTypeStrings[ExtendedTypeStrings["ScriptSource"] = 32776193] = "ScriptSource";
-    ExtendedTypeStrings[ExtendedTypeStrings["SearchEnabled"] = 65541] = "SearchEnabled";
-})(ExtendedTypeStrings || (ExtendedTypeStrings = {}));
-const PrimitiveTypeMask = 0xFF;
-const PrimitiveTypeWithFlagsMask = 0xFFFF;
-const PrimitiveTypeFlagsExcludedMask = 0xFFFF0000;
-function getPrimitiveType(extendedType) {
-    return extendedType & PrimitiveTypeMask;
-}
-function isPrimitiveType(extendedType) {
-    return (extendedType & PrimitiveTypeWithFlagsMask) === extendedType;
-}
-function getCategoryFromExtendedType(extendedType) {
-    if (isPrimitiveType(extendedType))
-        return null;
-    let category = ExtendedTypeStrings[extendedType];
-    if (category) {
-        // Check for ExtendedType declaration without a primitive type.
-        // If exists, use it as category (e.g. Longitude rather than Longitude_Double)
-        // Otherwise use the ExtendedType declaration with a primitive type (e.g. Address)
-        const delimIdx = category.lastIndexOf("_");
-        if (delimIdx > 0) {
-            const baseCategory = category.slice(0, delimIdx);
-            if (ExtendedTypeStrings[baseCategory]) {
-                category = baseCategory;
-            }
-        }
-    }
-    return category || null;
-}
-function toExtendedType(primitiveType, category) {
-    const primitiveString = PrimitiveTypeStrings[primitiveType];
-    let t = ExtendedTypeStrings[primitiveString];
-    if (t == null) {
-        t = ExtendedType.Null;
-    }
-    if (primitiveType && category) {
-        let categoryType = ExtendedTypeStrings[category];
-        if (categoryType) {
-            const categoryPrimitiveType = getPrimitiveType(categoryType);
-            if (categoryPrimitiveType === PrimitiveType.Null) {
-                // Category supports multiple primitive types, check if requested primitive type is supported
-                // (note: important to use t here rather than primitiveType as it may include primitive type flags)
-                categoryType = t | categoryType;
-                if (ExtendedTypeStrings[categoryType]) {
-                    t = categoryType;
-                }
-            }
-            else if (categoryPrimitiveType === primitiveType) {
-                // Primitive type matches the single supported type for the category
-                t = categoryType;
-            }
-        }
-    }
-    return t;
-}
-function matchesExtendedTypeWithAnyPrimitive(a, b) {
-    return (a & PrimitiveTypeFlagsExcludedMask) === (b & PrimitiveTypeFlagsExcludedMask);
-}
-//# sourceMappingURL=valueType.js.map
-
-/***/ }),
-
-/***/ 93:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-/*
-*  Power BI Visualizations
-*
-*  Copyright (c) Microsoft Corporation
-*  All rights reserved.
-*  MIT License
-*
-*  Permission is hereby granted, free of charge, to any person obtaining a copy
-*  of this software and associated documentation files (the ""Software""), to deal
-*  in the Software without restriction, including without limitation the rights
-*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-*  copies of the Software, and to permit persons to whom the Software is
-*  furnished to do so, subject to the following conditions:
-*
-*  The above copyright notice and this permission notice shall be included in
-*  all copies or substantial portions of the Software.
-*
-*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-*  THE SOFTWARE.
-*/
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.wordBreakOverflowingText = exports.wordBreak = exports.svgEllipsis = exports.getTailoredTextOrDefault = exports.getDivElementWidth = exports.getSvgMeasurementProperties = exports.getMeasurementProperties = exports.measureSvgTextElementWidth = exports.estimateSvgTextHeight = exports.estimateSvgTextBaselineDelta = exports.measureSvgTextHeight = exports.measureSvgTextRect = exports.measureSvgTextWidth = exports.removeSpanElement = void 0;
-// powerbi.extensibility.utils.type
-var powerbi_visuals_utils_typeutils_1 = __webpack_require__(317);
-// powerbi.extensibility.utils.formatting
-var wordBreaker = __webpack_require__(857);
-var ephemeralStorageService_1 = __webpack_require__(73);
-var ellipsis = "...";
-var spanElement;
-var svgTextElement;
-var canvasCtx;
-var fallbackFontFamily;
-/**
- * Idempotent function for adding the elements to the DOM.
- */
-function ensureDOM() {
-    if (spanElement) {
-        return;
-    }
-    spanElement = document.createElement("span");
-    document.body.appendChild(spanElement);
-    // The style hides the svg element from the canvas, preventing canvas from scrolling down to show svg black square.
-    /* eslint-disable-next-line powerbi-visuals/no-http-string */
-    var svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svgElement.setAttribute("height", "0");
-    svgElement.setAttribute("width", "0");
-    svgElement.setAttribute("position", "absolute");
-    svgElement.style.top = "0px";
-    svgElement.style.left = "0px";
-    svgElement.style.position = "absolute";
-    svgElement.style.height = "0px";
-    svgElement.style.width = "0px";
-    /* eslint-disable-next-line powerbi-visuals/no-http-string */
-    svgTextElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    svgElement.appendChild(svgTextElement);
-    document.body.appendChild(svgElement);
-    var canvasElement = document.createElement("canvas");
-    canvasCtx = canvasElement.getContext("2d");
-    var style = window.getComputedStyle(svgTextElement);
-    if (style) {
-        fallbackFontFamily = style.fontFamily;
-    }
-    else {
-        fallbackFontFamily = "";
-    }
-}
-/**
- * Removes spanElement from DOM.
- */
-function removeSpanElement() {
-    if (spanElement && spanElement.remove) {
-        spanElement.remove();
-    }
-    spanElement = null;
-}
-exports.removeSpanElement = removeSpanElement;
-/**
- * Measures the width of the text with the given SVG text properties.
- * @param textProperties The text properties to use for text measurement.
- * @param text The text to measure.
- */
-function measureSvgTextWidth(textProperties, text) {
-    ensureDOM();
-    canvasCtx.font =
-        (textProperties.fontStyle || "") + " " +
-            (textProperties.fontVariant || "") + " " +
-            (textProperties.fontWeight || "") + " " +
-            textProperties.fontSize + " " +
-            (textProperties.fontFamily || fallbackFontFamily);
-    return canvasCtx.measureText(text || textProperties.text).width;
-}
-exports.measureSvgTextWidth = measureSvgTextWidth;
-/**
- * Return the rect with the given SVG text properties.
- * @param textProperties The text properties to use for text measurement.
- * @param text The text to measure.
- */
-function measureSvgTextRect(textProperties, text) {
-    ensureDOM();
-    // Removes DOM elements faster than innerHTML
-    while (svgTextElement.firstChild) {
-        svgTextElement.removeChild(svgTextElement.firstChild);
-    }
-    svgTextElement.setAttribute("style", null);
-    svgTextElement.style.visibility = "hidden";
-    svgTextElement.style.fontFamily = textProperties.fontFamily || fallbackFontFamily;
-    svgTextElement.style.fontVariant = textProperties.fontVariant;
-    svgTextElement.style.fontSize = textProperties.fontSize;
-    svgTextElement.style.fontWeight = textProperties.fontWeight;
-    svgTextElement.style.fontStyle = textProperties.fontStyle;
-    svgTextElement.style.whiteSpace = textProperties.whiteSpace || "nowrap";
-    svgTextElement.appendChild(document.createTextNode(text || textProperties.text));
-    // We're expecting the browser to give a synchronous measurement here
-    // We're using SVGTextElement because it works across all browsers
-    return svgTextElement.getBBox();
-}
-exports.measureSvgTextRect = measureSvgTextRect;
-/**
- * Measures the height of the text with the given SVG text properties.
- * @param textProperties The text properties to use for text measurement.
- * @param text The text to measure.
- */
-function measureSvgTextHeight(textProperties, text) {
-    return measureSvgTextRect(textProperties, text).height;
-}
-exports.measureSvgTextHeight = measureSvgTextHeight;
-/**
- * Returns the text Rect with the given SVG text properties.
- * Does NOT return text width; obliterates text value
- * @param {TextProperties} textProperties - The text properties to use for text measurement
- */
-function estimateSvgTextRect(textProperties) {
-    var propertiesKey = textProperties.fontFamily + textProperties.fontSize;
-    var rect = ephemeralStorageService_1.ephemeralStorageService.getData(propertiesKey);
-    if (rect == null) {
-        // To estimate we check the height of a particular character, once it is cached, subsequent
-        // calls should always get the height from the cache (regardless of the text).
-        var estimatedTextProperties = {
-            fontFamily: textProperties.fontFamily,
-            fontSize: textProperties.fontSize,
-            text: "M",
-        };
-        rect = exports.measureSvgTextRect(estimatedTextProperties);
-        // NOTE: In some cases (disconnected/hidden DOM) we may provide incorrect measurement results (zero sized bounding-box), so
-        // we only store values in the cache if we are confident they are correct.
-        if (rect.height > 0)
-            ephemeralStorageService_1.ephemeralStorageService.setData(propertiesKey, rect);
-    }
-    return rect;
-}
-/**
- * Returns the text Rect with the given SVG text properties.
- * @param {TextProperties} textProperties - The text properties to use for text measurement
- */
-function estimateSvgTextBaselineDelta(textProperties) {
-    var rect = estimateSvgTextRect(textProperties);
-    return rect.y + rect.height;
-}
-exports.estimateSvgTextBaselineDelta = estimateSvgTextBaselineDelta;
-/**
- * Estimates the height of the text with the given SVG text properties.
- * @param {TextProperties} textProperties - The text properties to use for text measurement
- */
-function estimateSvgTextHeight(textProperties, tightFightForNumeric) {
-    if (tightFightForNumeric === void 0) { tightFightForNumeric = false; }
-    var height = estimateSvgTextRect(textProperties).height;
-    // replace it with new baseline calculation
-    if (tightFightForNumeric)
-        height *= 0.7;
-    return height;
-}
-exports.estimateSvgTextHeight = estimateSvgTextHeight;
-/**
- * Measures the width of the svgElement.
- * @param svgElement The SVGTextElement to be measured.
- */
-function measureSvgTextElementWidth(svgElement) {
-    return measureSvgTextWidth(getSvgMeasurementProperties(svgElement));
-}
-exports.measureSvgTextElementWidth = measureSvgTextElementWidth;
-/**
- * Fetches the text measurement properties of the given DOM element.
- * @param element The selector for the DOM Element.
- */
-function getMeasurementProperties(element) {
-    var style = window.getComputedStyle(element);
-    return {
-        text: element.value || element.textContent,
-        fontFamily: style.fontFamily,
-        fontSize: style.fontSize,
-        fontWeight: style.fontWeight,
-        fontStyle: style.fontStyle,
-        fontVariant: style.fontVariant,
-        whiteSpace: style.whiteSpace
-    };
-}
-exports.getMeasurementProperties = getMeasurementProperties;
-/**
- * Fetches the text measurement properties of the given SVG text element.
- * @param element The SVGTextElement to be measured.
- */
-function getSvgMeasurementProperties(element) {
-    var style = window.getComputedStyle(element);
-    if (style) {
-        return {
-            text: element.textContent,
-            fontFamily: style.fontFamily,
-            fontSize: style.fontSize,
-            fontWeight: style.fontWeight,
-            fontStyle: style.fontStyle,
-            fontVariant: style.fontVariant,
-            whiteSpace: style.whiteSpace
-        };
-    }
-    else {
-        return {
-            text: element.textContent,
-            fontFamily: "",
-            fontSize: "0",
-        };
-    }
-}
-exports.getSvgMeasurementProperties = getSvgMeasurementProperties;
-/**
- * Returns the width of a div element.
- * @param element The div element.
- */
-function getDivElementWidth(element) {
-    var style = window.getComputedStyle(element);
-    if (style)
-        return style.width;
-    else
-        return "0";
-}
-exports.getDivElementWidth = getDivElementWidth;
-/**
- * Compares labels text size to the available size and renders ellipses when the available size is smaller.
- * @param textProperties The text properties (including text content) to use for text measurement.
- * @param maxWidth The maximum width available for rendering the text.
- */
-function getTailoredTextOrDefault(textProperties, maxWidth) {
-    ensureDOM();
-    var strLength = textProperties.text.length;
-    if (strLength === 0) {
-        return textProperties.text;
-    }
-    var width = measureSvgTextWidth(textProperties);
-    if (width < maxWidth) {
-        return textProperties.text;
-    }
-    var ellipsesWidth = measureSvgTextWidth(textProperties, ellipsis);
-    if (ellipsesWidth >= width) {
-        return textProperties.text;
-    }
-    // Create a copy of the textProperties so we don't modify the one that's passed in.
-    var copiedTextProperties = powerbi_visuals_utils_typeutils_1.prototype.inherit(textProperties);
-    // Take the properties and apply them to svgTextElement
-    // Then, do the binary search to figure out the substring we want
-    // Set the substring on textElement argument
-    var text = copiedTextProperties.text = ellipsis + copiedTextProperties.text;
-    var min = 1;
-    var max = text.length;
-    var i = ellipsis.length;
-    while (min <= max) {
-        // num | 0 preferred to Math.floor(num) for performance benefits
-        i = (min + max) / 2 | 0;
-        copiedTextProperties.text = text.substring(0, i);
-        width = measureSvgTextWidth(copiedTextProperties);
-        if (maxWidth > width) {
-            min = i + 1;
-        }
-        else if (maxWidth < width) {
-            max = i - 1;
-        }
-        else {
-            break;
-        }
-    }
-    // Since the search algorithm almost never finds an exact match,
-    // it will pick one of the closest two, which could result in a
-    // value bigger with than 'maxWidth' thus we need to go back by
-    // one to guarantee a smaller width than 'maxWidth'.
-    copiedTextProperties.text = text.substring(0, i);
-    width = measureSvgTextWidth(copiedTextProperties);
-    if (width > maxWidth) {
-        i--;
-    }
-    return textProperties.text.substring(0, i - ellipsis.length) + ellipsis;
-}
-exports.getTailoredTextOrDefault = getTailoredTextOrDefault;
-/**
- * Compares labels text size to the available size and renders ellipses when the available size is smaller.
- * @param textElement The SVGTextElement containing the text to render.
- * @param maxWidth The maximum width available for rendering the text.
- */
-function svgEllipsis(textElement, maxWidth) {
-    var properties = getSvgMeasurementProperties(textElement);
-    var originalText = properties.text;
-    var tailoredText = getTailoredTextOrDefault(properties, maxWidth);
-    if (originalText !== tailoredText) {
-        textElement.textContent = tailoredText;
-    }
-}
-exports.svgEllipsis = svgEllipsis;
-/**
- * Word break textContent of <text> SVG element into <tspan>s
- * Each tspan will be the height of a single line of text
- * @param textElement - the SVGTextElement containing the text to wrap
- * @param maxWidth - the maximum width available
- * @param maxHeight - the maximum height available (defaults to single line)
- * @param linePadding - (optional) padding to add to line height
- */
-function wordBreak(textElement, maxWidth, maxHeight, linePadding) {
-    if (linePadding === void 0) { linePadding = 0; }
-    var properties = getSvgMeasurementProperties(textElement);
-    var height = estimateSvgTextHeight(properties) + linePadding;
-    var maxNumLines = Math.max(1, Math.floor(maxHeight / height));
-    // Save y of parent textElement to apply as first tspan dy
-    var firstDY = textElement ? textElement.getAttribute("y") : null;
-    // Store and clear text content
-    var labelText = textElement ? textElement.textContent : null;
-    textElement.textContent = null;
-    // Append a tspan for each word broken section
-    var words = wordBreaker.splitByWidth(labelText, properties, measureSvgTextWidth, maxWidth, maxNumLines);
-    var fragment = document.createDocumentFragment();
-    for (var i = 0, ilen = words.length; i < ilen; i++) {
-        var dy = i === 0 ? firstDY : height;
-        properties.text = words[i];
-        /* eslint-disable-next-line powerbi-visuals/no-http-string */
-        var textElement_1 = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-        textElement_1.setAttribute("x", "0");
-        textElement_1.setAttribute("dy", dy ? dy.toString() : null);
-        textElement_1.appendChild(document.createTextNode(getTailoredTextOrDefault(properties, maxWidth)));
-        fragment.appendChild(textElement_1);
-    }
-    textElement.appendChild(fragment);
-}
-exports.wordBreak = wordBreak;
-/**
- * Word break textContent of span element into <span>s
- * Each span will be the height of a single line of text
- * @param textElement - the element containing the text to wrap
- * @param maxWidth - the maximum width available
- * @param maxHeight - the maximum height available (defaults to single line)
- * @param linePadding - (optional) padding to add to line height
- */
-function wordBreakOverflowingText(textElement, maxWidth, maxHeight, linePadding) {
-    if (linePadding === void 0) { linePadding = 0; }
-    var properties = getSvgMeasurementProperties(textElement);
-    var height = estimateSvgTextHeight(properties) + linePadding;
-    var maxNumLines = Math.max(1, Math.floor(maxHeight / height));
-    // Store and clear text content
-    var labelText = textElement.textContent;
-    textElement.textContent = null;
-    // Append a span for each word broken section
-    var words = wordBreaker.splitByWidth(labelText, properties, measureSvgTextWidth, maxWidth, maxNumLines);
-    var fragment = document.createDocumentFragment();
-    for (var i = 0; i < words.length; i++) {
-        var span = document.createElement("span");
-        span.style.overflow = "hidden";
-        span.style.whiteSpace = "nowrap";
-        span.style.textOverflow = "ellipsis";
-        span.style.display = "block";
-        span.style.width = powerbi_visuals_utils_typeutils_1.pixelConverter.toString(maxWidth);
-        span.appendChild(document.createTextNode(words[i]));
-        span.appendChild(document.createTextNode(getTailoredTextOrDefault(properties, maxWidth)));
-        fragment.appendChild(span);
-    }
-    textElement.appendChild(fragment);
-}
-exports.wordBreakOverflowingText = wordBreakOverflowingText;
-//# sourceMappingURL=textMeasurementService.js.map
-
-/***/ }),
-
-/***/ 98:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   NumericSequence: () => (/* binding */ NumericSequence)
-/* harmony export */ });
-/* harmony import */ var _double__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(312);
-/* harmony import */ var _numericSequenceRange__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(822);
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-
-
-class NumericSequence {
-    // eslint-disable-next-line max-lines-per-function
-    static calculate(range, expectedCount, maxAllowedMargin, minPower, useZeroRefPoint, steps) {
-        const result = new NumericSequence();
-        if (expectedCount === undefined)
-            expectedCount = 10;
-        else
-            expectedCount = _double__WEBPACK_IMPORTED_MODULE_0__.ensureInRange(expectedCount, NumericSequence.MIN_COUNT, NumericSequence.MAX_COUNT);
-        if (minPower === undefined)
-            minPower = _double__WEBPACK_IMPORTED_MODULE_0__.MIN_EXP;
-        if (useZeroRefPoint === undefined)
-            useZeroRefPoint = false;
-        if (maxAllowedMargin === undefined)
-            maxAllowedMargin = 1;
-        if (steps === undefined)
-            steps = [1, 2, 5];
-        // Handle single stop case
-        if (range.forcedSingleStop) {
-            result.interval = range.getSize();
-            result.intervalOffset = result.interval - (range.forcedSingleStop - range.min);
-            result.min = range.min;
-            result.max = range.max;
-            result.sequence = [range.forcedSingleStop];
-            return result;
-        }
-        let interval = 0;
-        let min = 0;
-        let max = 9;
-        const canExtendMin = maxAllowedMargin > 0 && !range.hasFixedMin;
-        const canExtendMax = maxAllowedMargin > 0 && !range.hasFixedMax;
-        const size = range.getSize();
-        let exp = _double__WEBPACK_IMPORTED_MODULE_0__.log10(size);
-        // Account for Exp of steps
-        const stepExp = _double__WEBPACK_IMPORTED_MODULE_0__.log10(steps[0]);
-        exp = exp - stepExp;
-        // Account for MaxCount
-        const expectedCountExp = _double__WEBPACK_IMPORTED_MODULE_0__.log10(expectedCount);
-        exp = exp - expectedCountExp;
-        // Account for MinPower
-        exp = Math.max(exp, minPower - stepExp + 1);
-        let count = undefined;
-        // Create array of "good looking" numbers
-        if (interval !== 0) {
-            // If explicit interval is defined - use it instead of the steps array.
-            const power = _double__WEBPACK_IMPORTED_MODULE_0__.pow10(exp);
-            const roundMin = _double__WEBPACK_IMPORTED_MODULE_0__.floorToPrecision(range.min, power);
-            const roundMax = _double__WEBPACK_IMPORTED_MODULE_0__.ceilToPrecision(range.max, power);
-            const roundRange = _numericSequenceRange__WEBPACK_IMPORTED_MODULE_1__.NumericSequenceRange.calculateFixedRange(roundMin, roundMax);
-            roundRange.shrinkByStep(range, interval);
-            min = roundRange.min;
-            max = roundRange.max;
-            count = Math.floor(roundRange.getSize() / interval);
-        }
-        else {
-            // No interval defined -> find optimal interval
-            let dexp;
-            for (dexp = 0; dexp < 3; dexp++) {
-                const e = exp + dexp;
-                const power = _double__WEBPACK_IMPORTED_MODULE_0__.pow10(e);
-                const roundMin = _double__WEBPACK_IMPORTED_MODULE_0__.floorToPrecision(range.min, power);
-                const roundMax = _double__WEBPACK_IMPORTED_MODULE_0__.ceilToPrecision(range.max, power);
-                // Go throught the steps array looking for the smallest step that produces the right interval count.
-                const stepsCount = steps.length;
-                const stepPower = _double__WEBPACK_IMPORTED_MODULE_0__.pow10(e - 1);
-                for (let i = 0; i < stepsCount; i++) {
-                    const step = steps[i] * stepPower;
-                    const roundRange = _numericSequenceRange__WEBPACK_IMPORTED_MODULE_1__.NumericSequenceRange.calculateFixedRange(roundMin, roundMax, useZeroRefPoint);
-                    roundRange.shrinkByStep(range, step);
-                    // If the range is based on Data we might need to extend it to provide nice data margins.
-                    if (canExtendMin && range.min === roundRange.min && maxAllowedMargin >= 1)
-                        roundRange.min -= step;
-                    if (canExtendMax && range.max === roundRange.max && maxAllowedMargin >= 1)
-                        roundRange.max += step;
-                    // Count the intervals
-                    count = _double__WEBPACK_IMPORTED_MODULE_0__.ceilWithPrecision(roundRange.getSize() / step, _double__WEBPACK_IMPORTED_MODULE_0__.DEFAULT_PRECISION);
-                    if (count <= expectedCount || (dexp === 2 && i === stepsCount - 1) || (expectedCount === 1 && count === 2 && (step > range.getSize() || (range.min < 0 && range.max > 0 && step * 2 >= range.getSize())))) {
-                        interval = step;
-                        min = roundRange.min;
-                        max = roundRange.max;
-                        break;
-                    }
-                }
-                // Increase the scale power until the interval is found
-                if (interval !== 0)
-                    break;
-            }
-        }
-        // Avoid extreme count cases (>1000 ticks)
-        if (count > expectedCount * 32 || count > NumericSequence.MAX_COUNT) {
-            count = Math.min(expectedCount * 32, NumericSequence.MAX_COUNT);
-            interval = (max - min) / count;
-        }
-        result.min = min;
-        result.max = max;
-        result.interval = interval;
-        result.intervalOffset = min - range.min;
-        result.maxAllowedMargin = maxAllowedMargin;
-        result.canExtendMin = canExtendMin;
-        result.canExtendMax = canExtendMax;
-        // Fill in the Sequence
-        const precision = _double__WEBPACK_IMPORTED_MODULE_0__.getPrecision(interval, 0);
-        result.precision = precision;
-        const sequence = [];
-        let x = _double__WEBPACK_IMPORTED_MODULE_0__.roundToPrecision(min, precision);
-        sequence.push(x);
-        for (let i = 0; i < count; i++) {
-            x = _double__WEBPACK_IMPORTED_MODULE_0__.roundToPrecision(x + interval, precision);
-            sequence.push(x);
-        }
-        result.sequence = sequence;
-        result.trimMinMax(range.min, range.max);
-        return result;
-    }
-    /**
-     * Calculates the sequence of int numbers which are mapped to the multiples of the units grid.
-     * @min - The minimum of the range.
-     * @max - The maximum of the range.
-     * @maxCount - The max count of intervals.
-     * @steps - array of intervals.
-     */
-    static calculateUnits(min, max, maxCount, steps) {
-        // Initialization actions
-        maxCount = _double__WEBPACK_IMPORTED_MODULE_0__.ensureInRange(maxCount, NumericSequence.MIN_COUNT, NumericSequence.MAX_COUNT);
-        if (min === max) {
-            max = min + 1;
-        }
-        let stepCount = 0;
-        let step = 0;
-        // Calculate step
-        for (let i = 0; i < steps.length; i++) {
-            step = steps[i];
-            const maxStepCount = _double__WEBPACK_IMPORTED_MODULE_0__.ceilWithPrecision(max / step);
-            const minStepCount = _double__WEBPACK_IMPORTED_MODULE_0__.floorWithPrecision(min / step);
-            stepCount = maxStepCount - minStepCount;
-            if (stepCount <= maxCount) {
-                break;
-            }
-        }
-        // Calculate the offset
-        let offset = -min;
-        offset = offset % step;
-        // Create sequence
-        const result = new NumericSequence();
-        result.sequence = [];
-        for (let x = min + offset;; x += step) {
-            result.sequence.push(x);
-            if (x >= max)
-                break;
-        }
-        result.interval = step;
-        result.intervalOffset = offset;
-        result.min = result.sequence[0];
-        result.max = result.sequence[result.sequence.length - 1];
-        return result;
-    }
-    trimMinMax(min, max) {
-        const minMargin = (min - this.min) / this.interval;
-        const maxMargin = (this.max - max) / this.interval;
-        const marginPrecision = 0.001;
-        if (!this.canExtendMin || (minMargin > this.maxAllowedMargin && minMargin > marginPrecision)) {
-            this.min = min;
-        }
-        if (!this.canExtendMax || (maxMargin > this.maxAllowedMargin && maxMargin > marginPrecision)) {
-            this.max = max;
-        }
-    }
-}
-NumericSequence.MIN_COUNT = 1;
-NumericSequence.MAX_COUNT = 1000;
-//# sourceMappingURL=numericSequence.js.map
-
-/***/ }),
-
-/***/ 107:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   createDataViewWildcardSelector: () => (/* binding */ createDataViewWildcardSelector)
-/* harmony export */ });
-/*
-*  Power BI Visualizations
-*
-*  Copyright (c) Microsoft Corporation
-*  All rights reserved.
-*  MIT License
-*
-*  Permission is hereby granted, free of charge, to any person obtaining a copy
-*  of this software and associated documentation files (the ""Software""), to deal
-*  in the Software without restriction, including without limitation the rights
-*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-*  copies of the Software, and to permit persons to whom the Software is
-*  furnished to do so, subject to the following conditions:
-*
-*  The above copyright notice and this permission notice shall be included in
-*  all copies or substantial portions of the Software.
-*
-*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-*  THE SOFTWARE.
-*/
-function createDataViewWildcardSelector(dataViewWildcardMatchingOption) {
-    if (dataViewWildcardMatchingOption == null) {
-        dataViewWildcardMatchingOption = 0 /* DataViewWildcardMatchingOption.InstancesAndTotals */;
-    }
-    const selector = {
-        data: [
-            {
-                dataViewWildcard: {
-                    matchingOption: dataViewWildcardMatchingOption
-                }
-            }
-        ]
-    };
-    return selector;
-}
-//# sourceMappingURL=dataViewWildcard.js.map
-
-/***/ }),
-
-/***/ 128:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getCustomFormatMetadata = exports.formatWithCustomOverride = exports.format = exports.isStandardFormat = exports.canFormat = exports.getComponents = exports.hasFormatComponents = exports.addDecimalsToFormat = exports.getNumericFormat = exports.NumberFormatComponentsDelimeter = void 0;
-/**
- * NumberFormat module contains the static methods for formatting the numbers.
- * It extends the Globalize functionality to support complete set of .NET
- * formatting expressions for numeric types including custom formats.
- */
-/* eslint-disable no-useless-escape */
-var globalize_1 = __webpack_require__(647);
-// powerbi.extensibility.utils.type
-var powerbi_visuals_utils_typeutils_1 = __webpack_require__(317);
-// powerbi.extensibility.utils.formatting
-var stringExtensions = __webpack_require__(262);
-var formattingEncoder = __webpack_require__(573);
-var formattingService_1 = __webpack_require__(510);
-var NumericalPlaceHolderRegex = /\{.+\}/;
-var ScientificFormatRegex = /e[+-]*[0#]+/i;
-var StandardFormatRegex = /^[a-z]\d{0,2}$/i; // a letter + up to 2 digits for precision specifier
-var TrailingZerosRegex = /0+$/;
-var DecimalFormatRegex = /\.([0#]*)/g;
-var NumericFormatRegex = /[0#,\.]+[0,#]*/g;
-// (?=...) is a positive lookahead assertion. The RE is asking for the last digit placeholder, [0#],
-// which is followed by non-digit placeholders and the end of string, [^0#]*$. But it only matches
-// the last digit placeholder, not anything that follows because the positive lookahead isn"t included
-// in the match - it is only a condition.
-var LastNumericPlaceholderRegex = /([0#])(?=[^0#]*$)/;
-var DecimalFormatCharacter = ".";
-var ZeroPlaceholder = "0";
-var DigitPlaceholder = "#";
-var ExponentialFormatChar = "E";
-var NumericPlaceholders = [ZeroPlaceholder, DigitPlaceholder];
-var NumericPlaceholderRegex = new RegExp(NumericPlaceholders.join("|"), "g");
-exports.NumberFormatComponentsDelimeter = ";";
-function getNonScientificFormatWithPrecision(baseFormat, numericFormat) {
-    if (!numericFormat || baseFormat === undefined)
-        return baseFormat;
-    var newFormat = "{0:" + numericFormat + "}";
-    return baseFormat.replace("{0}", newFormat);
-}
-function getNumericFormat(value, baseFormat) {
-    if (baseFormat == null)
-        return baseFormat;
-    if (hasFormatComponents(baseFormat)) {
-        var _a = getComponents(baseFormat), positive = _a.positive, negative = _a.negative, zero = _a.zero;
-        if (value > 0)
-            return getNumericFormatFromComponent(value, positive);
-        else if (value === 0)
-            return getNumericFormatFromComponent(value, zero);
-        return getNumericFormatFromComponent(value, negative);
-    }
-    return getNumericFormatFromComponent(value, baseFormat);
-}
-exports.getNumericFormat = getNumericFormat;
-function getNumericFormatFromComponent(value, format) {
-    var match = powerbi_visuals_utils_typeutils_1.regExpExtensions.run(NumericFormatRegex, format);
-    if (match)
-        return match[0];
-    return format;
-}
-function addDecimalsToFormat(baseFormat, decimals, trailingZeros) {
-    if (decimals == null)
-        return baseFormat;
-    // Default format string
-    if (baseFormat == null)
-        baseFormat = ZeroPlaceholder;
-    if (hasFormatComponents(baseFormat)) {
-        var _a = getComponents(baseFormat), positive = _a.positive, negative = _a.negative, zero = _a.zero;
-        var formats = [positive, negative, zero];
-        for (var i = 0; i < formats.length; i++) {
-            // Update format in formats array
-            formats[i] = addDecimalsToFormatComponent(formats[i], decimals, trailingZeros);
-        }
-        return formats.join(exports.NumberFormatComponentsDelimeter);
-    }
-    return addDecimalsToFormatComponent(baseFormat, decimals, trailingZeros);
-}
-exports.addDecimalsToFormat = addDecimalsToFormat;
-function addDecimalsToFormatComponent(format, decimals, trailingZeros) {
-    decimals = Math.abs(decimals);
-    if (decimals >= 0) {
-        var literals = [];
-        format = formattingEncoder.preserveLiterals(format, literals);
-        var placeholder = trailingZeros ? ZeroPlaceholder : DigitPlaceholder;
-        var decimalPlaceholders = stringExtensions.repeat(placeholder, Math.abs(decimals));
-        var match = powerbi_visuals_utils_typeutils_1.regExpExtensions.run(DecimalFormatRegex, format);
-        if (match) {
-            var beforeDecimal = format.substring(0, match.index);
-            var formatDecimal = format.substring(match.index + 1, match[1].length + match.index + 1);
-            var afterDecimal = format.substring(match.index + match[0].length);
-            if (trailingZeros)
-                // Use explicit decimals argument as placeholders
-                formatDecimal = decimalPlaceholders;
-            else {
-                var decimalChange = decimalPlaceholders.length - formatDecimal.length;
-                if (decimalChange > 0)
-                    // Append decimalPlaceholders to existing decimal portion of format string
-                    formatDecimal = formatDecimal + decimalPlaceholders.slice(-decimalChange);
-                else if (decimalChange < 0)
-                    // Remove decimals from formatDecimal
-                    formatDecimal = formatDecimal.slice(0, decimalChange);
-            }
-            if (formatDecimal.length > 0)
-                formatDecimal = DecimalFormatCharacter + formatDecimal;
-            format = beforeDecimal + formatDecimal + afterDecimal;
-        }
-        else if (decimalPlaceholders.length > 0) {
-            // Replace last numeric placeholder with decimal portion
-            format = format.replace(LastNumericPlaceholderRegex, "$1" + DecimalFormatCharacter + decimalPlaceholders);
-        }
-        if (literals.length !== 0)
-            format = formattingEncoder.restoreLiterals(format, literals);
-    }
-    return format;
-}
-function hasFormatComponents(format) {
-    return formattingEncoder.removeLiterals(format).indexOf(exports.NumberFormatComponentsDelimeter) !== -1;
-}
-exports.hasFormatComponents = hasFormatComponents;
-function getComponents(format) {
-    var signFormat = {
-        hasNegative: false,
-        positive: format,
-        negative: format,
-        zero: format,
-    };
-    // escape literals so semi-colon in a literal isn't interpreted as a delimiter
-    // NOTE: OK to use the literals extracted here for all three components before since the literals are indexed.
-    // For example, "'pos-lit';'neg-lit'" will get preserved as "\uE000;\uE001" and the literal array will be
-    // ['pos-lit', 'neg-lit']. When the negative components is restored, its \uE001 will select the second
-    // literal.
-    var literals = [];
-    format = formattingEncoder.preserveLiterals(format, literals);
-    var signSpecificFormats = format.split(exports.NumberFormatComponentsDelimeter);
-    var formatCount = signSpecificFormats.length;
-    if (formatCount > 1) {
-        if (literals.length !== 0)
-            signSpecificFormats = signSpecificFormats.map(function (signSpecificFormat) { return formattingEncoder.restoreLiterals(signSpecificFormat, literals); });
-        signFormat.hasNegative = true;
-        signFormat.positive = signFormat.zero = signSpecificFormats[0];
-        signFormat.negative = signSpecificFormats[1];
-        if (formatCount > 2)
-            signFormat.zero = signSpecificFormats[2];
-    }
-    return signFormat;
-}
-exports.getComponents = getComponents;
-var _lastCustomFormatMeta;
-// Evaluates if the value can be formatted using the NumberFormat
-function canFormat(value) {
-    return typeof (value) === "number";
-}
-exports.canFormat = canFormat;
-function isStandardFormat(format) {
-    return StandardFormatRegex.test(format);
-}
-exports.isStandardFormat = isStandardFormat;
-// Formats the number using specified format expression and culture
-function format(value, format, culture) {
-    format = format || "G";
-    try {
-        if (isStandardFormat(format))
-            return formatNumberStandard(value, format, culture);
-        return formatNumberCustom(value, format, culture);
-    }
-    catch (e) {
-        return globalize_1.Globalize.format(value, undefined, culture);
-    }
-}
-exports.format = format;
-// Performs a custom format with a value override.  Typically used for custom formats showing scaled values.
-function formatWithCustomOverride(value, format, nonScientificOverrideFormat, culture) {
-    return formatNumberCustom(value, format, culture, nonScientificOverrideFormat);
-}
-exports.formatWithCustomOverride = formatWithCustomOverride;
-// Formats the number using standard format expression
-function formatNumberStandard(value, format, culture) {
-    var result;
-    var precision = (format.length > 1 ? parseInt(format.substring(1, format.length), 10) : undefined);
-    var numberFormatInfo = culture.numberFormat;
-    var formatChar = format.charAt(0);
-    var abs = Math.abs(value);
-    switch (formatChar) {
-        case "e":
-        case "E":
-            if (precision === undefined) {
-                precision = 6;
-            }
-            format = "0." + stringExtensions.repeat("0", precision) + formatChar + "+000";
-            result = formatNumberCustom(value, format, culture);
-            break;
-        case "f":
-        case "F":
-            result = precision !== undefined ? value.toFixed(precision) : value.toFixed(numberFormatInfo.decimals);
-            result = localize(result, numberFormatInfo);
-            break;
-        case "g":
-        case "G":
-            if (abs === 0 || (1E-4 <= abs && abs < 1E15)) {
-                // For the range of 0.0001 to 1,000,000,000,000,000 - use the normal form
-                result = precision !== undefined ? value.toPrecision(precision) : value.toString();
-            }
-            else {
-                // Otherwise use exponential
-                // Assert that value is a number and fall back on returning value if it is not
-                if (typeof (value) !== "number")
-                    return String(value);
-                result = precision !== undefined ? value.toExponential(precision) : value.toExponential();
-                result = result.replace("e", "E");
-            }
-            result = localize(result, numberFormatInfo);
-            break;
-        case "r":
-        case "R":
-            result = value.toString();
-            result = localize(result, numberFormatInfo);
-            break;
-        case "x":
-        case "X":
-            result = value.toString(16);
-            if (formatChar === "X") {
-                result = result.toUpperCase();
-            }
-            if (precision !== undefined) {
-                var actualPrecision = result.length;
-                var isNegative = value < 0;
-                if (isNegative) {
-                    actualPrecision--;
-                }
-                var paddingZerosCount = precision - actualPrecision;
-                var paddingZeros = undefined;
-                if (paddingZerosCount > 0) {
-                    paddingZeros = stringExtensions.repeat("0", paddingZerosCount);
-                }
-                if (isNegative) {
-                    result = "-" + paddingZeros + result.substring(1);
-                }
-                else {
-                    result = paddingZeros + result;
-                }
-            }
-            result = localize(result, numberFormatInfo);
-            break;
-        default:
-            result = globalize_1.Globalize.format(value, format, culture);
-    }
-    return result;
-}
-// Formats the number using custom format expression
-function formatNumberCustom(value, format, culture, nonScientificOverrideFormat) {
-    var result;
-    var numberFormatInfo = culture.numberFormat;
-    if (isFinite(value)) {
-        // Split format by positive[;negative;zero] pattern
-        var formatComponents = getComponents(format);
-        // Pick a format based on the sign of value
-        if (value > 0) {
-            format = formatComponents.positive;
-        }
-        else if (value === 0) {
-            format = formatComponents.zero;
-        }
-        else {
-            format = formatComponents.negative;
-        }
-        // Normalize value if we have an explicit negative format
-        if (formatComponents.hasNegative)
-            value = Math.abs(value);
-        // Get format metadata
-        var formatMeta = getCustomFormatMetadata(format, true /*calculatePrecision*/);
-        // Preserve literals and escaped chars
-        var literals = [];
-        if (formatMeta.hasLiterals) {
-            format = formattingEncoder.preserveLiterals(format, literals);
-        }
-        // Scientific format
-        if (formatMeta.hasE && !nonScientificOverrideFormat) {
-            var scientificMatch = powerbi_visuals_utils_typeutils_1.regExpExtensions.run(ScientificFormatRegex, format);
-            if (scientificMatch) {
-                // Case 2.1. Scientific custom format
-                var formatM = format.substring(0, scientificMatch.index);
-                var formatE = format.substring(scientificMatch.index + 2); // E(+|-)
-                var precision = getCustomFormatPrecision(formatM, formatMeta);
-                var scale = getCustomFormatScale(formatM, formatMeta);
-                if (scale !== 1) {
-                    value = value * scale;
-                }
-                // Assert that value is a number and fall back on returning value if it is not
-                if (typeof (value) !== "number")
-                    return String(value);
-                var s = value.toExponential(precision);
-                var indexOfE = s.indexOf("e");
-                var mantissa = s.substring(0, indexOfE);
-                var exp = s.substring(indexOfE + 1);
-                var resultM = fuseNumberWithCustomFormat(mantissa, formatM, numberFormatInfo);
-                var resultE = fuseNumberWithCustomFormat(exp, formatE, numberFormatInfo);
-                if (resultE.charAt(0) === "+" && scientificMatch[0].charAt(1) !== "+") {
-                    resultE = resultE.substring(1);
-                }
-                var e = scientificMatch[0].charAt(0);
-                result = resultM + e + resultE;
-            }
-        }
-        // Non scientific format
-        if (result === undefined) {
-            var valueFormatted = void 0;
-            var isValueGlobalized = false;
-            var precision = getCustomFormatPrecision(format, formatMeta);
-            var scale = getCustomFormatScale(format, formatMeta);
-            if (scale !== 1)
-                value = value * scale;
-            // Rounding
-            value = parseFloat(toNonScientific(value, precision));
-            if (!isFinite(value)) {
-                // very large and small finite values can become infinite by parseFloat(toNonScientific())
-                return globalize_1.Globalize.format(value, undefined);
-            }
-            if (nonScientificOverrideFormat) {
-                // Get numeric format from format string
-                var numericFormat = getNumericFormat(value, format);
-                // Add separators and decimalFormat to nonScientificFormat
-                nonScientificOverrideFormat = getNonScientificFormatWithPrecision(nonScientificOverrideFormat, numericFormat);
-                // Format the value
-                valueFormatted = formattingService_1.formattingService.format(nonScientificOverrideFormat, [value], culture.name);
-                isValueGlobalized = true;
-            }
-            else
-                valueFormatted = toNonScientific(value, precision);
-            result = fuseNumberWithCustomFormat(valueFormatted, format, numberFormatInfo, nonScientificOverrideFormat, isValueGlobalized);
-        }
-        if (formatMeta.hasLiterals) {
-            result = formattingEncoder.restoreLiterals(result, literals, false);
-        }
-        _lastCustomFormatMeta = formatMeta;
-    }
-    else {
-        return globalize_1.Globalize.format(value, undefined);
-    }
-    return result;
-}
-// Returns string with the fixed point respresentation of the number
-function toNonScientific(value, precision) {
-    var result = "";
-    var precisionZeros = 0;
-    // Double precision numbers support actual 15-16 decimal digits of precision.
-    if (precision > 16) {
-        precisionZeros = precision - 16;
-        precision = 16;
-    }
-    var digitsBeforeDecimalPoint = powerbi_visuals_utils_typeutils_1.double.log10(Math.abs(value));
-    if (digitsBeforeDecimalPoint < 16) {
-        if (digitsBeforeDecimalPoint > 0) {
-            var maxPrecision = 16 - digitsBeforeDecimalPoint;
-            if (precision > maxPrecision) {
-                precisionZeros += precision - maxPrecision;
-                precision = maxPrecision;
-            }
-        }
-        result = value.toFixed(precision);
-    }
-    else if (digitsBeforeDecimalPoint === 16) {
-        result = value.toFixed(0);
-        precisionZeros += precision;
-        if (precisionZeros > 0) {
-            result += ".";
-        }
-    }
-    else { // digitsBeforeDecimalPoint > 16
-        // Different browsers have different implementations of the toFixed().
-        // In IE it returns fixed format no matter what's the number. In FF and Chrome the method returns exponential format for numbers greater than 1E21.
-        // So we need to check for range and convert the to exponential with the max precision.
-        // Then we convert exponential string to fixed by removing the dot and padding with "power" zeros.
-        // Assert that value is a number and fall back on returning value if it is not
-        if (typeof (value) !== "number")
-            return String(value);
-        result = value.toExponential(15);
-        var indexOfE = result.indexOf("e");
-        if (indexOfE > 0) {
-            var indexOfDot = result.indexOf(".");
-            var mantissa = result.substring(0, indexOfE);
-            var exp = result.substring(indexOfE + 1);
-            var powerZeros = parseInt(exp, 10) - (mantissa.length - indexOfDot - 1);
-            result = mantissa.replace(".", "") + stringExtensions.repeat("0", powerZeros);
-            if (precision > 0) {
-                result = result + "." + stringExtensions.repeat("0", precision);
-            }
-        }
-    }
-    if (precisionZeros > 0) {
-        result = result + stringExtensions.repeat("0", precisionZeros);
-    }
-    return result;
-}
-/**
- * Returns the formatMetadata of the format
- * When calculating precision and scale, if format string of
- * positive[;negative;zero] => positive format will be used
- * @param (required) format - format string
- * @param (optional) calculatePrecision - calculate precision of positive format
- * @param (optional) calculateScale - calculate scale of positive format
- */
-function getCustomFormatMetadata(format, calculatePrecision, calculateScale, calculatePartsPerScale) {
-    if (_lastCustomFormatMeta !== undefined && format === _lastCustomFormatMeta.format) {
-        return _lastCustomFormatMeta;
-    }
-    var literals = [];
-    var escaped = formattingEncoder.preserveLiterals(format, literals);
-    var result = {
-        format: format,
-        hasLiterals: literals.length !== 0,
-        hasE: false,
-        hasCommas: false,
-        hasDots: false,
-        hasPercent: false,
-        hasPermile: false,
-        precision: undefined,
-        scale: undefined,
-        partsPerScale: undefined,
-    };
-    for (var i = 0, length_1 = escaped.length; i < length_1; i++) {
-        var c = escaped.charAt(i);
-        switch (c) {
-            case "e":
-            case "E":
-                result.hasE = true;
-                break;
-            case ",":
-                result.hasCommas = true;
-                break;
-            case ".":
-                result.hasDots = true;
-                break;
-            case "%":
-                result.hasPercent = true;
-                break;
-            case "\u2030": // ‰
-                result.hasPermile = true;
-                break;
-        }
-    }
-    // Use positive format for calculating these values
-    var formatComponents = getComponents(format);
-    if (calculatePrecision)
-        result.precision = getCustomFormatPrecision(formatComponents.positive, result);
-    if (calculatePartsPerScale)
-        result.partsPerScale = getCustomFormatPartsPerScale(formatComponents.positive, result);
-    if (calculateScale)
-        result.scale = getCustomFormatScale(formatComponents.positive, result);
-    return result;
-}
-exports.getCustomFormatMetadata = getCustomFormatMetadata;
-/** Returns the decimal precision of format based on the number of # and 0 chars after the decimal point
-     * Important: The input format string needs to be split to the appropriate pos/neg/zero portion to work correctly */
-function getCustomFormatPrecision(format, formatMeta) {
-    if (formatMeta.precision > -1) {
-        return formatMeta.precision;
-    }
-    var result = 0;
-    if (formatMeta.hasDots) {
-        if (formatMeta.hasLiterals) {
-            format = formattingEncoder.removeLiterals(format);
-        }
-        var dotIndex = format.indexOf(".");
-        if (dotIndex > -1) {
-            var count = format.length;
-            for (var i = dotIndex; i < count; i++) {
-                var char = format.charAt(i);
-                if (char.match(NumericPlaceholderRegex))
-                    result++;
-                // 0.00E+0 :: Break before counting 0 in
-                // exponential portion of format string
-                if (char === ExponentialFormatChar)
-                    break;
-            }
-            result = Math.min(19, result);
-        }
-    }
-    formatMeta.precision = result;
-    return result;
-}
-function getCustomFormatPartsPerScale(format, formatMeta) {
-    if (formatMeta.partsPerScale != null)
-        return formatMeta.partsPerScale;
-    var result = 1;
-    if (formatMeta.hasPercent && format.indexOf("%") > -1) {
-        result = result * 100;
-    }
-    if (formatMeta.hasPermile && format.indexOf(/* ‰ */ "\u2030") > -1) {
-        result = result * 1000;
-    }
-    formatMeta.partsPerScale = result;
-    return result;
-}
-// Returns the scale factor of the format based on the "%" and scaling "," chars in the format
-function getCustomFormatScale(format, formatMeta) {
-    if (formatMeta.scale > -1) {
-        return formatMeta.scale;
-    }
-    var result = getCustomFormatPartsPerScale(format, formatMeta);
-    if (formatMeta.hasCommas) {
-        var dotIndex = format.indexOf(".");
-        if (dotIndex === -1) {
-            dotIndex = format.length;
-        }
-        for (var i = dotIndex - 1; i > -1; i--) {
-            var char = format.charAt(i);
-            if (char === ",") {
-                result = result / 1000;
-            }
-            else {
-                break;
-            }
-        }
-    }
-    formatMeta.scale = result;
-    return result;
-}
-function fuseNumberWithCustomFormat(value, format, numberFormatInfo, nonScientificOverrideFormat, isValueGlobalized) {
-    var suppressModifyValue = !!nonScientificOverrideFormat;
-    var formatParts = format.split(".", 2);
-    if (formatParts.length === 2) {
-        var wholeFormat = formatParts[0];
-        var fractionFormat = formatParts[1];
-        var displayUnit = "";
-        // Remove display unit from value before splitting on "." as localized display units sometimes end with "."
-        if (nonScientificOverrideFormat) {
-            displayUnit = nonScientificOverrideFormat.replace(NumericalPlaceHolderRegex, "");
-            value = value.replace(displayUnit, "");
-        }
-        var globalizedDecimalSeparator = numberFormatInfo["."];
-        var decimalSeparator = isValueGlobalized ? globalizedDecimalSeparator : ".";
-        var valueParts = value.split(decimalSeparator, 2);
-        var wholeValue = valueParts.length === 1 ? valueParts[0] + displayUnit : valueParts[0];
-        var fractionValue = valueParts.length === 2 ? valueParts[1] + displayUnit : "";
-        fractionValue = fractionValue.replace(TrailingZerosRegex, "");
-        var wholeFormattedValue = fuseNumberWithCustomFormatLeft(wholeValue, wholeFormat, numberFormatInfo, suppressModifyValue);
-        var fractionFormattedValue = fuseNumberWithCustomFormatRight(fractionValue, fractionFormat, suppressModifyValue);
-        if (fractionFormattedValue.fmtOnly || fractionFormattedValue.value === "")
-            return wholeFormattedValue + fractionFormattedValue.value;
-        return wholeFormattedValue + globalizedDecimalSeparator + fractionFormattedValue.value;
-    }
-    return fuseNumberWithCustomFormatLeft(value, format, numberFormatInfo, suppressModifyValue);
-}
-function fuseNumberWithCustomFormatLeft(value, format, numberFormatInfo, suppressModifyValue) {
-    var groupSymbolIndex = format.indexOf(",");
-    var enableGroups = groupSymbolIndex > -1 && groupSymbolIndex < Math.max(format.lastIndexOf("0"), format.lastIndexOf("#")) && numberFormatInfo[","];
-    var groupDigitCount = 0;
-    var groupIndex = 0;
-    var groupSizes = numberFormatInfo.groupSizes || [3];
-    var groupSize = groupSizes[0];
-    var groupSeparator = numberFormatInfo[","];
-    var sign = "";
-    var firstChar = value.charAt(0);
-    if (firstChar === "+" || firstChar === "-") {
-        sign = numberFormatInfo[firstChar];
-        value = value.substring(1);
-    }
-    var isZero = value === "0";
-    var result = "";
-    var leftBuffer = "";
-    var vi = value.length - 1;
-    var fmtOnly = true;
-    // Iterate through format chars and replace 0 and # with the digits from the value string
-    for (var fi = format.length - 1; fi > -1; fi--) {
-        var formatChar = format.charAt(fi);
-        switch (formatChar) {
-            case ZeroPlaceholder:
-            case DigitPlaceholder:
-                fmtOnly = false;
-                if (leftBuffer !== "") {
-                    result = leftBuffer + result;
-                    leftBuffer = "";
-                }
-                if (!suppressModifyValue) {
-                    if (vi > -1 || formatChar === ZeroPlaceholder) {
-                        if (enableGroups) {
-                            // If the groups are enabled we'll need to keep track of the current group index and periodically insert group separator,
-                            if (groupDigitCount === groupSize) {
-                                result = groupSeparator + result;
-                                groupIndex++;
-                                if (groupIndex < groupSizes.length) {
-                                    groupSize = groupSizes[groupIndex];
-                                }
-                                groupDigitCount = 1;
-                            }
-                            else {
-                                groupDigitCount++;
-                            }
-                        }
-                    }
-                    if (vi > -1) {
-                        if (isZero && formatChar === DigitPlaceholder) {
-                            // Special case - if we need to format a zero value and the # symbol is used - we don't copy it into the result)
-                        }
-                        else {
-                            result = value.charAt(vi) + result;
-                        }
-                        vi--;
-                    }
-                    else if (formatChar !== DigitPlaceholder) {
-                        result = formatChar + result;
-                    }
-                }
-                break;
-            case ",":
-                // We should skip all the , chars
-                break;
-            default:
-                leftBuffer = formatChar + leftBuffer;
-                break;
-        }
-    }
-    // If the value didn't fit into the number of zeros provided in the format then we should insert the missing part of the value into the result
-    if (!suppressModifyValue) {
-        if (vi > -1 && result !== "") {
-            if (enableGroups) {
-                while (vi > -1) {
-                    if (groupDigitCount === groupSize) {
-                        result = groupSeparator + result;
-                        groupIndex++;
-                        if (groupIndex < groupSizes.length) {
-                            groupSize = groupSizes[groupIndex];
-                        }
-                        groupDigitCount = 1;
-                    }
-                    else {
-                        groupDigitCount++;
-                    }
-                    result = value.charAt(vi) + result;
-                    vi--;
-                }
-            }
-            else {
-                result = value.substring(0, vi + 1) + result;
-            }
-        }
-        // Insert sign in front of the leftBuffer and result
-        return sign + leftBuffer + result;
-    }
-    if (fmtOnly)
-        // If the format doesn't specify any digits to be displayed, then just return the format we've parsed up until now.
-        return sign + leftBuffer + result;
-    return sign + leftBuffer + value + result;
-}
-function fuseNumberWithCustomFormatRight(value, format, suppressModifyValue) {
-    var formatLength = format.length;
-    var valueLength = value.length;
-    if (suppressModifyValue) {
-        var lastChar = format.charAt(formatLength - 1);
-        if (!lastChar.match(NumericPlaceholderRegex))
-            return {
-                value: value + lastChar,
-                fmtOnly: value === "",
-            };
-        return {
-            value: value,
-            fmtOnly: value === "",
-        };
-    }
-    var result = "", fmtOnly = true, vi = 0;
-    for (var fi = 0; fi < formatLength; fi++) {
-        var formatChar = format.charAt(fi);
-        if (vi < valueLength) {
-            switch (formatChar) {
-                case ZeroPlaceholder:
-                case DigitPlaceholder:
-                    result += value[vi++];
-                    fmtOnly = false;
-                    break;
-                default:
-                    result += formatChar;
-            }
-        }
-        else {
-            if (formatChar !== DigitPlaceholder) {
-                result += formatChar;
-                fmtOnly = fmtOnly && (formatChar !== ZeroPlaceholder);
-            }
-        }
-    }
-    return {
-        value: result,
-        fmtOnly: fmtOnly,
-    };
-}
-function localize(value, dictionary) {
-    var plus = dictionary["+"];
-    var minus = dictionary["-"];
-    var dot = dictionary["."];
-    var comma = dictionary[","];
-    if (plus === "+" && minus === "-" && dot === "." && comma === ",") {
-        return value;
-    }
-    var count = value.length;
-    var result = "";
-    for (var i = 0; i < count; i++) {
-        var char = value.charAt(i);
-        switch (char) {
-            case "+":
-                result = result + plus;
-                break;
-            case "-":
-                result = result + minus;
-                break;
-            case ".":
-                result = result + dot;
-                break;
-            case ",":
-                result = result + comma;
-                break;
-            default:
-                result = result + char;
-                break;
-        }
-    }
-    return result;
-}
-//# sourceMappingURL=numberFormat.js.map
-
-/***/ }),
-
-/***/ 146:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   categoryIsAlsoSeriesRole: () => (/* binding */ categoryIsAlsoSeriesRole),
-/* harmony export */   getMiscellaneousTypeDescriptor: () => (/* binding */ getMiscellaneousTypeDescriptor),
-/* harmony export */   getSeriesName: () => (/* binding */ getSeriesName),
-/* harmony export */   hasImageUrlColumn: () => (/* binding */ hasImageUrlColumn),
-/* harmony export */   isImageUrlColumn: () => (/* binding */ isImageUrlColumn),
-/* harmony export */   isWebUrlColumn: () => (/* binding */ isWebUrlColumn)
-/* harmony export */ });
-/* harmony import */ var _dataRoleHelper__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(880);
-// powerbi.extensibility.utils.dataview
-
-function categoryIsAlsoSeriesRole(dataView, seriesRoleName, categoryRoleName) {
-    if (dataView.categories && dataView.categories.length > 0) {
-        // Need to pivot data if our category soure is a series role
-        const category = dataView.categories[0];
-        return category.source &&
-            _dataRoleHelper__WEBPACK_IMPORTED_MODULE_0__.hasRole(category.source, seriesRoleName) &&
-            _dataRoleHelper__WEBPACK_IMPORTED_MODULE_0__.hasRole(category.source, categoryRoleName);
-    }
-    return false;
-}
-function getSeriesName(source) {
-    return (source.groupName !== undefined)
-        ? source.groupName
-        : source.queryName;
-}
-function isImageUrlColumn(column) {
-    const misc = getMiscellaneousTypeDescriptor(column);
-    return misc != null && misc.imageUrl === true;
-}
-function isWebUrlColumn(column) {
-    const misc = getMiscellaneousTypeDescriptor(column);
-    return misc != null && misc.webUrl === true;
-}
-function getMiscellaneousTypeDescriptor(column) {
-    return column
-        && column.type
-        && column.type.misc;
-}
-function hasImageUrlColumn(dataView) {
-    if (!dataView || !dataView.metadata || !dataView.metadata.columns || !dataView.metadata.columns.length) {
-        return false;
-    }
-    return dataView.metadata.columns.some((column) => isImageUrlColumn(column) === true);
-}
-//# sourceMappingURL=converterHelper.js.map
-
-/***/ }),
-
-/***/ 155:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Family = exports.fallbackFonts = void 0;
-var familyInfo_1 = __webpack_require__(823);
-exports.fallbackFonts = ["helvetica", "arial", "sans-serif"];
-exports.Family = {
-    light: new familyInfo_1.FamilyInfo(exports.fallbackFonts),
-    semilight: new familyInfo_1.FamilyInfo(exports.fallbackFonts),
-    regular: new familyInfo_1.FamilyInfo(exports.fallbackFonts),
-    semibold: new familyInfo_1.FamilyInfo(exports.fallbackFonts),
-    bold: new familyInfo_1.FamilyInfo(exports.fallbackFonts),
-    lightSecondary: new familyInfo_1.FamilyInfo(exports.fallbackFonts),
-    regularSecondary: new familyInfo_1.FamilyInfo(exports.fallbackFonts),
-    boldSecondary: new familyInfo_1.FamilyInfo(exports.fallbackFonts)
-};
-//# sourceMappingURL=family.js.map
-
-/***/ }),
-
-/***/ 176:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.format = exports.canFormat = void 0;
-var formatting_1 = __webpack_require__(786);
-var formattingEncoder = __webpack_require__(573);
-var stringExtensions = __webpack_require__(262);
-var globalize_1 = __webpack_require__(647);
-var _currentCachedFormat;
-var _currentCachedProcessedFormat;
-// Evaluates if the value can be formatted using the NumberFormat
-function canFormat(value) {
-    return value instanceof Date;
-}
-exports.canFormat = canFormat;
-// Formats the date using provided format and culture
-function format(value, format, culture) {
-    format = format || "G";
-    var isStandard = format.length === 1;
-    try {
-        if (isStandard) {
-            return formatDateStandard(value, format, culture);
-        }
-        else {
-            return formatDateCustom(value, format, culture);
-        }
-    }
-    catch (e) {
-        return formatDateStandard(value, "G", culture);
-    }
-}
-exports.format = format;
-// Formats the date using standard format expression
-function formatDateStandard(value, format, culture) {
-    // In order to provide parity with .NET we have to support additional set of DateTime patterns.
-    var patterns = culture.calendar.patterns;
-    // Extend supported set of patterns
-    ensurePatterns(culture.calendar);
-    // Handle extended set of formats
-    var output = (0, formatting_1.findDateFormat)(value, format, culture.name);
-    if (output.format.length === 1)
-        format = patterns[output.format];
-    else
-        format = output.format;
-    // need to revisit when globalization is enabled
-    if (!culture) {
-        culture = this.getCurrentCulture();
-    }
-    return globalize_1.Globalize.format(output.value, format, culture);
-}
-// Formats the date using custom format expression
-function formatDateCustom(value, format, culture) {
-    var result;
-    var literals = [];
-    format = formattingEncoder.preserveLiterals(format, literals);
-    if (format.indexOf("F") > -1) {
-        // F is not supported so we need to replace the F with f based on the milliseconds
-        // Replace all sequences of F longer than 3 with "FFF"
-        format = stringExtensions.replaceAll(format, "FFFF", "FFF");
-        // Based on milliseconds update the format to use fff
-        var milliseconds = value.getMilliseconds();
-        if (milliseconds % 10 >= 1) {
-            format = stringExtensions.replaceAll(format, "FFF", "fff");
-        }
-        format = stringExtensions.replaceAll(format, "FFF", "FF");
-        if ((milliseconds % 100) / 10 >= 1) {
-            format = stringExtensions.replaceAll(format, "FF", "ff");
-        }
-        format = stringExtensions.replaceAll(format, "FF", "F");
-        if ((milliseconds % 1000) / 100 >= 1) {
-            format = stringExtensions.replaceAll(format, "F", "f");
-        }
-        format = stringExtensions.replaceAll(format, "F", "");
-        if (format === "" || format === "%")
-            return "";
-    }
-    format = processCustomDateTimeFormat(format);
-    result = globalize_1.Globalize.format(value, format, culture);
-    result = localize(result, culture.calendar);
-    result = formattingEncoder.restoreLiterals(result, literals, false);
-    return result;
-}
-// Translates unsupported .NET custom format expressions to the custom expressions supported by JQuery.Globalize
-function processCustomDateTimeFormat(format) {
-    if (format === _currentCachedFormat) {
-        return _currentCachedProcessedFormat;
-    }
-    _currentCachedFormat = format;
-    format = (0, formatting_1.fixDateTimeFormat)(format);
-    _currentCachedProcessedFormat = format;
-    return format;
-}
-// Localizes the time separator symbol
-function localize(value, dictionary) {
-    var timeSeparator = dictionary[":"];
-    if (timeSeparator === ":") {
-        return value;
-    }
-    var result = "";
-    var count = value.length;
-    for (var i = 0; i < count; i++) {
-        var char = value.charAt(i);
-        switch (char) {
-            case ":":
-                result += timeSeparator;
-                break;
-            default:
-                result += char;
-                break;
-        }
-    }
-    return result;
-}
-function ensurePatterns(calendar) {
-    var patterns = calendar.patterns;
-    if (patterns["g"] === undefined) {
-        patterns["g"] = patterns["f"].replace(patterns["D"], patterns["d"]); // Generic: Short date, short time
-        patterns["G"] = patterns["F"].replace(patterns["D"], patterns["d"]); // Generic: Short date, long time
-    }
-}
-//# sourceMappingURL=dateTimeFormat.js.map
-
-/***/ }),
-
-/***/ 182:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   getFillColorByPropertyName: () => (/* binding */ getFillColorByPropertyName),
-/* harmony export */   getValue: () => (/* binding */ getValue)
-/* harmony export */ });
-function getValue(object, propertyName, defaultValue) {
-    if (!object) {
-        return defaultValue;
-    }
-    const propertyValue = object[propertyName];
-    if (propertyValue === undefined) {
-        return defaultValue;
-    }
-    return propertyValue;
-}
-/** Gets the solid color from a fill property using only a propertyName */
-function getFillColorByPropertyName(object, propertyName, defaultColor) {
-    const value = getValue(object, propertyName);
-    if (!value || !value.solid) {
-        return defaultColor;
-    }
-    return value.solid.color;
-}
-//# sourceMappingURL=dataViewObject.js.map
-
-/***/ }),
-
-/***/ 230:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-var __webpack_unused_export__;
-
-__webpack_unused_export__ = ({ value: true });
-__webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = exports.G2 = __webpack_unused_export__ = __webpack_unused_export__ = void 0;
-var formatting = __webpack_require__(786);
-__webpack_unused_export__ = formatting;
-var valueFormatter = __webpack_require__(52);
-exports.G2 = valueFormatter;
-var stringExtensions = __webpack_require__(262);
-__webpack_unused_export__ = stringExtensions;
-var textMeasurementService = __webpack_require__(93);
-__webpack_unused_export__ = textMeasurementService;
-var interfaces = __webpack_require__(910);
-__webpack_unused_export__ = interfaces;
-var font = __webpack_require__(155);
-__webpack_unused_export__ = font;
-var familyInfo = __webpack_require__(823);
-__webpack_unused_export__ = familyInfo;
-var textUtil = __webpack_require__(574);
-__webpack_unused_export__ = textUtil;
-var dateUtils = __webpack_require__(991);
-__webpack_unused_export__ = dateUtils;
-var dateTimeSequence = __webpack_require__(628);
-__webpack_unused_export__ = dateTimeSequence;
-var displayUnitSystem = __webpack_require__(746);
-__webpack_unused_export__ = displayUnitSystem;
-var displayUnitSystemType = __webpack_require__(346);
-__webpack_unused_export__ = displayUnitSystemType;
-var formattingService = __webpack_require__(510);
-__webpack_unused_export__ = formattingService;
-var wordBreaker = __webpack_require__(857);
-__webpack_unused_export__ = wordBreaker;
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 262:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-/*
-*  Power BI Visualizations
-*
-*  Copyright (c) Microsoft Corporation
-*  All rights reserved.
-*  MIT License
-*
-*  Permission is hereby granted, free of charge, to any person obtaining a copy
-*  of this software and associated documentation files (the ""Software""), to deal
-*  in the Software without restriction, including without limitation the rights
-*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-*  copies of the Software, and to permit persons to whom the Software is
-*  furnished to do so, subject to the following conditions:
-*
-*  The above copyright notice and this permission notice shall be included in
-*  all copies or substantial portions of the Software.
-*
-*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-*  THE SOFTWARE.
-*/
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.stripTagDelimiters = exports.deriveClsCompliantName = exports.stringifyAsPrettyJSON = exports.normalizeFileName = exports.escapeStringForRegex = exports.constructNameFromList = exports.findUniqueName = exports.ensureUniqueNames = exports.replaceAll = exports.repeat = exports.getLengthDifference = exports.trimWhitespace = exports.trimTrailingWhitespace = exports.isWhitespace = exports.containsWhitespace = exports.isNullOrUndefinedOrWhiteSpaceString = exports.isNullOrEmpty = exports.stringToArrayBuffer = exports.normalizeCase = exports.containsIgnoreCase = exports.contains = exports.startsWith = exports.startsWithIgnoreCase = exports.equalIgnoreCase = exports.format = exports.endsWith = void 0;
-/* eslint-disable no-useless-escape */
-var HtmlTagRegex = new RegExp("[<>]", "g");
-/**
- * Checks if a string ends with a sub-string.
- */
-function endsWith(str, suffix) {
-    return str.indexOf(suffix, str.length - suffix.length) !== -1;
-}
-exports.endsWith = endsWith;
-function format() {
-    var args = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        args[_i] = arguments[_i];
-    }
-    var s = args[0];
-    if (isNullOrUndefinedOrWhiteSpaceString(s))
-        return s;
-    for (var i = 0; i < args.length - 1; i++) {
-        var reg = new RegExp("\\{" + i + "\\}", "gm");
-        s = s.replace(reg, args[i + 1]);
-    }
-    return s;
-}
-exports.format = format;
-/**
- * Compares two strings for equality, ignoring case.
- */
-function equalIgnoreCase(a, b) {
-    return normalizeCase(a) === normalizeCase(b);
-}
-exports.equalIgnoreCase = equalIgnoreCase;
-function startsWithIgnoreCase(a, b) {
-    var normalizedSearchString = normalizeCase(b);
-    return normalizeCase(a).indexOf(normalizedSearchString) === 0;
-}
-exports.startsWithIgnoreCase = startsWithIgnoreCase;
-function startsWith(a, b) {
-    return a.indexOf(b) === 0;
-}
-exports.startsWith = startsWith;
-// Determines whether a string contains a specified substring (by case-sensitive comparison).
-function contains(source, substring) {
-    if (source == null)
-        return false;
-    return source.indexOf(substring) !== -1;
-}
-exports.contains = contains;
-// Determines whether a string contains a specified substring (while ignoring case).
-function containsIgnoreCase(source, substring) {
-    if (source == null)
-        return false;
-    return contains(normalizeCase(source), normalizeCase(substring));
-}
-exports.containsIgnoreCase = containsIgnoreCase;
-/**
- * Normalizes case for a string.
- * Used by equalIgnoreCase method.
- */
-function normalizeCase(value) {
-    return value.toUpperCase();
-}
-exports.normalizeCase = normalizeCase;
-/**
- * Receives a string and returns an ArrayBuffer of its characters.
- * @return An ArrayBuffer of the string's characters.
- * If the string is empty or null or undefined - returns null.
- */
-function stringToArrayBuffer(str) {
-    if (isNullOrEmpty(str)) {
-        return null;
-    }
-    var buffer = new ArrayBuffer(str.length);
-    var bufferView = new Uint8Array(buffer);
-    for (var i = 0, strLen = str.length; i < strLen; i++) {
-        bufferView[i] = str.charCodeAt(i);
-    }
-    return bufferView;
-}
-exports.stringToArrayBuffer = stringToArrayBuffer;
-/**
- * Is string null or empty or undefined?
- * @return True if the value is null or undefined or empty string,
- * otherwise false.
- */
-function isNullOrEmpty(value) {
-    return (value == null) || (value.length === 0);
-}
-exports.isNullOrEmpty = isNullOrEmpty;
-/**
- * Returns true if the string is null, undefined, empty, or only includes white spaces.
- * @return True if the str is null, undefined, empty, or only includes white spaces,
- * otherwise false.
- */
-function isNullOrUndefinedOrWhiteSpaceString(str) {
-    return isNullOrEmpty(str) || isNullOrEmpty(str.trim());
-}
-exports.isNullOrUndefinedOrWhiteSpaceString = isNullOrUndefinedOrWhiteSpaceString;
-/**
- * Returns a value indicating whether the str contains any whitespace.
- */
-function containsWhitespace(str) {
-    var expr = /\s/;
-    return expr.test(str);
-}
-exports.containsWhitespace = containsWhitespace;
-/**
- * Returns a value indicating whether the str is a whitespace string.
- */
-function isWhitespace(str) {
-    return str.trim() === "";
-}
-exports.isWhitespace = isWhitespace;
-/**
- * Returns the string with any trailing whitespace from str removed.
- */
-function trimTrailingWhitespace(str) {
-    return str.replace(/\s+$/, "");
-}
-exports.trimTrailingWhitespace = trimTrailingWhitespace;
-/**
- * Returns the string with any leading and trailing whitespace from str removed.
- */
-function trimWhitespace(str) {
-    return str.replace(/^\s+/, "").replace(/\s+$/, "");
-}
-exports.trimWhitespace = trimWhitespace;
-/**
- * Returns length difference between the two provided strings.
- */
-function getLengthDifference(left, right) {
-    return Math.abs(left.length - right.length);
-}
-exports.getLengthDifference = getLengthDifference;
-/**
- * Repeat char or string several times.
- * @param char The string to repeat.
- * @param count How many times to repeat the string.
- */
-function repeat(char, count) {
-    var result = "";
-    for (var i = 0; i < count; i++) {
-        result += char;
-    }
-    return result;
-}
-exports.repeat = repeat;
-/**
- * Replace all the occurrences of the textToFind in the text with the textToReplace.
- * @param text The original string.
- * @param textToFind Text to find in the original string.
- * @param textToReplace New text replacing the textToFind.
- */
-function replaceAll(text, textToFind, textToReplace) {
-    if (!textToFind)
-        return text;
-    var pattern = escapeStringForRegex(textToFind);
-    return text.replace(new RegExp(pattern, "gi"), textToReplace);
-}
-exports.replaceAll = replaceAll;
-function ensureUniqueNames(names) {
-    var usedNames = {};
-    // Make sure we are giving fair chance for all columns to stay with their original name
-    // First we fill the used names map to contain all the original unique names from the list.
-    for (var _i = 0, names_1 = names; _i < names_1.length; _i++) {
-        var name_1 = names_1[_i];
-        usedNames[name_1] = false;
-    }
-    var uniqueNames = [];
-    // Now we go over all names and find a unique name for each
-    for (var _a = 0, names_2 = names; _a < names_2.length; _a++) {
-        var name_2 = names_2[_a];
-        var uniqueName = name_2;
-        // If the (original) column name is already taken lets try to find another name
-        if (usedNames[uniqueName]) {
-            var counter = 0;
-            // Find a name that is not already in the map
-            while (usedNames[uniqueName] !== undefined) {
-                uniqueName = name_2 + "." + (++counter);
-            }
-        }
-        uniqueNames.push(uniqueName);
-        usedNames[uniqueName] = true;
-    }
-    return uniqueNames;
-}
-exports.ensureUniqueNames = ensureUniqueNames;
-/**
- * Returns a name that is not specified in the values.
- */
-function findUniqueName(usedNames, baseName) {
-    // Find a unique name
-    var i = 0, uniqueName = baseName;
-    while (usedNames[uniqueName]) {
-        uniqueName = baseName + (++i);
-    }
-    return uniqueName;
-}
-exports.findUniqueName = findUniqueName;
-function constructNameFromList(list, separator, maxCharacter) {
-    var labels = [];
-    var exceeded;
-    var length = 0;
-    for (var _i = 0, list_1 = list; _i < list_1.length; _i++) {
-        var item = list_1[_i];
-        if (length + item.length > maxCharacter && labels.length > 0) {
-            exceeded = true;
-            break;
-        }
-        labels.push(item);
-        length += item.length;
-    }
-    var separatorWithSpace = " " + separator + " ";
-    var name = labels.join(separatorWithSpace);
-    if (exceeded)
-        name += separatorWithSpace + "...";
-    return name;
-}
-exports.constructNameFromList = constructNameFromList;
-function escapeStringForRegex(s) {
-    return s.replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, "\\$1");
-}
-exports.escapeStringForRegex = escapeStringForRegex;
-/**
- * Remove file name reserved characters <>:"/\|?* from input string.
- */
-function normalizeFileName(fileName) {
-    return fileName.replace(/[\<\>\:"\/\\\|\?*]/g, "");
-}
-exports.normalizeFileName = normalizeFileName;
-/**
- * Similar to JSON.stringify, but strips away escape sequences so that the resulting
- * string is human-readable (and parsable by JSON formatting/validating tools).
- */
-function stringifyAsPrettyJSON(object) {
-    // let specialCharacterRemover = (key: string, value: string) => value.replace(/[^\w\s]/gi, "");
-    return JSON.stringify(object /*, specialCharacterRemover*/);
-}
-exports.stringifyAsPrettyJSON = stringifyAsPrettyJSON;
-/**
- * Derive a CLS-compliant name from a specified string.  If no allowed characters are present, return a fallback string instead.
- * (6708134): this should have a fully Unicode-aware implementation
- */
-function deriveClsCompliantName(input, fallback) {
-    var result = input.replace(/^[^A-Za-z]*/g, "").replace(/[ :\.\/\\\-\u00a0\u1680\u180e\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]/g, "_").replace(/[\W]/g, "");
-    return result.length > 0 ? result : fallback;
-}
-exports.deriveClsCompliantName = deriveClsCompliantName;
-// Performs cheap sanitization by stripping away HTML tag (<>) characters.
-function stripTagDelimiters(s) {
-    return s.replace(HtmlTagRegex, "");
-}
-exports.stripTagDelimiters = stripTagDelimiters;
-//# sourceMappingURL=stringExtensions.js.map
-
-/***/ }),
-
 /***/ 287:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
@@ -4178,113 +852,15 @@ function detectPrecision(precision, x, y) {
 
 /***/ }),
 
-/***/ 317:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   arrayExtensions: () => (/* reexport module object */ _extensions_arrayExtensions__WEBPACK_IMPORTED_MODULE_0__),
-/* harmony export */   double: () => (/* reexport module object */ _double__WEBPACK_IMPORTED_MODULE_7__),
-/* harmony export */   enumExtensions: () => (/* reexport module object */ _extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_1__),
-/* harmony export */   jsonComparer: () => (/* reexport module object */ _jsonComparer__WEBPACK_IMPORTED_MODULE_8__),
-/* harmony export */   logicExtensions: () => (/* reexport module object */ _extensions_logicExtensions__WEBPACK_IMPORTED_MODULE_2__),
-/* harmony export */   numericSequence: () => (/* reexport module object */ _numericSequence_numericSequence__WEBPACK_IMPORTED_MODULE_5__),
-/* harmony export */   numericSequenceRange: () => (/* reexport module object */ _numericSequence_numericSequenceRange__WEBPACK_IMPORTED_MODULE_6__),
-/* harmony export */   pixelConverter: () => (/* reexport module object */ _pixelConverter__WEBPACK_IMPORTED_MODULE_9__),
-/* harmony export */   prototype: () => (/* reexport module object */ _prototype__WEBPACK_IMPORTED_MODULE_10__),
-/* harmony export */   regExpExtensions: () => (/* reexport module object */ _extensions_regExpExtensions__WEBPACK_IMPORTED_MODULE_3__),
-/* harmony export */   stringExtensions: () => (/* reexport module object */ _extensions_stringExtensions__WEBPACK_IMPORTED_MODULE_4__),
-/* harmony export */   textSizeDefaults: () => (/* reexport module object */ _textSizeDefaults__WEBPACK_IMPORTED_MODULE_11__),
-/* harmony export */   valueType: () => (/* reexport module object */ _valueType__WEBPACK_IMPORTED_MODULE_12__)
-/* harmony export */ });
-/* harmony import */ var _extensions_arrayExtensions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(287);
-/* harmony import */ var _extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(865);
-/* harmony import */ var _extensions_logicExtensions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(795);
-/* harmony import */ var _extensions_regExpExtensions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(441);
-/* harmony import */ var _extensions_stringExtensions__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(793);
-/* harmony import */ var _numericSequence_numericSequence__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(98);
-/* harmony import */ var _numericSequence_numericSequenceRange__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(822);
-/* harmony import */ var _double__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(312);
-/* harmony import */ var _jsonComparer__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(732);
-/* harmony import */ var _pixelConverter__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(781);
-/* harmony import */ var _prototype__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(3);
-/* harmony import */ var _textSizeDefaults__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(545);
-/* harmony import */ var _valueType__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(84);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 346:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DisplayUnitSystemType = void 0;
-// The system used to determine display units used during formatting
-var DisplayUnitSystemType;
-(function (DisplayUnitSystemType) {
-    // Default display unit system, which saves space by using units such as K, M, bn with PowerView rules for when to pick a unit. Suitable for chart axes.
-    DisplayUnitSystemType[DisplayUnitSystemType["Default"] = 0] = "Default";
-    // A verbose display unit system that will only respect the formatting defined in the model. Suitable for explore mode single-value cards.
-    DisplayUnitSystemType[DisplayUnitSystemType["Verbose"] = 1] = "Verbose";
-    /**
-     * A display unit system that uses units such as K, M, bn if we have at least one of those units (e.g. 0.9M is not valid as it's less than 1 million).
-     * Suitable for dashboard tile cards
-     */
-    DisplayUnitSystemType[DisplayUnitSystemType["WholeUnits"] = 2] = "WholeUnits";
-    // A display unit system that also contains Auto and None units for data labels
-    DisplayUnitSystemType[DisplayUnitSystemType["DataLabels"] = 3] = "DataLabels";
-})(DisplayUnitSystemType = exports.DisplayUnitSystemType || (exports.DisplayUnitSystemType = {}));
-//# sourceMappingURL=displayUnitSystemType.js.map
-
-/***/ }),
-
 /***/ 441:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   run: () => (/* binding */ run)
+/* harmony export */   NumericSequenceRange: () => (/* binding */ NumericSequenceRange),
+/* harmony export */   hasValue: () => (/* binding */ hasValue)
 /* harmony export */ });
+/* harmony import */ var _double__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(312);
 /*
  *  Power BI Visualizations
  *
@@ -4310,108 +886,239 @@ __webpack_require__.r(__webpack_exports__);
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-// NOTE: this file includes standalone utilities that should have no dependencies on external libraries, including jQuery.
-/**
- * Runs exec on regex starting from 0 index
- * This is the expected behavior but RegExp actually remember
- * the last index they stopped at (found match at) and will
- * return unexpected results when run in sequence.
- * @param regex - regular expression object
- * @param value - string to search wiht regex
- * @param start - index within value to start regex
- */
-function run(regex, value, start) {
-    regex.lastIndex = start || 0;
-    return regex.exec(value);
+
+class NumericSequenceRange {
+    _ensureIncludeZero() {
+        if (this.includeZero) {
+            // fixed min and max has higher priority than includeZero
+            if (this.min > 0 && !this.hasFixedMin) {
+                this.min = 0;
+            }
+            if (this.max < 0 && !this.hasFixedMax) {
+                this.max = 0;
+            }
+        }
+    }
+    _ensureNotEmpty() {
+        if (this.min === this.max) {
+            if (!this.min) {
+                this.min = 0;
+                this.max = NumericSequenceRange.DEFAULT_MAX;
+                this.hasFixedMin = true;
+                this.hasFixedMax = true;
+            }
+            else {
+                // We are dealing with a single data value (includeZero is not set)
+                // In order to fix the range we need to extend it in both directions by half of the interval.
+                // Interval is calculated based on the number:
+                // 1. Integers below 10,000 are extended by 0.5: so the [2006-2006] empty range is extended to [2005.5-2006.5] range and the ForsedSingleStop=2006
+                // 2. Other numbers are extended by half of their power: [700,001-700,001] => [650,001-750,001] and the ForsedSingleStop=null as we want the intervals to be calculated to cover the range.
+                const value = this.min;
+                const exp = _double__WEBPACK_IMPORTED_MODULE_0__.log10(Math.abs(value));
+                let step;
+                if (exp >= 0 && exp < 4) {
+                    step = 0.5;
+                    this.forcedSingleStop = value;
+                }
+                else {
+                    step = _double__WEBPACK_IMPORTED_MODULE_0__.pow10(exp) / 2;
+                    this.forcedSingleStop = null;
+                }
+                this.min = value - step;
+                this.max = value + step;
+            }
+        }
+    }
+    _ensureDirection() {
+        if (this.min > this.max) {
+            const temp = this.min;
+            this.min = this.max;
+            this.max = temp;
+        }
+    }
+    getSize() {
+        return this.max - this.min;
+    }
+    shrinkByStep(range, step) {
+        let oldCount = this.min / step;
+        let newCount = range.min / step;
+        let deltaCount = Math.floor(newCount - oldCount);
+        this.min += deltaCount * step;
+        oldCount = this.max / step;
+        newCount = range.max / step;
+        deltaCount = Math.ceil(newCount - oldCount);
+        this.max += deltaCount * step;
+    }
+    static calculate(dataMin, dataMax, fixedMin, fixedMax, includeZero) {
+        const result = new NumericSequenceRange();
+        result.includeZero = includeZero ? true : false;
+        result.hasDataRange = hasValue(dataMin) && hasValue(dataMax);
+        result.hasFixedMin = hasValue(fixedMin);
+        result.hasFixedMax = hasValue(fixedMax);
+        dataMin = _double__WEBPACK_IMPORTED_MODULE_0__.ensureInRange(dataMin, NumericSequenceRange.MIN_SUPPORTED_DOUBLE, NumericSequenceRange.MAX_SUPPORTED_DOUBLE);
+        dataMax = _double__WEBPACK_IMPORTED_MODULE_0__.ensureInRange(dataMax, NumericSequenceRange.MIN_SUPPORTED_DOUBLE, NumericSequenceRange.MAX_SUPPORTED_DOUBLE);
+        // Calculate the range using the min, max, dataRange
+        if (result.hasFixedMin && result.hasFixedMax) {
+            result.min = fixedMin;
+            result.max = fixedMax;
+        }
+        else if (result.hasFixedMin) {
+            result.min = fixedMin;
+            result.max = dataMax > fixedMin ? dataMax : fixedMin;
+        }
+        else if (result.hasFixedMax) {
+            result.min = dataMin < fixedMax ? dataMin : fixedMax;
+            result.max = fixedMax;
+        }
+        else if (result.hasDataRange) {
+            result.min = dataMin;
+            result.max = dataMax;
+        }
+        else {
+            result.min = 0;
+            result.max = 0;
+        }
+        result._ensureIncludeZero();
+        result._ensureNotEmpty();
+        result._ensureDirection();
+        if (result.min === 0) {
+            result.hasFixedMin = true; // If the range starts from zero we should prevent extending the intervals into the negative range
+        }
+        else if (result.max === 0) {
+            result.hasFixedMax = true; // If the range ends at zero we should prevent extending the intervals into the positive range
+        }
+        return result;
+    }
+    static calculateDataRange(dataMin, dataMax, includeZero) {
+        if (!hasValue(dataMin) || !hasValue(dataMax)) {
+            return NumericSequenceRange.calculateFixedRange(0, NumericSequenceRange.DEFAULT_MAX);
+        }
+        else {
+            return NumericSequenceRange.calculate(dataMin, dataMax, null, null, includeZero);
+        }
+    }
+    static calculateFixedRange(fixedMin, fixedMax, includeZero) {
+        const result = new NumericSequenceRange();
+        result.hasDataRange = false;
+        result.includeZero = includeZero;
+        result.min = fixedMin;
+        result.max = fixedMax;
+        result._ensureIncludeZero();
+        result._ensureNotEmpty();
+        result._ensureDirection();
+        result.hasFixedMin = true;
+        result.hasFixedMax = true;
+        return result;
+    }
 }
-//# sourceMappingURL=regExpExtensions.js.map
+NumericSequenceRange.DEFAULT_MAX = 10;
+NumericSequenceRange.MIN_SUPPORTED_DOUBLE = -1E307;
+NumericSequenceRange.MAX_SUPPORTED_DOUBLE = 1E307;
+/** Note: Exported for testability */
+function hasValue(value) {
+    return value !== undefined && value !== null;
+}
+//# sourceMappingURL=numericSequenceRange.js.map
 
 /***/ }),
 
-/***/ 470:
+/***/ 1107:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   DataViewObjectsParser: () => (/* binding */ DataViewObjectsParser)
+/* harmony export */   createDataViewWildcardSelector: () => (/* binding */ createDataViewWildcardSelector)
 /* harmony export */ });
-/* harmony import */ var _dataViewObjects__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(901);
-
-class DataViewObjectsParser {
-    static getDefault() {
-        return new this();
+/*
+*  Power BI Visualizations
+*
+*  Copyright (c) Microsoft Corporation
+*  All rights reserved.
+*  MIT License
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the ""Software""), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in
+*  all copies or substantial portions of the Software.
+*
+*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+*  THE SOFTWARE.
+*/
+function createDataViewWildcardSelector(dataViewWildcardMatchingOption) {
+    if (dataViewWildcardMatchingOption == null) {
+        dataViewWildcardMatchingOption = 0 /* DataViewWildcardMatchingOption.InstancesAndTotals */;
     }
-    static createPropertyIdentifier(objectName, propertyName) {
-        return {
-            objectName,
-            propertyName
-        };
-    }
-    static parse(dataView) {
-        const dataViewObjectParser = this.getDefault();
-        if (!dataView || !dataView.metadata || !dataView.metadata.objects) {
-            return dataViewObjectParser;
-        }
-        const properties = dataViewObjectParser.getProperties();
-        for (const objectName in properties) {
-            for (const propertyName in properties[objectName]) {
-                const defaultValue = dataViewObjectParser[objectName][propertyName];
-                dataViewObjectParser[objectName][propertyName] = _dataViewObjects__WEBPACK_IMPORTED_MODULE_0__.getCommonValue(dataView.metadata.objects, properties[objectName][propertyName], defaultValue);
+    const selector = {
+        data: [
+            {
+                dataViewWildcard: {
+                    matchingOption: dataViewWildcardMatchingOption
+                }
             }
-        }
-        return dataViewObjectParser;
-    }
-    static isPropertyEnumerable(propertyName) {
-        return !DataViewObjectsParser.InnumerablePropertyPrefix.test(propertyName);
-    }
-    static enumerateObjectInstances(dataViewObjectParser, options) {
-        const dataViewProperties = dataViewObjectParser && dataViewObjectParser[options.objectName];
-        if (!dataViewProperties) {
-            return [];
-        }
-        const instance = {
-            objectName: options.objectName,
-            selector: null,
-            properties: {}
-        };
-        for (const key in dataViewProperties) {
-            if (Object.prototype.hasOwnProperty.call(dataViewProperties, key)) {
-                instance.properties[key] = dataViewProperties[key];
-            }
-        }
-        return {
-            instances: [instance]
-        };
-    }
-    getProperties() {
-        const properties = {}, objectNames = Object.keys(this);
-        objectNames.forEach((objectName) => {
-            if (DataViewObjectsParser.isPropertyEnumerable(objectName)) {
-                const propertyNames = Object.keys(this[objectName]);
-                properties[objectName] = {};
-                propertyNames.forEach((propertyName) => {
-                    if (DataViewObjectsParser.isPropertyEnumerable(objectName)) {
-                        properties[objectName][propertyName] =
-                            DataViewObjectsParser.createPropertyIdentifier(objectName, propertyName);
-                    }
-                });
-            }
-        });
-        return properties;
-    }
+        ]
+    };
+    return selector;
 }
-DataViewObjectsParser.InnumerablePropertyPrefix = /^_/;
-//# sourceMappingURL=dataViewObjectsParser.js.map
+//# sourceMappingURL=dataViewWildcard.js.map
 
 /***/ }),
 
-/***/ 480:
+/***/ 1230:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+var __webpack_unused_export__;
+
+__webpack_unused_export__ = ({ value: true });
+__webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = exports.G2 = __webpack_unused_export__ = __webpack_unused_export__ = void 0;
+var formatting = __webpack_require__(7786);
+__webpack_unused_export__ = formatting;
+var valueFormatter = __webpack_require__(6052);
+exports.G2 = valueFormatter;
+var stringExtensions = __webpack_require__(4262);
+__webpack_unused_export__ = stringExtensions;
+var textMeasurementService = __webpack_require__(7093);
+__webpack_unused_export__ = textMeasurementService;
+var interfaces = __webpack_require__(8529);
+__webpack_unused_export__ = interfaces;
+var font = __webpack_require__(4155);
+__webpack_unused_export__ = font;
+var familyInfo = __webpack_require__(3823);
+__webpack_unused_export__ = familyInfo;
+var textUtil = __webpack_require__(7574);
+__webpack_unused_export__ = textUtil;
+var dateUtils = __webpack_require__(9991);
+__webpack_unused_export__ = dateUtils;
+var dateTimeSequence = __webpack_require__(1628);
+__webpack_unused_export__ = dateTimeSequence;
+var displayUnitSystem = __webpack_require__(2746);
+__webpack_unused_export__ = displayUnitSystem;
+var displayUnitSystemType = __webpack_require__(7346);
+__webpack_unused_export__ = displayUnitSystemType;
+var formattingService = __webpack_require__(5510);
+__webpack_unused_export__ = formattingService;
+var wordBreaker = __webpack_require__(8857);
+__webpack_unused_export__ = wordBreaker;
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 1480:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   S: () => (/* binding */ VisualFormattingSettingsModel)
 /* harmony export */ });
-/* harmony import */ var powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(674);
+/* harmony import */ var powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7674);
 /*
  *  Power BI Visualizations
  *
@@ -4438,11 +1145,6 @@ class GeneralSettings extends FormattingSettingsCard {
         value: "Segoe UI, sans-serif",
         placeholder: "Enter font family"
     });
-    showMeasureName = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.ToggleSwitch */ .z.jF({
-        name: "showMeasureName",
-        displayName: "Show Measure Name",
-        value: true
-    });
     columnWidth = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
         name: "columnWidth",
         displayName: "Column Width",
@@ -4463,7 +1165,6 @@ class GeneralSettings extends FormattingSettingsCard {
     slices = [
         this.fontFamily,
         this.fontSize,
-        this.showMeasureName,
         this.columnWidth,
         this.rowHeaderWidth,
         this.enableHover
@@ -4712,545 +1413,7 @@ class VisualFormattingSettingsModel extends FormattingSettingsModel {
 
 /***/ }),
 
-/***/ 510:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-/* eslint-disable no-useless-escape */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.formattingEncoder = exports.dateTimeFormat = exports.numberFormat = exports.formattingService = exports.FormattingService = void 0;
-var globalize_1 = __webpack_require__(647);
-var globalize_cultures_1 = __webpack_require__(978);
-(0, globalize_cultures_1.default)(globalize_1.Globalize);
-var dateTimeFormat = __webpack_require__(176);
-exports.dateTimeFormat = dateTimeFormat;
-var numberFormat = __webpack_require__(128);
-exports.numberFormat = numberFormat;
-var formattingEncoder = __webpack_require__(573);
-exports.formattingEncoder = formattingEncoder;
-var iFormattingService_1 = __webpack_require__(741);
-var IndexedTokensRegex = /({{)|(}})|{(\d+[^}]*)}/g;
-// Formatting Service
-var FormattingService = /** @class */ (function () {
-    function FormattingService() {
-    }
-    FormattingService.prototype.formatValue = function (value, formatValue, cultureSelector) {
-        // Handle special cases
-        if (value === undefined || value === null) {
-            return "";
-        }
-        var gculture = this.getCulture(cultureSelector);
-        if (dateTimeFormat.canFormat(value)) {
-            // Dates
-            return dateTimeFormat.format(value, formatValue, gculture);
-        }
-        else if (numberFormat.canFormat(value)) {
-            // Numbers
-            return numberFormat.format(value, formatValue, gculture);
-        }
-        // Other data types - return as string
-        return value.toString();
-    };
-    FormattingService.prototype.format = function (formatWithIndexedTokens, args, culture) {
-        var _this = this;
-        if (!formatWithIndexedTokens) {
-            return "";
-        }
-        return formatWithIndexedTokens.replace(IndexedTokensRegex, function (match, left, right, argToken) {
-            if (left) {
-                return "{";
-            }
-            else if (right) {
-                return "}";
-            }
-            else {
-                var parts = argToken.split(":");
-                var argIndex = parseInt(parts[0], 10);
-                var argFormat = parts[1];
-                return _this.formatValue(args[argIndex], argFormat, culture);
-            }
-        });
-    };
-    FormattingService.prototype.isStandardNumberFormat = function (format) {
-        return numberFormat.isStandardFormat(format);
-    };
-    FormattingService.prototype.formatNumberWithCustomOverride = function (value, format, nonScientificOverrideFormat, culture) {
-        var gculture = this.getCulture(culture);
-        return numberFormat.formatWithCustomOverride(value, format, nonScientificOverrideFormat, gculture);
-    };
-    FormattingService.prototype.dateFormatString = function (unit) {
-        if (!this._dateTimeScaleFormatInfo)
-            this.initialize();
-        return this._dateTimeScaleFormatInfo.getFormatString(unit);
-    };
-    /**
-     * Sets the current localization culture
-     * @param cultureSelector - name of a culture: "en", "en-UK", "fr-FR" etc. (See National Language Support (NLS) for full lists. Use "default" for invariant culture).
-     */
-    FormattingService.prototype.setCurrentCulture = function (cultureSelector) {
-        if (this._currentCultureSelector !== cultureSelector) {
-            this._currentCulture = this.getCulture(cultureSelector);
-            this._currentCultureSelector = cultureSelector;
-            this._dateTimeScaleFormatInfo = new DateTimeScaleFormatInfo(this._currentCulture);
-        }
-    };
-    /**
-     * Gets the culture assotiated with the specified cultureSelector ("en", "en-US", "fr-FR" etc).
-     * @param cultureSelector - name of a culture: "en", "en-UK", "fr-FR" etc. (See National Language Support (NLS) for full lists. Use "default" for invariant culture).
-     * Exposing this function for testability of unsupported cultures
-     */
-    FormattingService.prototype.getCulture = function (cultureSelector) {
-        if (cultureSelector == null) {
-            if (this._currentCulture == null) {
-                this.initialize();
-            }
-            return this._currentCulture;
-        }
-        else {
-            var culture = globalize_1.Globalize.findClosestCulture(cultureSelector);
-            if (!culture)
-                culture = globalize_1.Globalize.culture("en-US");
-            return culture;
-        }
-    };
-    // By default the Globalization module initializes to the culture/calendar provided in the language/culture URL params
-    FormattingService.prototype.initialize = function () {
-        var cultureName = this.getCurrentCulture();
-        this.setCurrentCulture(cultureName);
-        var calendarName = this.getUrlParam("calendar");
-        if (calendarName) {
-            var culture = this._currentCulture;
-            var c = culture.calendars[calendarName];
-            if (c) {
-                culture.calendar = c;
-            }
-        }
-    };
-    /**
-     *  Exposing this function for testability
-     */
-    FormattingService.prototype.getCurrentCulture = function () {
-        if (window === null || window === void 0 ? void 0 : window.navigator) {
-            return window.navigator.userLanguage || window.navigator["language"];
-        }
-        return "en-US";
-    };
-    /**
-     *  Exposing this function for testability
-     *  @param name: queryString name
-     */
-    FormattingService.prototype.getUrlParam = function (name) {
-        var param = window.location.search.match(RegExp("[?&]" + name + "=([^&]*)"));
-        return param ? param[1] : undefined;
-    };
-    return FormattingService;
-}());
-exports.FormattingService = FormattingService;
-// DateTimeScaleFormatInfo is used to calculate and keep the Date formats used for different units supported by the DateTimeScaleModel
-var DateTimeScaleFormatInfo = /** @class */ (function () {
-    // Constructor
-    /**
-     * Creates new instance of the DateTimeScaleFormatInfo class.
-     * @param culture - culture which calendar info is going to be used to derive the formats.
-     */
-    function DateTimeScaleFormatInfo(culture) {
-        var calendar = culture.calendar;
-        var patterns = calendar.patterns;
-        var monthAbbreviations = calendar["months"]["namesAbbr"];
-        var cultureHasMonthAbbr = monthAbbreviations && monthAbbreviations[0];
-        var yearMonthPattern = patterns["Y"];
-        var monthDayPattern = patterns["M"];
-        var fullPattern = patterns["f"];
-        var longTimePattern = patterns["T"];
-        var shortTimePattern = patterns["t"];
-        var separator = fullPattern.indexOf(",") > -1 ? ", " : " ";
-        var hasYearSymbol = yearMonthPattern.indexOf("yyyy'") === 0 && yearMonthPattern.length > 6 && yearMonthPattern[6] === "\'";
-        this.YearPattern = hasYearSymbol ? yearMonthPattern.substring(0, 7) : "yyyy";
-        var yearPos = fullPattern.indexOf("yy");
-        var monthPos = fullPattern.indexOf("MMMM");
-        this.MonthPattern = cultureHasMonthAbbr && monthPos > -1 ? (yearPos > monthPos ? "MMM yyyy" : "yyyy MMM") : yearMonthPattern;
-        this.DayPattern = cultureHasMonthAbbr ? monthDayPattern.replace("MMMM", "MMM") : monthDayPattern;
-        var minutePos = fullPattern.indexOf("mm");
-        var pmPos = fullPattern.indexOf("tt");
-        var shortHourPattern = pmPos > -1 ? shortTimePattern.replace(":mm ", "") : shortTimePattern;
-        this.HourPattern = yearPos < minutePos ? this.DayPattern + separator + shortHourPattern : shortHourPattern + separator + this.DayPattern;
-        this.MinutePattern = shortTimePattern;
-        this.SecondPattern = longTimePattern;
-        this.MillisecondPattern = longTimePattern.replace("ss", "ss.fff");
-        // Special cases
-        switch (culture.name) {
-            case "fi-FI":
-                this.DayPattern = this.DayPattern.replace("'ta'", ""); // Fix for finish 'ta' suffix for month names.
-                this.HourPattern = this.HourPattern.replace("'ta'", "");
-                break;
-        }
-    }
-    // Methods
-    /**
-     * Returns the format string of the provided DateTimeUnit.
-     * @param unit - date or time unit
-     */
-    DateTimeScaleFormatInfo.prototype.getFormatString = function (unit) {
-        switch (unit) {
-            case iFormattingService_1.DateTimeUnit.Year:
-                return this.YearPattern;
-            case iFormattingService_1.DateTimeUnit.Month:
-                return this.MonthPattern;
-            case iFormattingService_1.DateTimeUnit.Week:
-            case iFormattingService_1.DateTimeUnit.Day:
-                return this.DayPattern;
-            case iFormattingService_1.DateTimeUnit.Hour:
-                return this.HourPattern;
-            case iFormattingService_1.DateTimeUnit.Minute:
-                return this.MinutePattern;
-            case iFormattingService_1.DateTimeUnit.Second:
-                return this.SecondPattern;
-            case iFormattingService_1.DateTimeUnit.Millisecond:
-                return this.MillisecondPattern;
-        }
-    };
-    return DateTimeScaleFormatInfo;
-}());
-var formattingService = new FormattingService();
-exports.formattingService = formattingService;
-//# sourceMappingURL=formattingService.js.map
-
-/***/ }),
-
-/***/ 529:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   createValueColumns: () => (/* binding */ createValueColumns),
-/* harmony export */   groupValues: () => (/* binding */ groupValues),
-/* harmony export */   setGrouped: () => (/* binding */ setGrouped)
-/* harmony export */ });
-// TODO: refactor & focus DataViewTransform into a service with well-defined dependencies.
-// TODO: refactor this, setGrouped, and groupValues to a test helper to stop using it in the product
-function createValueColumns(values = [], valueIdentityFields, source) {
-    const result = values;
-    setGrouped(result);
-    if (valueIdentityFields) {
-        result.identityFields = valueIdentityFields;
-    }
-    if (source) {
-        result.source = source;
-    }
-    return result;
-}
-function setGrouped(values, groupedResult) {
-    values.grouped = groupedResult
-        ? () => groupedResult
-        : () => groupValues(values);
-}
-/** Group together the values with a common identity. */
-function groupValues(values) {
-    const groups = [];
-    let currentGroup;
-    for (let i = 0, len = values.length; i < len; i++) {
-        const value = values[i];
-        if (!currentGroup || currentGroup.identity !== value.identity) {
-            currentGroup = {
-                values: []
-            };
-            if (value.identity) {
-                currentGroup.identity = value.identity;
-                const source = value.source;
-                // allow null, which will be formatted as (Blank).
-                if (source.groupName !== undefined) {
-                    currentGroup.name = source.groupName;
-                }
-                else if (source.displayName) {
-                    currentGroup.name = source.displayName;
-                }
-            }
-            groups.push(currentGroup);
-        }
-        currentGroup.values.push(value);
-    }
-    return groups;
-}
-//# sourceMappingURL=dataViewTransform.js.map
-
-/***/ }),
-
-/***/ 545:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   TextSizeMax: () => (/* binding */ TextSizeMax),
-/* harmony export */   TextSizeMin: () => (/* binding */ TextSizeMin),
-/* harmony export */   getScale: () => (/* binding */ getScale)
-/* harmony export */ });
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-// NOTE: this file includes standalone utilities that should have no dependencies on external libraries, including jQuery.
-/**
- * Values are in terms of 'pt'
- * Convert to pixels using PixelConverter.fromPoint
- */
-/**
- * Stored in terms of 'pt'
- * Convert to pixels using PixelConverter.fromPoint
- */
-const TextSizeMin = 8;
-/**
- * Stored in terms of 'pt'
- * Convert to pixels using PixelConverter.fromPoint
- */
-const TextSizeMax = 40;
-const TextSizeRange = TextSizeMax - TextSizeMin;
-/**
- * Returns the percentage of this value relative to the TextSizeMax
- * @param textSize - should be given in terms of 'pt'
- */
-function getScale(textSize) {
-    return (textSize - TextSizeMin) / TextSizeRange;
-}
-//# sourceMappingURL=textSizeDefaults.js.map
-
-/***/ }),
-
-/***/ 573:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.restoreLiterals = exports.preserveLiterals = exports.removeLiterals = void 0;
-// quoted and escaped literal patterns
-// NOTE: the final three cases match .NET behavior
-var literalPatterns = [
-    "'[^']*'",
-    "\"[^\"]*\"",
-    "\\\\.",
-    "'[^']*$",
-    "\"[^\"]*$",
-    "\\\\$", // backslash at end of string
-];
-var literalMatcher = new RegExp(literalPatterns.join("|"), "g");
-// Unicode U+E000 - U+F8FF is a private area and so we can use the chars from the range to encode the escaped sequences
-function removeLiterals(format) {
-    literalMatcher.lastIndex = 0;
-    // just in case consecutive non-literals have some meaning
-    return format.replace(literalMatcher, "\uE100");
-}
-exports.removeLiterals = removeLiterals;
-function preserveLiterals(format, literals) {
-    literalMatcher.lastIndex = 0;
-    for (;;) {
-        var match = literalMatcher.exec(format);
-        if (!match)
-            break;
-        var literal = match[0];
-        var literalOffset = literalMatcher.lastIndex - literal.length;
-        var token = String.fromCharCode(0xE100 + literals.length);
-        literals.push(literal);
-        format = format.substring(0, literalOffset) + token + format.substring(literalMatcher.lastIndex);
-        // back to avoid skipping due to removed literal substring
-        literalMatcher.lastIndex = literalOffset + 1;
-    }
-    return format;
-}
-exports.preserveLiterals = preserveLiterals;
-function restoreLiterals(format, literals, quoted) {
-    if (quoted === void 0) { quoted = true; }
-    var count = literals.length;
-    for (var i = 0; i < count; i++) {
-        var token = String.fromCharCode(0xE100 + i);
-        var literal = literals[i];
-        if (!quoted) {
-            // caller wants literals to be re-inserted without escaping
-            var firstChar = literal[0];
-            if (firstChar === "\\" || literal.length === 1 || literal[literal.length - 1] !== firstChar) {
-                // either escaped literal OR quoted literal that's missing the trailing quote
-                // in either case we only remove the leading character
-                literal = literal.substring(1);
-            }
-            else {
-                // so must be a quoted literal with both starting and ending quote
-                literal = literal.substring(1, literal.length - 1);
-            }
-        }
-        format = format.replace(token, literal);
-    }
-    return format;
-}
-exports.restoreLiterals = restoreLiterals;
-//# sourceMappingURL=formattingEncoder.js.map
-
-/***/ }),
-
-/***/ 574:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-/*
-*  Power BI Visualizations
-*
-*  Copyright (c) Microsoft Corporation
-*  All rights reserved.
-*  MIT License
-*
-*  Permission is hereby granted, free of charge, to any person obtaining a copy
-*  of this software and associated documentation files (the ""Software""), to deal
-*  in the Software without restriction, including without limitation the rights
-*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-*  copies of the Software, and to permit persons to whom the Software is
-*  furnished to do so, subject to the following conditions:
-*
-*  The above copyright notice and this permission notice shall be included in
-*  all copies or substantial portions of the Software.
-*
-*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-*  THE SOFTWARE.
-*/
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.replaceSpaceWithNBSP = exports.removeEllipses = exports.removeBreakingSpaces = void 0;
-/**
- * Contains functions/constants to aid in text manupilation.
- */
-/**
- * Remove breaking spaces from given string and replace by none breaking space (&nbsp).
- */
-function removeBreakingSpaces(str) {
-    return str.toString().replace(new RegExp(" ", "g"), "&nbsp");
-}
-exports.removeBreakingSpaces = removeBreakingSpaces;
-/**
- * Remove ellipses from a given string
- */
-function removeEllipses(str) {
-    return str.replace(/(…)|(\.\.\.)/g, "");
-}
-exports.removeEllipses = removeEllipses;
-/**
-* Replace every whitespace (0x20) with Non-Breaking Space (0xA0)
-    * @param {string} txt String to replace White spaces
-    * @returns Text after replcing white spaces
-    */
-function replaceSpaceWithNBSP(txt) {
-    if (txt != null) {
-        return txt.replace(/ /g, "\xA0");
-    }
-}
-exports.replaceSpaceWithNBSP = replaceSpaceWithNBSP;
-//# sourceMappingURL=textUtil.js.map
-
-/***/ }),
-
-/***/ 597:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   converterHelper: () => (/* reexport module object */ _converterHelper__WEBPACK_IMPORTED_MODULE_0__),
-/* harmony export */   dataRoleHelper: () => (/* reexport module object */ _dataRoleHelper__WEBPACK_IMPORTED_MODULE_1__),
-/* harmony export */   dataViewObject: () => (/* reexport module object */ _dataViewObject__WEBPACK_IMPORTED_MODULE_2__),
-/* harmony export */   dataViewObjects: () => (/* reexport module object */ _dataViewObjects__WEBPACK_IMPORTED_MODULE_3__),
-/* harmony export */   dataViewObjectsParser: () => (/* reexport module object */ _dataViewObjectsParser__WEBPACK_IMPORTED_MODULE_4__),
-/* harmony export */   dataViewTransform: () => (/* reexport module object */ _dataViewTransform__WEBPACK_IMPORTED_MODULE_5__),
-/* harmony export */   dataViewWildcard: () => (/* reexport module object */ _dataViewWildcard__WEBPACK_IMPORTED_MODULE_6__)
-/* harmony export */ });
-/* harmony import */ var _converterHelper__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(146);
-/* harmony import */ var _dataRoleHelper__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(880);
-/* harmony import */ var _dataViewObject__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(182);
-/* harmony import */ var _dataViewObjects__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(901);
-/* harmony import */ var _dataViewObjectsParser__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(470);
-/* harmony import */ var _dataViewTransform__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(529);
-/* harmony import */ var _dataViewWildcard__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(107);
-
-
-
-
-
-
-
-
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 628:
+/***/ 1628:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -5281,13 +1444,13 @@ __webpack_require__.r(__webpack_exports__);
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.DateTimeSequence = void 0;
-var dateUtils = __webpack_require__(991);
+var dateUtils = __webpack_require__(9991);
 // powerbi.extensibility.utils.type
-var powerbi_visuals_utils_typeutils_1 = __webpack_require__(317);
+var powerbi_visuals_utils_typeutils_1 = __webpack_require__(2317);
 var NumericSequence = powerbi_visuals_utils_typeutils_1.numericSequence.NumericSequence;
 var NumericSequenceRange = powerbi_visuals_utils_typeutils_1.numericSequenceRange.NumericSequenceRange;
 // powerbi.extensibility.utils.formatting
-var iFormattingService_1 = __webpack_require__(741);
+var iFormattingService_1 = __webpack_require__(4741);
 // Repreasents the sequence of the dates/times
 var DateTimeSequence = /** @class */ (function () {
     // Constructors
@@ -5577,55 +1740,4935 @@ exports.DateTimeSequence = DateTimeSequence;
 
 /***/ }),
 
-/***/ 639:
+/***/ 1880:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   D: () => (/* binding */ getPropertyValue),
-/* harmony export */   y: () => (/* binding */ getDescriptor)
+/* harmony export */   getCategoryIndexOfRole: () => (/* binding */ getCategoryIndexOfRole),
+/* harmony export */   getMeasureIndexOfRole: () => (/* binding */ getMeasureIndexOfRole),
+/* harmony export */   hasRole: () => (/* binding */ hasRole),
+/* harmony export */   hasRoleInDataView: () => (/* binding */ hasRoleInDataView),
+/* harmony export */   hasRoleInValueColumn: () => (/* binding */ hasRoleInValueColumn)
 /* harmony export */ });
-/**
- * Build and return formatting descriptor for simple slice
- *
- * @param objectName Object name from capabilities
- * @param slice formatting simple slice
- * @returns simple slice formatting descriptor
- */
-function getDescriptor(objectName, slice) {
-    return {
-        objectName: objectName,
-        propertyName: slice.name,
-        selector: slice.selector,
-        altConstantValueSelector: slice.altConstantSelector,
-        instanceKind: slice.instanceKind
-    };
+function getMeasureIndexOfRole(grouped, roleName) {
+    if (!grouped || !grouped.length) {
+        return -1;
+    }
+    const firstGroup = grouped[0];
+    if (firstGroup.values && firstGroup.values.length > 0) {
+        for (let i = 0, len = firstGroup.values.length; i < len; ++i) {
+            const value = firstGroup.values[i];
+            if (value && value.source) {
+                if (hasRole(value.source, roleName)) {
+                    return i;
+                }
+            }
+        }
+    }
+    return -1;
 }
-/**
- * Get property value from dataview objects if exists
- * Else return the default value from formatting settings object
- *
- * @param value dataview object value
- * @param defaultValue formatting settings default value
- * @returns formatting property value
- */
-function getPropertyValue(slice, value, defaultValue) {
-    if (value == null || (typeof value === "object" && !value.solid)) {
-        return defaultValue;
+function getCategoryIndexOfRole(categories, roleName) {
+    if (categories && categories.length) {
+        for (let i = 0, ilen = categories.length; i < ilen; i++) {
+            if (hasRole(categories[i].source, roleName)) {
+                return i;
+            }
+        }
     }
-    if (value.solid) {
-        return { value: value === null || value === void 0 ? void 0 : value.solid.color };
-    }
-    if ((slice === null || slice === void 0 ? void 0 : slice.type) === "Dropdown" /* visuals.FormattingComponent.Dropdown */ && slice.items) {
-        const itemsArray = slice.items;
-        return itemsArray.find(item => item.value == value);
-    }
-    return value;
+    return -1;
 }
-//# sourceMappingURL=FormattingSettingsUtils.js.map
+function hasRole(column, name) {
+    const roles = column.roles;
+    return roles && roles[name];
+}
+function hasRoleInDataView(dataView, name) {
+    return dataView != null
+        && dataView.metadata != null
+        && dataView.metadata.columns
+        && dataView.metadata.columns.some((c) => c.roles && c.roles[name] !== undefined); // any is an alias of some
+}
+function hasRoleInValueColumn(valueColumn, name) {
+    return valueColumn
+        && valueColumn.source
+        && valueColumn.source.roles
+        && (valueColumn.source.roles[name] === true);
+}
+//# sourceMappingURL=dataRoleHelper.js.map
 
 /***/ }),
 
-/***/ 647:
+/***/ 2128:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getCustomFormatMetadata = exports.formatWithCustomOverride = exports.format = exports.isStandardFormat = exports.canFormat = exports.getComponents = exports.hasFormatComponents = exports.addDecimalsToFormat = exports.getNumericFormat = exports.NumberFormatComponentsDelimeter = void 0;
+/**
+ * NumberFormat module contains the static methods for formatting the numbers.
+ * It extends the Globalize functionality to support complete set of .NET
+ * formatting expressions for numeric types including custom formats.
+ */
+/* eslint-disable no-useless-escape */
+var globalize_1 = __webpack_require__(7647);
+// powerbi.extensibility.utils.type
+var powerbi_visuals_utils_typeutils_1 = __webpack_require__(2317);
+// powerbi.extensibility.utils.formatting
+var stringExtensions = __webpack_require__(4262);
+var formattingEncoder = __webpack_require__(6573);
+var formattingService_1 = __webpack_require__(5510);
+var NumericalPlaceHolderRegex = /\{.+\}/;
+var ScientificFormatRegex = /e[+-]*[0#]+/i;
+var StandardFormatRegex = /^[a-z]\d{0,2}$/i; // a letter + up to 2 digits for precision specifier
+var TrailingZerosRegex = /0+$/;
+var DecimalFormatRegex = /\.([0#]*)/g;
+var NumericFormatRegex = /[0#,\.]+[0,#]*/g;
+// (?=...) is a positive lookahead assertion. The RE is asking for the last digit placeholder, [0#],
+// which is followed by non-digit placeholders and the end of string, [^0#]*$. But it only matches
+// the last digit placeholder, not anything that follows because the positive lookahead isn"t included
+// in the match - it is only a condition.
+var LastNumericPlaceholderRegex = /([0#])(?=[^0#]*$)/;
+var DecimalFormatCharacter = ".";
+var ZeroPlaceholder = "0";
+var DigitPlaceholder = "#";
+var ExponentialFormatChar = "E";
+var NumericPlaceholders = [ZeroPlaceholder, DigitPlaceholder];
+var NumericPlaceholderRegex = new RegExp(NumericPlaceholders.join("|"), "g");
+exports.NumberFormatComponentsDelimeter = ";";
+function getNonScientificFormatWithPrecision(baseFormat, numericFormat) {
+    if (!numericFormat || baseFormat === undefined)
+        return baseFormat;
+    var newFormat = "{0:" + numericFormat + "}";
+    return baseFormat.replace("{0}", newFormat);
+}
+function getNumericFormat(value, baseFormat) {
+    if (baseFormat == null)
+        return baseFormat;
+    if (hasFormatComponents(baseFormat)) {
+        var _a = getComponents(baseFormat), positive = _a.positive, negative = _a.negative, zero = _a.zero;
+        if (value > 0)
+            return getNumericFormatFromComponent(value, positive);
+        else if (value === 0)
+            return getNumericFormatFromComponent(value, zero);
+        return getNumericFormatFromComponent(value, negative);
+    }
+    return getNumericFormatFromComponent(value, baseFormat);
+}
+exports.getNumericFormat = getNumericFormat;
+function getNumericFormatFromComponent(value, format) {
+    var match = powerbi_visuals_utils_typeutils_1.regExpExtensions.run(NumericFormatRegex, format);
+    if (match)
+        return match[0];
+    return format;
+}
+function addDecimalsToFormat(baseFormat, decimals, trailingZeros) {
+    if (decimals == null)
+        return baseFormat;
+    // Default format string
+    if (baseFormat == null)
+        baseFormat = ZeroPlaceholder;
+    if (hasFormatComponents(baseFormat)) {
+        var _a = getComponents(baseFormat), positive = _a.positive, negative = _a.negative, zero = _a.zero;
+        var formats = [positive, negative, zero];
+        for (var i = 0; i < formats.length; i++) {
+            // Update format in formats array
+            formats[i] = addDecimalsToFormatComponent(formats[i], decimals, trailingZeros);
+        }
+        return formats.join(exports.NumberFormatComponentsDelimeter);
+    }
+    return addDecimalsToFormatComponent(baseFormat, decimals, trailingZeros);
+}
+exports.addDecimalsToFormat = addDecimalsToFormat;
+function addDecimalsToFormatComponent(format, decimals, trailingZeros) {
+    decimals = Math.abs(decimals);
+    if (decimals >= 0) {
+        var literals = [];
+        format = formattingEncoder.preserveLiterals(format, literals);
+        var placeholder = trailingZeros ? ZeroPlaceholder : DigitPlaceholder;
+        var decimalPlaceholders = stringExtensions.repeat(placeholder, Math.abs(decimals));
+        var match = powerbi_visuals_utils_typeutils_1.regExpExtensions.run(DecimalFormatRegex, format);
+        if (match) {
+            var beforeDecimal = format.substring(0, match.index);
+            var formatDecimal = format.substring(match.index + 1, match[1].length + match.index + 1);
+            var afterDecimal = format.substring(match.index + match[0].length);
+            if (trailingZeros)
+                // Use explicit decimals argument as placeholders
+                formatDecimal = decimalPlaceholders;
+            else {
+                var decimalChange = decimalPlaceholders.length - formatDecimal.length;
+                if (decimalChange > 0)
+                    // Append decimalPlaceholders to existing decimal portion of format string
+                    formatDecimal = formatDecimal + decimalPlaceholders.slice(-decimalChange);
+                else if (decimalChange < 0)
+                    // Remove decimals from formatDecimal
+                    formatDecimal = formatDecimal.slice(0, decimalChange);
+            }
+            if (formatDecimal.length > 0)
+                formatDecimal = DecimalFormatCharacter + formatDecimal;
+            format = beforeDecimal + formatDecimal + afterDecimal;
+        }
+        else if (decimalPlaceholders.length > 0) {
+            // Replace last numeric placeholder with decimal portion
+            format = format.replace(LastNumericPlaceholderRegex, "$1" + DecimalFormatCharacter + decimalPlaceholders);
+        }
+        if (literals.length !== 0)
+            format = formattingEncoder.restoreLiterals(format, literals);
+    }
+    return format;
+}
+function hasFormatComponents(format) {
+    return formattingEncoder.removeLiterals(format).indexOf(exports.NumberFormatComponentsDelimeter) !== -1;
+}
+exports.hasFormatComponents = hasFormatComponents;
+function getComponents(format) {
+    var signFormat = {
+        hasNegative: false,
+        positive: format,
+        negative: format,
+        zero: format,
+    };
+    // escape literals so semi-colon in a literal isn't interpreted as a delimiter
+    // NOTE: OK to use the literals extracted here for all three components before since the literals are indexed.
+    // For example, "'pos-lit';'neg-lit'" will get preserved as "\uE000;\uE001" and the literal array will be
+    // ['pos-lit', 'neg-lit']. When the negative components is restored, its \uE001 will select the second
+    // literal.
+    var literals = [];
+    format = formattingEncoder.preserveLiterals(format, literals);
+    var signSpecificFormats = format.split(exports.NumberFormatComponentsDelimeter);
+    var formatCount = signSpecificFormats.length;
+    if (formatCount > 1) {
+        if (literals.length !== 0)
+            signSpecificFormats = signSpecificFormats.map(function (signSpecificFormat) { return formattingEncoder.restoreLiterals(signSpecificFormat, literals); });
+        signFormat.hasNegative = true;
+        signFormat.positive = signFormat.zero = signSpecificFormats[0];
+        signFormat.negative = signSpecificFormats[1];
+        if (formatCount > 2)
+            signFormat.zero = signSpecificFormats[2];
+    }
+    return signFormat;
+}
+exports.getComponents = getComponents;
+var _lastCustomFormatMeta;
+// Evaluates if the value can be formatted using the NumberFormat
+function canFormat(value) {
+    return typeof (value) === "number";
+}
+exports.canFormat = canFormat;
+function isStandardFormat(format) {
+    return StandardFormatRegex.test(format);
+}
+exports.isStandardFormat = isStandardFormat;
+// Formats the number using specified format expression and culture
+function format(value, format, culture) {
+    format = format || "G";
+    try {
+        if (isStandardFormat(format))
+            return formatNumberStandard(value, format, culture);
+        return formatNumberCustom(value, format, culture);
+    }
+    catch (e) {
+        return globalize_1.Globalize.format(value, undefined, culture);
+    }
+}
+exports.format = format;
+// Performs a custom format with a value override.  Typically used for custom formats showing scaled values.
+function formatWithCustomOverride(value, format, nonScientificOverrideFormat, culture) {
+    return formatNumberCustom(value, format, culture, nonScientificOverrideFormat);
+}
+exports.formatWithCustomOverride = formatWithCustomOverride;
+// Formats the number using standard format expression
+function formatNumberStandard(value, format, culture) {
+    var result;
+    var precision = (format.length > 1 ? parseInt(format.substring(1, format.length), 10) : undefined);
+    var numberFormatInfo = culture.numberFormat;
+    var formatChar = format.charAt(0);
+    var abs = Math.abs(value);
+    switch (formatChar) {
+        case "e":
+        case "E":
+            if (precision === undefined) {
+                precision = 6;
+            }
+            format = "0." + stringExtensions.repeat("0", precision) + formatChar + "+000";
+            result = formatNumberCustom(value, format, culture);
+            break;
+        case "f":
+        case "F":
+            result = precision !== undefined ? value.toFixed(precision) : value.toFixed(numberFormatInfo.decimals);
+            result = localize(result, numberFormatInfo);
+            break;
+        case "g":
+        case "G":
+            if (abs === 0 || (1E-4 <= abs && abs < 1E15)) {
+                // For the range of 0.0001 to 1,000,000,000,000,000 - use the normal form
+                result = precision !== undefined ? value.toPrecision(precision) : value.toString();
+            }
+            else {
+                // Otherwise use exponential
+                // Assert that value is a number and fall back on returning value if it is not
+                if (typeof (value) !== "number")
+                    return String(value);
+                result = precision !== undefined ? value.toExponential(precision) : value.toExponential();
+                result = result.replace("e", "E");
+            }
+            result = localize(result, numberFormatInfo);
+            break;
+        case "r":
+        case "R":
+            result = value.toString();
+            result = localize(result, numberFormatInfo);
+            break;
+        case "x":
+        case "X":
+            result = value.toString(16);
+            if (formatChar === "X") {
+                result = result.toUpperCase();
+            }
+            if (precision !== undefined) {
+                var actualPrecision = result.length;
+                var isNegative = value < 0;
+                if (isNegative) {
+                    actualPrecision--;
+                }
+                var paddingZerosCount = precision - actualPrecision;
+                var paddingZeros = undefined;
+                if (paddingZerosCount > 0) {
+                    paddingZeros = stringExtensions.repeat("0", paddingZerosCount);
+                }
+                if (isNegative) {
+                    result = "-" + paddingZeros + result.substring(1);
+                }
+                else {
+                    result = paddingZeros + result;
+                }
+            }
+            result = localize(result, numberFormatInfo);
+            break;
+        default:
+            result = globalize_1.Globalize.format(value, format, culture);
+    }
+    return result;
+}
+// Formats the number using custom format expression
+function formatNumberCustom(value, format, culture, nonScientificOverrideFormat) {
+    var result;
+    var numberFormatInfo = culture.numberFormat;
+    if (isFinite(value)) {
+        // Split format by positive[;negative;zero] pattern
+        var formatComponents = getComponents(format);
+        // Pick a format based on the sign of value
+        if (value > 0) {
+            format = formatComponents.positive;
+        }
+        else if (value === 0) {
+            format = formatComponents.zero;
+        }
+        else {
+            format = formatComponents.negative;
+        }
+        // Normalize value if we have an explicit negative format
+        if (formatComponents.hasNegative)
+            value = Math.abs(value);
+        // Get format metadata
+        var formatMeta = getCustomFormatMetadata(format, true /*calculatePrecision*/);
+        // Preserve literals and escaped chars
+        var literals = [];
+        if (formatMeta.hasLiterals) {
+            format = formattingEncoder.preserveLiterals(format, literals);
+        }
+        // Scientific format
+        if (formatMeta.hasE && !nonScientificOverrideFormat) {
+            var scientificMatch = powerbi_visuals_utils_typeutils_1.regExpExtensions.run(ScientificFormatRegex, format);
+            if (scientificMatch) {
+                // Case 2.1. Scientific custom format
+                var formatM = format.substring(0, scientificMatch.index);
+                var formatE = format.substring(scientificMatch.index + 2); // E(+|-)
+                var precision = getCustomFormatPrecision(formatM, formatMeta);
+                var scale = getCustomFormatScale(formatM, formatMeta);
+                if (scale !== 1) {
+                    value = value * scale;
+                }
+                // Assert that value is a number and fall back on returning value if it is not
+                if (typeof (value) !== "number")
+                    return String(value);
+                var s = value.toExponential(precision);
+                var indexOfE = s.indexOf("e");
+                var mantissa = s.substring(0, indexOfE);
+                var exp = s.substring(indexOfE + 1);
+                var resultM = fuseNumberWithCustomFormat(mantissa, formatM, numberFormatInfo);
+                var resultE = fuseNumberWithCustomFormat(exp, formatE, numberFormatInfo);
+                if (resultE.charAt(0) === "+" && scientificMatch[0].charAt(1) !== "+") {
+                    resultE = resultE.substring(1);
+                }
+                var e = scientificMatch[0].charAt(0);
+                result = resultM + e + resultE;
+            }
+        }
+        // Non scientific format
+        if (result === undefined) {
+            var valueFormatted = void 0;
+            var isValueGlobalized = false;
+            var precision = getCustomFormatPrecision(format, formatMeta);
+            var scale = getCustomFormatScale(format, formatMeta);
+            if (scale !== 1)
+                value = value * scale;
+            // Rounding
+            value = parseFloat(toNonScientific(value, precision));
+            if (!isFinite(value)) {
+                // very large and small finite values can become infinite by parseFloat(toNonScientific())
+                return globalize_1.Globalize.format(value, undefined);
+            }
+            if (nonScientificOverrideFormat) {
+                // Get numeric format from format string
+                var numericFormat = getNumericFormat(value, format);
+                // Add separators and decimalFormat to nonScientificFormat
+                nonScientificOverrideFormat = getNonScientificFormatWithPrecision(nonScientificOverrideFormat, numericFormat);
+                // Format the value
+                valueFormatted = formattingService_1.formattingService.format(nonScientificOverrideFormat, [value], culture.name);
+                isValueGlobalized = true;
+            }
+            else
+                valueFormatted = toNonScientific(value, precision);
+            result = fuseNumberWithCustomFormat(valueFormatted, format, numberFormatInfo, nonScientificOverrideFormat, isValueGlobalized);
+        }
+        if (formatMeta.hasLiterals) {
+            result = formattingEncoder.restoreLiterals(result, literals, false);
+        }
+        _lastCustomFormatMeta = formatMeta;
+    }
+    else {
+        return globalize_1.Globalize.format(value, undefined);
+    }
+    return result;
+}
+// Returns string with the fixed point respresentation of the number
+function toNonScientific(value, precision) {
+    var result = "";
+    var precisionZeros = 0;
+    // Double precision numbers support actual 15-16 decimal digits of precision.
+    if (precision > 16) {
+        precisionZeros = precision - 16;
+        precision = 16;
+    }
+    var digitsBeforeDecimalPoint = powerbi_visuals_utils_typeutils_1.double.log10(Math.abs(value));
+    if (digitsBeforeDecimalPoint < 16) {
+        if (digitsBeforeDecimalPoint > 0) {
+            var maxPrecision = 16 - digitsBeforeDecimalPoint;
+            if (precision > maxPrecision) {
+                precisionZeros += precision - maxPrecision;
+                precision = maxPrecision;
+            }
+        }
+        result = value.toFixed(precision);
+    }
+    else if (digitsBeforeDecimalPoint === 16) {
+        result = value.toFixed(0);
+        precisionZeros += precision;
+        if (precisionZeros > 0) {
+            result += ".";
+        }
+    }
+    else { // digitsBeforeDecimalPoint > 16
+        // Different browsers have different implementations of the toFixed().
+        // In IE it returns fixed format no matter what's the number. In FF and Chrome the method returns exponential format for numbers greater than 1E21.
+        // So we need to check for range and convert the to exponential with the max precision.
+        // Then we convert exponential string to fixed by removing the dot and padding with "power" zeros.
+        // Assert that value is a number and fall back on returning value if it is not
+        if (typeof (value) !== "number")
+            return String(value);
+        result = value.toExponential(15);
+        var indexOfE = result.indexOf("e");
+        if (indexOfE > 0) {
+            var indexOfDot = result.indexOf(".");
+            var mantissa = result.substring(0, indexOfE);
+            var exp = result.substring(indexOfE + 1);
+            var powerZeros = parseInt(exp, 10) - (mantissa.length - indexOfDot - 1);
+            result = mantissa.replace(".", "") + stringExtensions.repeat("0", powerZeros);
+            if (precision > 0) {
+                result = result + "." + stringExtensions.repeat("0", precision);
+            }
+        }
+    }
+    if (precisionZeros > 0) {
+        result = result + stringExtensions.repeat("0", precisionZeros);
+    }
+    return result;
+}
+/**
+ * Returns the formatMetadata of the format
+ * When calculating precision and scale, if format string of
+ * positive[;negative;zero] => positive format will be used
+ * @param (required) format - format string
+ * @param (optional) calculatePrecision - calculate precision of positive format
+ * @param (optional) calculateScale - calculate scale of positive format
+ */
+function getCustomFormatMetadata(format, calculatePrecision, calculateScale, calculatePartsPerScale) {
+    if (_lastCustomFormatMeta !== undefined && format === _lastCustomFormatMeta.format) {
+        return _lastCustomFormatMeta;
+    }
+    var literals = [];
+    var escaped = formattingEncoder.preserveLiterals(format, literals);
+    var result = {
+        format: format,
+        hasLiterals: literals.length !== 0,
+        hasE: false,
+        hasCommas: false,
+        hasDots: false,
+        hasPercent: false,
+        hasPermile: false,
+        precision: undefined,
+        scale: undefined,
+        partsPerScale: undefined,
+    };
+    for (var i = 0, length_1 = escaped.length; i < length_1; i++) {
+        var c = escaped.charAt(i);
+        switch (c) {
+            case "e":
+            case "E":
+                result.hasE = true;
+                break;
+            case ",":
+                result.hasCommas = true;
+                break;
+            case ".":
+                result.hasDots = true;
+                break;
+            case "%":
+                result.hasPercent = true;
+                break;
+            case "\u2030": // ‰
+                result.hasPermile = true;
+                break;
+        }
+    }
+    // Use positive format for calculating these values
+    var formatComponents = getComponents(format);
+    if (calculatePrecision)
+        result.precision = getCustomFormatPrecision(formatComponents.positive, result);
+    if (calculatePartsPerScale)
+        result.partsPerScale = getCustomFormatPartsPerScale(formatComponents.positive, result);
+    if (calculateScale)
+        result.scale = getCustomFormatScale(formatComponents.positive, result);
+    return result;
+}
+exports.getCustomFormatMetadata = getCustomFormatMetadata;
+/** Returns the decimal precision of format based on the number of # and 0 chars after the decimal point
+     * Important: The input format string needs to be split to the appropriate pos/neg/zero portion to work correctly */
+function getCustomFormatPrecision(format, formatMeta) {
+    if (formatMeta.precision > -1) {
+        return formatMeta.precision;
+    }
+    var result = 0;
+    if (formatMeta.hasDots) {
+        if (formatMeta.hasLiterals) {
+            format = formattingEncoder.removeLiterals(format);
+        }
+        var dotIndex = format.indexOf(".");
+        if (dotIndex > -1) {
+            var count = format.length;
+            for (var i = dotIndex; i < count; i++) {
+                var char = format.charAt(i);
+                if (char.match(NumericPlaceholderRegex))
+                    result++;
+                // 0.00E+0 :: Break before counting 0 in
+                // exponential portion of format string
+                if (char === ExponentialFormatChar)
+                    break;
+            }
+            result = Math.min(19, result);
+        }
+    }
+    formatMeta.precision = result;
+    return result;
+}
+function getCustomFormatPartsPerScale(format, formatMeta) {
+    if (formatMeta.partsPerScale != null)
+        return formatMeta.partsPerScale;
+    var result = 1;
+    if (formatMeta.hasPercent && format.indexOf("%") > -1) {
+        result = result * 100;
+    }
+    if (formatMeta.hasPermile && format.indexOf(/* ‰ */ "\u2030") > -1) {
+        result = result * 1000;
+    }
+    formatMeta.partsPerScale = result;
+    return result;
+}
+// Returns the scale factor of the format based on the "%" and scaling "," chars in the format
+function getCustomFormatScale(format, formatMeta) {
+    if (formatMeta.scale > -1) {
+        return formatMeta.scale;
+    }
+    var result = getCustomFormatPartsPerScale(format, formatMeta);
+    if (formatMeta.hasCommas) {
+        var dotIndex = format.indexOf(".");
+        if (dotIndex === -1) {
+            dotIndex = format.length;
+        }
+        for (var i = dotIndex - 1; i > -1; i--) {
+            var char = format.charAt(i);
+            if (char === ",") {
+                result = result / 1000;
+            }
+            else {
+                break;
+            }
+        }
+    }
+    formatMeta.scale = result;
+    return result;
+}
+function fuseNumberWithCustomFormat(value, format, numberFormatInfo, nonScientificOverrideFormat, isValueGlobalized) {
+    var suppressModifyValue = !!nonScientificOverrideFormat;
+    var formatParts = format.split(".", 2);
+    if (formatParts.length === 2) {
+        var wholeFormat = formatParts[0];
+        var fractionFormat = formatParts[1];
+        var displayUnit = "";
+        // Remove display unit from value before splitting on "." as localized display units sometimes end with "."
+        if (nonScientificOverrideFormat) {
+            displayUnit = nonScientificOverrideFormat.replace(NumericalPlaceHolderRegex, "");
+            value = value.replace(displayUnit, "");
+        }
+        var globalizedDecimalSeparator = numberFormatInfo["."];
+        var decimalSeparator = isValueGlobalized ? globalizedDecimalSeparator : ".";
+        var valueParts = value.split(decimalSeparator, 2);
+        var wholeValue = valueParts.length === 1 ? valueParts[0] + displayUnit : valueParts[0];
+        var fractionValue = valueParts.length === 2 ? valueParts[1] + displayUnit : "";
+        fractionValue = fractionValue.replace(TrailingZerosRegex, "");
+        var wholeFormattedValue = fuseNumberWithCustomFormatLeft(wholeValue, wholeFormat, numberFormatInfo, suppressModifyValue);
+        var fractionFormattedValue = fuseNumberWithCustomFormatRight(fractionValue, fractionFormat, suppressModifyValue);
+        if (fractionFormattedValue.fmtOnly || fractionFormattedValue.value === "")
+            return wholeFormattedValue + fractionFormattedValue.value;
+        return wholeFormattedValue + globalizedDecimalSeparator + fractionFormattedValue.value;
+    }
+    return fuseNumberWithCustomFormatLeft(value, format, numberFormatInfo, suppressModifyValue);
+}
+function fuseNumberWithCustomFormatLeft(value, format, numberFormatInfo, suppressModifyValue) {
+    var groupSymbolIndex = format.indexOf(",");
+    var enableGroups = groupSymbolIndex > -1 && groupSymbolIndex < Math.max(format.lastIndexOf("0"), format.lastIndexOf("#")) && numberFormatInfo[","];
+    var groupDigitCount = 0;
+    var groupIndex = 0;
+    var groupSizes = numberFormatInfo.groupSizes || [3];
+    var groupSize = groupSizes[0];
+    var groupSeparator = numberFormatInfo[","];
+    var sign = "";
+    var firstChar = value.charAt(0);
+    if (firstChar === "+" || firstChar === "-") {
+        sign = numberFormatInfo[firstChar];
+        value = value.substring(1);
+    }
+    var isZero = value === "0";
+    var result = "";
+    var leftBuffer = "";
+    var vi = value.length - 1;
+    var fmtOnly = true;
+    // Iterate through format chars and replace 0 and # with the digits from the value string
+    for (var fi = format.length - 1; fi > -1; fi--) {
+        var formatChar = format.charAt(fi);
+        switch (formatChar) {
+            case ZeroPlaceholder:
+            case DigitPlaceholder:
+                fmtOnly = false;
+                if (leftBuffer !== "") {
+                    result = leftBuffer + result;
+                    leftBuffer = "";
+                }
+                if (!suppressModifyValue) {
+                    if (vi > -1 || formatChar === ZeroPlaceholder) {
+                        if (enableGroups) {
+                            // If the groups are enabled we'll need to keep track of the current group index and periodically insert group separator,
+                            if (groupDigitCount === groupSize) {
+                                result = groupSeparator + result;
+                                groupIndex++;
+                                if (groupIndex < groupSizes.length) {
+                                    groupSize = groupSizes[groupIndex];
+                                }
+                                groupDigitCount = 1;
+                            }
+                            else {
+                                groupDigitCount++;
+                            }
+                        }
+                    }
+                    if (vi > -1) {
+                        if (isZero && formatChar === DigitPlaceholder) {
+                            // Special case - if we need to format a zero value and the # symbol is used - we don't copy it into the result)
+                        }
+                        else {
+                            result = value.charAt(vi) + result;
+                        }
+                        vi--;
+                    }
+                    else if (formatChar !== DigitPlaceholder) {
+                        result = formatChar + result;
+                    }
+                }
+                break;
+            case ",":
+                // We should skip all the , chars
+                break;
+            default:
+                leftBuffer = formatChar + leftBuffer;
+                break;
+        }
+    }
+    // If the value didn't fit into the number of zeros provided in the format then we should insert the missing part of the value into the result
+    if (!suppressModifyValue) {
+        if (vi > -1 && result !== "") {
+            if (enableGroups) {
+                while (vi > -1) {
+                    if (groupDigitCount === groupSize) {
+                        result = groupSeparator + result;
+                        groupIndex++;
+                        if (groupIndex < groupSizes.length) {
+                            groupSize = groupSizes[groupIndex];
+                        }
+                        groupDigitCount = 1;
+                    }
+                    else {
+                        groupDigitCount++;
+                    }
+                    result = value.charAt(vi) + result;
+                    vi--;
+                }
+            }
+            else {
+                result = value.substring(0, vi + 1) + result;
+            }
+        }
+        // Insert sign in front of the leftBuffer and result
+        return sign + leftBuffer + result;
+    }
+    if (fmtOnly)
+        // If the format doesn't specify any digits to be displayed, then just return the format we've parsed up until now.
+        return sign + leftBuffer + result;
+    return sign + leftBuffer + value + result;
+}
+function fuseNumberWithCustomFormatRight(value, format, suppressModifyValue) {
+    var formatLength = format.length;
+    var valueLength = value.length;
+    if (suppressModifyValue) {
+        var lastChar = format.charAt(formatLength - 1);
+        if (!lastChar.match(NumericPlaceholderRegex))
+            return {
+                value: value + lastChar,
+                fmtOnly: value === "",
+            };
+        return {
+            value: value,
+            fmtOnly: value === "",
+        };
+    }
+    var result = "", fmtOnly = true, vi = 0;
+    for (var fi = 0; fi < formatLength; fi++) {
+        var formatChar = format.charAt(fi);
+        if (vi < valueLength) {
+            switch (formatChar) {
+                case ZeroPlaceholder:
+                case DigitPlaceholder:
+                    result += value[vi++];
+                    fmtOnly = false;
+                    break;
+                default:
+                    result += formatChar;
+            }
+        }
+        else {
+            if (formatChar !== DigitPlaceholder) {
+                result += formatChar;
+                fmtOnly = fmtOnly && (formatChar !== ZeroPlaceholder);
+            }
+        }
+    }
+    return {
+        value: result,
+        fmtOnly: fmtOnly,
+    };
+}
+function localize(value, dictionary) {
+    var plus = dictionary["+"];
+    var minus = dictionary["-"];
+    var dot = dictionary["."];
+    var comma = dictionary[","];
+    if (plus === "+" && minus === "-" && dot === "." && comma === ",") {
+        return value;
+    }
+    var count = value.length;
+    var result = "";
+    for (var i = 0; i < count; i++) {
+        var char = value.charAt(i);
+        switch (char) {
+            case "+":
+                result = result + plus;
+                break;
+            case "-":
+                result = result + minus;
+                break;
+            case ".":
+                result = result + dot;
+                break;
+            case ",":
+                result = result + comma;
+                break;
+            default:
+                result = result + char;
+                break;
+        }
+    }
+    return result;
+}
+//# sourceMappingURL=numberFormat.js.map
+
+/***/ }),
+
+/***/ 2317:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   arrayExtensions: () => (/* reexport module object */ _extensions_arrayExtensions__WEBPACK_IMPORTED_MODULE_0__),
+/* harmony export */   double: () => (/* reexport module object */ _double__WEBPACK_IMPORTED_MODULE_7__),
+/* harmony export */   enumExtensions: () => (/* reexport module object */ _extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_1__),
+/* harmony export */   jsonComparer: () => (/* reexport module object */ _jsonComparer__WEBPACK_IMPORTED_MODULE_8__),
+/* harmony export */   logicExtensions: () => (/* reexport module object */ _extensions_logicExtensions__WEBPACK_IMPORTED_MODULE_2__),
+/* harmony export */   numericSequence: () => (/* reexport module object */ _numericSequence_numericSequence__WEBPACK_IMPORTED_MODULE_5__),
+/* harmony export */   numericSequenceRange: () => (/* reexport module object */ _numericSequence_numericSequenceRange__WEBPACK_IMPORTED_MODULE_6__),
+/* harmony export */   pixelConverter: () => (/* reexport module object */ _pixelConverter__WEBPACK_IMPORTED_MODULE_9__),
+/* harmony export */   prototype: () => (/* reexport module object */ _prototype__WEBPACK_IMPORTED_MODULE_10__),
+/* harmony export */   regExpExtensions: () => (/* reexport module object */ _extensions_regExpExtensions__WEBPACK_IMPORTED_MODULE_3__),
+/* harmony export */   stringExtensions: () => (/* reexport module object */ _extensions_stringExtensions__WEBPACK_IMPORTED_MODULE_4__),
+/* harmony export */   textSizeDefaults: () => (/* reexport module object */ _textSizeDefaults__WEBPACK_IMPORTED_MODULE_11__),
+/* harmony export */   valueType: () => (/* reexport module object */ _valueType__WEBPACK_IMPORTED_MODULE_12__)
+/* harmony export */ });
+/* harmony import */ var _extensions_arrayExtensions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(287);
+/* harmony import */ var _extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(4865);
+/* harmony import */ var _extensions_logicExtensions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(5176);
+/* harmony import */ var _extensions_regExpExtensions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(8441);
+/* harmony import */ var _extensions_stringExtensions__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(4793);
+/* harmony import */ var _numericSequence_numericSequence__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(5098);
+/* harmony import */ var _numericSequence_numericSequenceRange__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(441);
+/* harmony import */ var _double__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(312);
+/* harmony import */ var _jsonComparer__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(8732);
+/* harmony import */ var _pixelConverter__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(2781);
+/* harmony import */ var _prototype__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(5003);
+/* harmony import */ var _textSizeDefaults__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(8545);
+/* harmony import */ var _valueType__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(4084);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ 2470:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DataViewObjectsParser: () => (/* binding */ DataViewObjectsParser)
+/* harmony export */ });
+/* harmony import */ var _dataViewObjects__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(3901);
+
+class DataViewObjectsParser {
+    static getDefault() {
+        return new this();
+    }
+    static createPropertyIdentifier(objectName, propertyName) {
+        return {
+            objectName,
+            propertyName
+        };
+    }
+    static parse(dataView) {
+        const dataViewObjectParser = this.getDefault();
+        if (!dataView || !dataView.metadata || !dataView.metadata.objects) {
+            return dataViewObjectParser;
+        }
+        const properties = dataViewObjectParser.getProperties();
+        for (const objectName in properties) {
+            for (const propertyName in properties[objectName]) {
+                const defaultValue = dataViewObjectParser[objectName][propertyName];
+                dataViewObjectParser[objectName][propertyName] = _dataViewObjects__WEBPACK_IMPORTED_MODULE_0__.getCommonValue(dataView.metadata.objects, properties[objectName][propertyName], defaultValue);
+            }
+        }
+        return dataViewObjectParser;
+    }
+    static isPropertyEnumerable(propertyName) {
+        return !DataViewObjectsParser.InnumerablePropertyPrefix.test(propertyName);
+    }
+    static enumerateObjectInstances(dataViewObjectParser, options) {
+        const dataViewProperties = dataViewObjectParser && dataViewObjectParser[options.objectName];
+        if (!dataViewProperties) {
+            return [];
+        }
+        const instance = {
+            objectName: options.objectName,
+            selector: null,
+            properties: {}
+        };
+        for (const key in dataViewProperties) {
+            if (Object.prototype.hasOwnProperty.call(dataViewProperties, key)) {
+                instance.properties[key] = dataViewProperties[key];
+            }
+        }
+        return {
+            instances: [instance]
+        };
+    }
+    getProperties() {
+        const properties = {}, objectNames = Object.keys(this);
+        objectNames.forEach((objectName) => {
+            if (DataViewObjectsParser.isPropertyEnumerable(objectName)) {
+                const propertyNames = Object.keys(this[objectName]);
+                properties[objectName] = {};
+                propertyNames.forEach((propertyName) => {
+                    if (DataViewObjectsParser.isPropertyEnumerable(objectName)) {
+                        properties[objectName][propertyName] =
+                            DataViewObjectsParser.createPropertyIdentifier(objectName, propertyName);
+                    }
+                });
+            }
+        });
+        return properties;
+    }
+}
+DataViewObjectsParser.InnumerablePropertyPrefix = /^_/;
+//# sourceMappingURL=dataViewObjectsParser.js.map
+
+/***/ }),
+
+/***/ 2746:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DataLabelsDisplayUnitSystem = exports.WholeUnitsDisplayUnitSystem = exports.DefaultDisplayUnitSystem = exports.NoDisplayUnitSystem = exports.DisplayUnitSystem = exports.DisplayUnit = void 0;
+/* eslint-disable no-useless-escape */
+var formattingService_1 = __webpack_require__(5510);
+var powerbi_visuals_utils_typeutils_1 = __webpack_require__(2317);
+// Constants
+var maxExponent = 24;
+var defaultScientificBigNumbersBoundary = 1E15;
+var scientificSmallNumbersBoundary = 1E-4;
+var PERCENTAGE_FORMAT = "%";
+var SCIENTIFIC_FORMAT = "E+0";
+var DEFAULT_SCIENTIFIC_FORMAT = "0.##" + SCIENTIFIC_FORMAT;
+// Regular expressions
+/**
+ * This regex looks for strings that match one of the following conditions:
+ *   - Optionally contain "0", "#", followed by a period, followed by at least one "0" or "#" (Ex. ###,000.###)
+ *   - Contains at least one of "0", "#", or "," (Ex. ###,000)
+ *   - Contain a "g" (indicates to use the general .NET numeric format string)
+ * The entire string (start to end) must match, and the match is not case-sensitive.
+ */
+var SUPPORTED_SCIENTIFIC_FORMATS = /^([0\#,]*\.[0\#]+|[0\#,]+|g)$/i;
+var DisplayUnit = /** @class */ (function () {
+    function DisplayUnit() {
+    }
+    // Methods
+    DisplayUnit.prototype.project = function (value) {
+        if (this.value) {
+            return powerbi_visuals_utils_typeutils_1.double.removeDecimalNoise(value / this.value);
+        }
+        else {
+            return value;
+        }
+    };
+    DisplayUnit.prototype.reverseProject = function (value) {
+        if (this.value) {
+            return value * this.value;
+        }
+        else {
+            return value;
+        }
+    };
+    DisplayUnit.prototype.isApplicableTo = function (value) {
+        value = Math.abs(value);
+        var precision = powerbi_visuals_utils_typeutils_1.double.getPrecision(value, 3);
+        return powerbi_visuals_utils_typeutils_1.double.greaterOrEqualWithPrecision(value, this.applicableRangeMin, precision) && powerbi_visuals_utils_typeutils_1.double.lessWithPrecision(value, this.applicableRangeMax, precision);
+    };
+    DisplayUnit.prototype.isScaling = function () {
+        return this.value > 1;
+    };
+    return DisplayUnit;
+}());
+exports.DisplayUnit = DisplayUnit;
+var DisplayUnitSystem = /** @class */ (function () {
+    // Constructor
+    function DisplayUnitSystem(units) {
+        this.units = units ? units : [];
+    }
+    Object.defineProperty(DisplayUnitSystem.prototype, "title", {
+        // Properties
+        get: function () {
+            return this.displayUnit ? this.displayUnit.title : undefined;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    // Methods
+    DisplayUnitSystem.prototype.update = function (value) {
+        if (value === undefined)
+            return;
+        this.unitBaseValue = value;
+        this.displayUnit = this.findApplicableDisplayUnit(value);
+    };
+    DisplayUnitSystem.prototype.findApplicableDisplayUnit = function (value) {
+        for (var _i = 0, _a = this.units; _i < _a.length; _i++) {
+            var unit = _a[_i];
+            if (unit.isApplicableTo(value))
+                return unit;
+        }
+        return undefined;
+    };
+    DisplayUnitSystem.prototype.format = function (value, format, decimals, trailingZeros, cultureSelector) {
+        decimals = this.getNumberOfDecimalsForFormatting(format, decimals);
+        var nonScientificFormat = "";
+        if (this.isFormatSupported(format)
+            && !this.hasScientitifcFormat(format)
+            && this.isScalingUnit()
+            && this.shouldRespectScalingUnit(format)) {
+            value = this.displayUnit.project(value);
+            nonScientificFormat = this.displayUnit.labelFormat;
+        }
+        return this.formatHelper({
+            value: value,
+            nonScientificFormat: nonScientificFormat,
+            format: format,
+            decimals: decimals,
+            trailingZeros: trailingZeros,
+            cultureSelector: cultureSelector
+        });
+    };
+    DisplayUnitSystem.prototype.isFormatSupported = function (format) {
+        return !DisplayUnitSystem.UNSUPPORTED_FORMATS.test(format);
+    };
+    DisplayUnitSystem.prototype.isPercentageFormat = function (format) {
+        return format && format.indexOf(PERCENTAGE_FORMAT) >= 0;
+    };
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    DisplayUnitSystem.prototype.shouldRespectScalingUnit = function (format) {
+        return true;
+    };
+    DisplayUnitSystem.prototype.getNumberOfDecimalsForFormatting = function (format, decimals) {
+        return decimals;
+    };
+    DisplayUnitSystem.prototype.isScalingUnit = function () {
+        return this.displayUnit && this.displayUnit.isScaling();
+    };
+    DisplayUnitSystem.prototype.formatHelper = function (options) {
+        var value = options.value, cultureSelector = options.cultureSelector, decimals = options.decimals, trailingZeros = options.trailingZeros;
+        var nonScientificFormat = options.nonScientificFormat, format = options.format;
+        // If the format is "general" and we want to override the number of decimal places then use the default numeric format string.
+        if ((format === "g" || format === "G") && decimals != null) {
+            format = "#,0.00";
+        }
+        format = formattingService_1.numberFormat.addDecimalsToFormat(format, decimals, trailingZeros);
+        if (format && !formattingService_1.formattingService.isStandardNumberFormat(format)) {
+            return formattingService_1.formattingService.formatNumberWithCustomOverride(value, format, nonScientificFormat, cultureSelector);
+        }
+        if (!format) {
+            format = "G";
+        }
+        if (!nonScientificFormat) {
+            nonScientificFormat = "{0}";
+        }
+        var text = formattingService_1.formattingService.formatValue(value, format, cultureSelector);
+        return formattingService_1.formattingService.format(nonScientificFormat, [text]);
+    };
+    //  Formats a single value by choosing an appropriate base for the DisplayUnitSystem before formatting.
+    DisplayUnitSystem.prototype.formatSingleValue = function (value, format, decimals, trailingZeros, cultureSelector) {
+        // Change unit base to a value appropriate for this value
+        this.update(this.shouldUseValuePrecision(value) ? powerbi_visuals_utils_typeutils_1.double.getPrecision(value, 8) : value);
+        return this.format(value, format, decimals, trailingZeros, cultureSelector);
+    };
+    DisplayUnitSystem.prototype.shouldUseValuePrecision = function (value) {
+        if (this.units.length === 0)
+            return true;
+        // Check if the value is big enough to have a valid unit by checking against the smallest unit (that it's value bigger than 1).
+        var applicableRangeMin = 0;
+        for (var i = 0; i < this.units.length; i++) {
+            if (this.units[i].isScaling()) {
+                applicableRangeMin = this.units[i].applicableRangeMin;
+                break;
+            }
+        }
+        return Math.abs(value) < applicableRangeMin;
+    };
+    DisplayUnitSystem.prototype.isScientific = function (value) {
+        return value < -defaultScientificBigNumbersBoundary || value > defaultScientificBigNumbersBoundary ||
+            (-scientificSmallNumbersBoundary < value && value < scientificSmallNumbersBoundary && value !== 0);
+    };
+    DisplayUnitSystem.prototype.hasScientitifcFormat = function (format) {
+        return format && format.toUpperCase().indexOf("E") !== -1;
+    };
+    DisplayUnitSystem.prototype.supportsScientificFormat = function (format) {
+        if (format)
+            return SUPPORTED_SCIENTIFIC_FORMATS.test(format);
+        return true;
+    };
+    DisplayUnitSystem.prototype.shouldFallbackToScientific = function (value, format) {
+        return !this.hasScientitifcFormat(format)
+            && this.supportsScientificFormat(format)
+            && this.isScientific(value);
+    };
+    DisplayUnitSystem.prototype.getScientificFormat = function (data, format, decimals, trailingZeros) {
+        // Use scientific format outside of the range
+        if (this.isFormatSupported(format) && this.shouldFallbackToScientific(data, format)) {
+            var numericFormat = formattingService_1.numberFormat.getNumericFormat(data, format);
+            if (decimals)
+                numericFormat = formattingService_1.numberFormat.addDecimalsToFormat(numericFormat ? numericFormat : "0", Math.abs(decimals), trailingZeros);
+            if (numericFormat)
+                return numericFormat + SCIENTIFIC_FORMAT;
+            else
+                return DEFAULT_SCIENTIFIC_FORMAT;
+        }
+        return format;
+    };
+    DisplayUnitSystem.UNSUPPORTED_FORMATS = /^(p\d*)|(e\d*)$/i;
+    return DisplayUnitSystem;
+}());
+exports.DisplayUnitSystem = DisplayUnitSystem;
+// Provides a unit system that is defined by formatting in the model, and is suitable for visualizations shown in single number visuals in explore mode.
+var NoDisplayUnitSystem = /** @class */ (function (_super) {
+    __extends(NoDisplayUnitSystem, _super);
+    // Constructor
+    function NoDisplayUnitSystem() {
+        return _super.call(this, []) || this;
+    }
+    return NoDisplayUnitSystem;
+}(DisplayUnitSystem));
+exports.NoDisplayUnitSystem = NoDisplayUnitSystem;
+/** Provides a unit system that creates a more concise format for displaying values. This is suitable for most of the cases where
+    we are showing values (chart axes) and as such it is the default unit system. */
+var DefaultDisplayUnitSystem = /** @class */ (function (_super) {
+    __extends(DefaultDisplayUnitSystem, _super);
+    // Constructor
+    function DefaultDisplayUnitSystem(unitLookup) {
+        return _super.call(this, DefaultDisplayUnitSystem.getUnits(unitLookup)) || this;
+    }
+    // Methods
+    DefaultDisplayUnitSystem.prototype.format = function (data, format, decimals, trailingZeros, cultureSelector) {
+        format = this.getScientificFormat(data, format, decimals, trailingZeros);
+        return _super.prototype.format.call(this, data, format, decimals, trailingZeros, cultureSelector);
+    };
+    DefaultDisplayUnitSystem.RESET = function () {
+        DefaultDisplayUnitSystem.units = null;
+    };
+    DefaultDisplayUnitSystem.getUnits = function (unitLookup) {
+        if (!DefaultDisplayUnitSystem.units) {
+            DefaultDisplayUnitSystem.units = createDisplayUnits(unitLookup, function (value, previousUnitValue, min) {
+                // When dealing with millions/billions/trillions we need to switch to millions earlier: for example instead of showing 100K 200K 300K we should show 0.1M 0.2M 0.3M etc
+                if (value - previousUnitValue >= 1000) {
+                    return value / 10;
+                }
+                return min;
+            });
+            // Ensure last unit has max of infinity
+            DefaultDisplayUnitSystem.units[DefaultDisplayUnitSystem.units.length - 1].applicableRangeMax = Infinity;
+        }
+        return DefaultDisplayUnitSystem.units;
+    };
+    return DefaultDisplayUnitSystem;
+}(DisplayUnitSystem));
+exports.DefaultDisplayUnitSystem = DefaultDisplayUnitSystem;
+/** Provides a unit system that creates a more concise format for displaying values, but only allows showing a unit if we have at least
+    one of those units (e.g. 0.9M is not allowed since it's less than 1 million). This is suitable for cases such as dashboard tiles
+    where we have restricted space but do not want to show partial units. */
+var WholeUnitsDisplayUnitSystem = /** @class */ (function (_super) {
+    __extends(WholeUnitsDisplayUnitSystem, _super);
+    // Constructor
+    function WholeUnitsDisplayUnitSystem(unitLookup) {
+        return _super.call(this, WholeUnitsDisplayUnitSystem.getUnits(unitLookup)) || this;
+    }
+    WholeUnitsDisplayUnitSystem.RESET = function () {
+        WholeUnitsDisplayUnitSystem.units = null;
+    };
+    WholeUnitsDisplayUnitSystem.getUnits = function (unitLookup) {
+        if (!WholeUnitsDisplayUnitSystem.units) {
+            WholeUnitsDisplayUnitSystem.units = createDisplayUnits(unitLookup);
+            // Ensure last unit has max of infinity
+            WholeUnitsDisplayUnitSystem.units[WholeUnitsDisplayUnitSystem.units.length - 1].applicableRangeMax = Infinity;
+        }
+        return WholeUnitsDisplayUnitSystem.units;
+    };
+    WholeUnitsDisplayUnitSystem.prototype.format = function (data, format, decimals, trailingZeros, cultureSelector) {
+        format = this.getScientificFormat(data, format, decimals, trailingZeros);
+        return _super.prototype.format.call(this, data, format, decimals, trailingZeros, cultureSelector);
+    };
+    return WholeUnitsDisplayUnitSystem;
+}(DisplayUnitSystem));
+exports.WholeUnitsDisplayUnitSystem = WholeUnitsDisplayUnitSystem;
+var DataLabelsDisplayUnitSystem = /** @class */ (function (_super) {
+    __extends(DataLabelsDisplayUnitSystem, _super);
+    function DataLabelsDisplayUnitSystem(unitLookup) {
+        return _super.call(this, DataLabelsDisplayUnitSystem.getUnits(unitLookup)) || this;
+    }
+    DataLabelsDisplayUnitSystem.prototype.isFormatSupported = function (format) {
+        return !DataLabelsDisplayUnitSystem.UNSUPPORTED_FORMATS.test(format);
+    };
+    DataLabelsDisplayUnitSystem.getUnits = function (unitLookup) {
+        if (!DataLabelsDisplayUnitSystem.units) {
+            var units = [];
+            var adjustMinBasedOnPreviousUnit = function (value, previousUnitValue, min) {
+                // Never returns true, we are always ignoring
+                // We do not early switch (e.g. 100K instead of 0.1M)
+                // Intended? If so, remove this function, otherwise, remove if statement
+                if (value === -1)
+                    if (value - previousUnitValue >= 1000) {
+                        return value / 10;
+                    }
+                return min;
+            };
+            // Add Auto & None
+            var names = unitLookup(-1);
+            addUnitIfNonEmpty(units, DataLabelsDisplayUnitSystem.AUTO_DISPLAYUNIT_VALUE, names.title, names.format, adjustMinBasedOnPreviousUnit);
+            names = unitLookup(0);
+            addUnitIfNonEmpty(units, DataLabelsDisplayUnitSystem.NONE_DISPLAYUNIT_VALUE, names.title, names.format, adjustMinBasedOnPreviousUnit);
+            // Add normal units
+            DataLabelsDisplayUnitSystem.units = units.concat(createDisplayUnits(unitLookup, adjustMinBasedOnPreviousUnit));
+            // Ensure last unit has max of infinity
+            DataLabelsDisplayUnitSystem.units[DataLabelsDisplayUnitSystem.units.length - 1].applicableRangeMax = Infinity;
+        }
+        return DataLabelsDisplayUnitSystem.units;
+    };
+    DataLabelsDisplayUnitSystem.prototype.format = function (data, format, decimals, trailingZeros, cultureSelector) {
+        format = this.getScientificFormat(data, format, decimals, trailingZeros);
+        return _super.prototype.format.call(this, data, format, decimals, trailingZeros, cultureSelector);
+    };
+    // Constants
+    DataLabelsDisplayUnitSystem.AUTO_DISPLAYUNIT_VALUE = 0;
+    DataLabelsDisplayUnitSystem.NONE_DISPLAYUNIT_VALUE = 1;
+    DataLabelsDisplayUnitSystem.UNSUPPORTED_FORMATS = /^(e\d*)$/i;
+    return DataLabelsDisplayUnitSystem;
+}(DisplayUnitSystem));
+exports.DataLabelsDisplayUnitSystem = DataLabelsDisplayUnitSystem;
+function createDisplayUnits(unitLookup, adjustMinBasedOnPreviousUnit) {
+    var units = [];
+    for (var i = 3; i < maxExponent; i++) {
+        var names = unitLookup(i);
+        if (names)
+            addUnitIfNonEmpty(units, powerbi_visuals_utils_typeutils_1.double.pow10(i), names.title, names.format, adjustMinBasedOnPreviousUnit);
+    }
+    return units;
+}
+function addUnitIfNonEmpty(units, value, title, labelFormat, adjustMinBasedOnPreviousUnit) {
+    if (title || labelFormat) {
+        var min = value;
+        if (units.length > 0) {
+            var previousUnit = units[units.length - 1];
+            if (adjustMinBasedOnPreviousUnit)
+                min = adjustMinBasedOnPreviousUnit(value, previousUnit.value, min);
+            previousUnit.applicableRangeMax = min;
+        }
+        var unit = new DisplayUnit();
+        unit.value = value;
+        unit.applicableRangeMin = min;
+        unit.applicableRangeMax = min * 1000;
+        unit.title = title;
+        unit.labelFormat = labelFormat;
+        units.push(unit);
+    }
+}
+//# sourceMappingURL=displayUnitSystem.js.map
+
+/***/ }),
+
+/***/ 2781:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   fromPoint: () => (/* binding */ fromPoint),
+/* harmony export */   fromPointToPixel: () => (/* binding */ fromPointToPixel),
+/* harmony export */   toPoint: () => (/* binding */ toPoint),
+/* harmony export */   toString: () => (/* binding */ toString)
+/* harmony export */ });
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+const PxPtRatio = 4 / 3;
+const PixelString = "px";
+/**
+ * Appends 'px' to the end of number value for use as pixel string in styles
+ */
+function toString(px) {
+    return px + PixelString;
+}
+/**
+ * Converts point value (pt) to pixels
+ * Returns a string for font-size property
+ * e.g. fromPoint(8) => '24px'
+ */
+function fromPoint(pt) {
+    return toString(fromPointToPixel(pt));
+}
+/**
+ * Converts point value (pt) to pixels
+ * Returns a number for font-size property
+ * e.g. fromPoint(8) => 24px
+ */
+function fromPointToPixel(pt) {
+    return (PxPtRatio * pt);
+}
+/**
+ * Converts pixel value (px) to pt
+ * e.g. toPoint(24) => 8
+ */
+function toPoint(px) {
+    return px / PxPtRatio;
+}
+//# sourceMappingURL=pixelConverter.js.map
+
+/***/ }),
+
+/***/ 3073:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ephemeralStorageService = exports.EphemeralStorageService = void 0;
+var EphemeralStorageService = /** @class */ (function () {
+    function EphemeralStorageService(clearCacheInterval) {
+        this.cache = {};
+        this.clearCacheInterval = (clearCacheInterval != null)
+            ? clearCacheInterval
+            : EphemeralStorageService.defaultClearCacheInterval;
+        this.clearCache();
+    }
+    EphemeralStorageService.prototype.getData = function (key) {
+        return this.cache[key];
+    };
+    EphemeralStorageService.prototype.setData = function (key, data) {
+        var _this = this;
+        this.cache[key] = data;
+        if (this.clearCacheTimerId == null) {
+            this.clearCacheTimerId = setTimeout(function () { return _this.clearCache(); }, this.clearCacheInterval);
+        }
+    };
+    EphemeralStorageService.prototype.clearCache = function () {
+        this.cache = {};
+        this.clearCacheTimerId = undefined;
+    };
+    EphemeralStorageService.defaultClearCacheInterval = (1000 * 60 * 60 * 24); // 1 day
+    return EphemeralStorageService;
+}());
+exports.EphemeralStorageService = EphemeralStorageService;
+exports.ephemeralStorageService = new EphemeralStorageService();
+//# sourceMappingURL=ephemeralStorageService.js.map
+
+/***/ }),
+
+/***/ 3823:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.FamilyInfo = void 0;
+var FamilyInfo = /** @class */ (function () {
+    function FamilyInfo(families) {
+        this.families = families;
+    }
+    Object.defineProperty(FamilyInfo.prototype, "family", {
+        /**
+         * Gets the first font "wf_" font family since it will always be loaded.
+         */
+        get: function () {
+            return this.getFamily();
+        },
+        enumerable: false,
+        configurable: true
+    });
+    /**
+    * Gets the first font family that matches regex (if provided).
+    * Default regex looks for "wf_" fonts which are always loaded.
+    */
+    FamilyInfo.prototype.getFamily = function (regex) {
+        if (regex === void 0) { regex = /^wf_/; }
+        if (!this.families) {
+            return null;
+        }
+        if (regex) {
+            for (var _i = 0, _a = this.families; _i < _a.length; _i++) {
+                var fontFamily = _a[_i];
+                if (regex.test(fontFamily)) {
+                    return fontFamily;
+                }
+            }
+        }
+        return this.families[0];
+    };
+    Object.defineProperty(FamilyInfo.prototype, "css", {
+        /**
+         * Gets the CSS string for the "font-family" CSS attribute.
+         */
+        get: function () {
+            return this.getCSS();
+        },
+        enumerable: false,
+        configurable: true
+    });
+    /**
+     * Gets the CSS string for the "font-family" CSS attribute.
+     */
+    FamilyInfo.prototype.getCSS = function () {
+        return this.families ? this.families.map((function (font) { return font.indexOf(" ") > 0 ? "'" + font + "'" : font; })).join(", ") : null;
+    };
+    return FamilyInfo;
+}());
+exports.FamilyInfo = FamilyInfo;
+//# sourceMappingURL=familyInfo.js.map
+
+/***/ }),
+
+/***/ 3901:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   getCommonValue: () => (/* binding */ getCommonValue),
+/* harmony export */   getFillColor: () => (/* binding */ getFillColor),
+/* harmony export */   getObject: () => (/* binding */ getObject),
+/* harmony export */   getValue: () => (/* binding */ getValue)
+/* harmony export */ });
+/* harmony import */ var _dataViewObject__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8182);
+
+/** Gets the value of the given object/property pair. */
+function getValue(objects, propertyId, defaultValue) {
+    if (!objects) {
+        return defaultValue;
+    }
+    return _dataViewObject__WEBPACK_IMPORTED_MODULE_0__.getValue(objects[propertyId.objectName], propertyId.propertyName, defaultValue);
+}
+/** Gets an object from objects. */
+function getObject(objects, objectName, defaultValue) {
+    if (objects && objects[objectName]) {
+        return objects[objectName];
+    }
+    return defaultValue;
+}
+/** Gets the solid color from a fill property. */
+function getFillColor(objects, propertyId, defaultColor) {
+    const value = getValue(objects, propertyId);
+    if (!value || !value.solid) {
+        return defaultColor;
+    }
+    return value.solid.color;
+}
+function getCommonValue(objects, propertyId, defaultValue) {
+    const value = getValue(objects, propertyId, defaultValue);
+    if (value && value.solid) {
+        return value.solid.color;
+    }
+    if (value === undefined
+        || value === null
+        || (typeof value === "object" && !value.solid)) {
+        return defaultValue;
+    }
+    return value;
+}
+//# sourceMappingURL=dataViewObjects.js.map
+
+/***/ }),
+
+/***/ 4084:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   ExtendedType: () => (/* binding */ ExtendedType),
+/* harmony export */   FormattingType: () => (/* binding */ FormattingType),
+/* harmony export */   GeographyType: () => (/* binding */ GeographyType),
+/* harmony export */   MiscellaneousType: () => (/* binding */ MiscellaneousType),
+/* harmony export */   PrimitiveType: () => (/* binding */ PrimitiveType),
+/* harmony export */   ScriptType: () => (/* binding */ ScriptType),
+/* harmony export */   TemporalType: () => (/* binding */ TemporalType),
+/* harmony export */   ValueType: () => (/* binding */ ValueType)
+/* harmony export */ });
+/* harmony import */ var _extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(4865);
+/* harmony import */ var _jsonComparer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(8732);
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+// powerbi.extensibility.utils.type
+
+
+/** Describes a data value type, including a primitive type and extended type if any (derived from data category). */
+class ValueType {
+    /** Do not call the ValueType constructor directly. Use the ValueType.fromXXX methods. */
+    constructor(underlyingType, category, enumType, variantTypes) {
+        this.underlyingType = underlyingType;
+        this.category = category;
+        if (_extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(underlyingType, ExtendedType.Temporal)) {
+            this.temporalType = new TemporalType(underlyingType);
+        }
+        if (_extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(underlyingType, ExtendedType.Geography)) {
+            this.geographyType = new GeographyType(underlyingType);
+        }
+        if (_extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(underlyingType, ExtendedType.Miscellaneous)) {
+            this.miscType = new MiscellaneousType(underlyingType);
+        }
+        if (_extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(underlyingType, ExtendedType.Formatting)) {
+            this.formattingType = new FormattingType(underlyingType);
+        }
+        if (_extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(underlyingType, ExtendedType.Enumeration)) {
+            this.enumType = enumType;
+        }
+        if (_extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(underlyingType, ExtendedType.Scripting)) {
+            this.scriptingType = new ScriptType(underlyingType);
+        }
+        if (_extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(underlyingType, ExtendedType.Variant)) {
+            this.variationTypes = variantTypes;
+        }
+    }
+    /** Creates or retrieves a ValueType object based on the specified ValueTypeDescriptor. */
+    static fromDescriptor(descriptor) {
+        descriptor = descriptor || {};
+        // Simplified primitive types
+        if (descriptor.text)
+            return ValueType.fromExtendedType(ExtendedType.Text);
+        if (descriptor.integer)
+            return ValueType.fromExtendedType(ExtendedType.Integer);
+        if (descriptor.numeric)
+            return ValueType.fromExtendedType(ExtendedType.Double);
+        if (descriptor.bool)
+            return ValueType.fromExtendedType(ExtendedType.Boolean);
+        if (descriptor.dateTime)
+            return ValueType.fromExtendedType(ExtendedType.DateTime);
+        if (descriptor.duration)
+            return ValueType.fromExtendedType(ExtendedType.Duration);
+        if (descriptor.binary)
+            return ValueType.fromExtendedType(ExtendedType.Binary);
+        if (descriptor.none)
+            return ValueType.fromExtendedType(ExtendedType.None);
+        // Extended types
+        if (descriptor.scripting) {
+            if (descriptor.scripting.source)
+                return ValueType.fromExtendedType(ExtendedType.ScriptSource);
+        }
+        if (descriptor.enumeration)
+            return ValueType.fromEnum(descriptor.enumeration);
+        if (descriptor.temporal) {
+            if (descriptor.temporal.year)
+                return ValueType.fromExtendedType(ExtendedType.Years_Integer);
+            if (descriptor.temporal.quarter)
+                return ValueType.fromExtendedType(ExtendedType.Quarters_Integer);
+            if (descriptor.temporal.month)
+                return ValueType.fromExtendedType(ExtendedType.Months_Integer);
+            if (descriptor.temporal.day)
+                return ValueType.fromExtendedType(ExtendedType.DayOfMonth_Integer);
+            if (descriptor.temporal.paddedDateTableDate)
+                return ValueType.fromExtendedType(ExtendedType.PaddedDateTableDates);
+        }
+        if (descriptor.geography) {
+            if (descriptor.geography.address)
+                return ValueType.fromExtendedType(ExtendedType.Address);
+            if (descriptor.geography.city)
+                return ValueType.fromExtendedType(ExtendedType.City);
+            if (descriptor.geography.continent)
+                return ValueType.fromExtendedType(ExtendedType.Continent);
+            if (descriptor.geography.country)
+                return ValueType.fromExtendedType(ExtendedType.Country);
+            if (descriptor.geography.county)
+                return ValueType.fromExtendedType(ExtendedType.County);
+            if (descriptor.geography.region)
+                return ValueType.fromExtendedType(ExtendedType.Region);
+            if (descriptor.geography.postalCode)
+                return ValueType.fromExtendedType(ExtendedType.PostalCode_Text);
+            if (descriptor.geography.stateOrProvince)
+                return ValueType.fromExtendedType(ExtendedType.StateOrProvince);
+            if (descriptor.geography.place)
+                return ValueType.fromExtendedType(ExtendedType.Place);
+            if (descriptor.geography.latitude)
+                return ValueType.fromExtendedType(ExtendedType.Latitude_Double);
+            if (descriptor.geography.longitude)
+                return ValueType.fromExtendedType(ExtendedType.Longitude_Double);
+        }
+        if (descriptor.misc) {
+            if (descriptor.misc.image)
+                return ValueType.fromExtendedType(ExtendedType.Image);
+            if (descriptor.misc.imageUrl)
+                return ValueType.fromExtendedType(ExtendedType.ImageUrl);
+            if (descriptor.misc.webUrl)
+                return ValueType.fromExtendedType(ExtendedType.WebUrl);
+            if (descriptor.misc.barcode)
+                return ValueType.fromExtendedType(ExtendedType.Barcode_Text);
+        }
+        if (descriptor.formatting) {
+            if (descriptor.formatting.color)
+                return ValueType.fromExtendedType(ExtendedType.Color);
+            if (descriptor.formatting.formatString)
+                return ValueType.fromExtendedType(ExtendedType.FormatString);
+            if (descriptor.formatting.alignment)
+                return ValueType.fromExtendedType(ExtendedType.Alignment);
+            if (descriptor.formatting.labelDisplayUnits)
+                return ValueType.fromExtendedType(ExtendedType.LabelDisplayUnits);
+            if (descriptor.formatting.fontSize)
+                return ValueType.fromExtendedType(ExtendedType.FontSize);
+            if (descriptor.formatting.labelDensity)
+                return ValueType.fromExtendedType(ExtendedType.LabelDensity);
+        }
+        if (descriptor.extendedType) {
+            return ValueType.fromExtendedType(descriptor.extendedType);
+        }
+        if (descriptor.operations) {
+            if (descriptor.operations.searchEnabled)
+                return ValueType.fromExtendedType(ExtendedType.SearchEnabled);
+        }
+        if (descriptor.variant) {
+            const variantTypes = descriptor.variant.map((variantType) => ValueType.fromDescriptor(variantType));
+            return ValueType.fromVariant(variantTypes);
+        }
+        return ValueType.fromExtendedType(ExtendedType.Null);
+    }
+    /** Advanced: Generally use fromDescriptor instead. Creates or retrieves a ValueType object for the specified ExtendedType. */
+    static fromExtendedType(extendedType) {
+        extendedType = extendedType || ExtendedType.Null;
+        const primitiveType = getPrimitiveType(extendedType), category = getCategoryFromExtendedType(extendedType);
+        return ValueType.fromPrimitiveTypeAndCategory(primitiveType, category);
+    }
+    /** Creates or retrieves a ValueType object for the specified PrimitiveType and data category. */
+    static fromPrimitiveTypeAndCategory(primitiveType, category) {
+        primitiveType = primitiveType || PrimitiveType.Null;
+        category = category || null;
+        let id = primitiveType.toString();
+        if (category)
+            id += "|" + category;
+        return ValueType.typeCache[id] || (ValueType.typeCache[id] = new ValueType(toExtendedType(primitiveType, category), category));
+    }
+    /** Creates a ValueType to describe the given IEnumType. */
+    static fromEnum(enumType) {
+        return new ValueType(ExtendedType.Enumeration, null, enumType);
+    }
+    /** Creates a ValueType to describe the given Variant type. */
+    static fromVariant(variantTypes) {
+        return new ValueType(ExtendedType.Variant, /* category */ null, /* enumType */ null, variantTypes);
+    }
+    /** Determines if the specified type is compatible from at least one of the otherTypes. */
+    static isCompatibleTo(typeDescriptor, otherTypes) {
+        const valueType = ValueType.fromDescriptor(typeDescriptor);
+        for (const otherType of otherTypes) {
+            const otherValueType = ValueType.fromDescriptor(otherType);
+            if (otherValueType.isCompatibleFrom(valueType))
+                return true;
+        }
+        return false;
+    }
+    /** Determines if the instance ValueType is convertable from the 'other' ValueType. */
+    isCompatibleFrom(other) {
+        const otherPrimitiveType = other.primitiveType;
+        if (this === other ||
+            this.primitiveType === otherPrimitiveType ||
+            otherPrimitiveType === PrimitiveType.Null ||
+            // Return true if both types are numbers
+            (this.numeric && other.numeric))
+            return true;
+        return false;
+    }
+    /**
+     * Determines if the instance ValueType is equal to the 'other' ValueType
+     * @param {ValueType} other the other ValueType to check equality against
+     * @returns True if the instance ValueType is equal to the 'other' ValueType
+     */
+    equals(other) {
+        return (0,_jsonComparer__WEBPACK_IMPORTED_MODULE_1__.equals)(this, other);
+    }
+    /** Gets the exact primitive type of this ValueType. */
+    get primitiveType() {
+        return getPrimitiveType(this.underlyingType);
+    }
+    /** Gets the exact extended type of this ValueType. */
+    get extendedType() {
+        return this.underlyingType;
+    }
+    /** Gets the data category string (if any) for this ValueType. */
+    get categoryString() {
+        return this.category;
+    }
+    // Simplified primitive types
+    /** Indicates whether the type represents text values. */
+    get text() {
+        return this.primitiveType === PrimitiveType.Text;
+    }
+    /** Indicates whether the type represents any numeric value. */
+    get numeric() {
+        return _extensions_enumExtensions__WEBPACK_IMPORTED_MODULE_0__.hasFlag(this.underlyingType, ExtendedType.Numeric);
+    }
+    /** Indicates whether the type represents integer numeric values. */
+    get integer() {
+        return this.primitiveType === PrimitiveType.Integer;
+    }
+    /** Indicates whether the type represents Boolean values. */
+    get bool() {
+        return this.primitiveType === PrimitiveType.Boolean;
+    }
+    /** Indicates whether the type represents any date/time values. */
+    get dateTime() {
+        return this.primitiveType === PrimitiveType.DateTime ||
+            this.primitiveType === PrimitiveType.Date ||
+            this.primitiveType === PrimitiveType.Time;
+    }
+    /** Indicates whether the type represents duration values. */
+    get duration() {
+        return this.primitiveType === PrimitiveType.Duration;
+    }
+    /** Indicates whether the type represents binary values. */
+    get binary() {
+        return this.primitiveType === PrimitiveType.Binary;
+    }
+    /** Indicates whether the type represents none values. */
+    get none() {
+        return this.primitiveType === PrimitiveType.None;
+    }
+    // Extended types
+    /** Returns an object describing temporal values represented by the type, if it represents a temporal type. */
+    get temporal() {
+        return this.temporalType;
+    }
+    /** Returns an object describing geographic values represented by the type, if it represents a geographic type. */
+    get geography() {
+        return this.geographyType;
+    }
+    /** Returns an object describing the specific values represented by the type, if it represents a miscellaneous extended type. */
+    get misc() {
+        return this.miscType;
+    }
+    /** Returns an object describing the formatting values represented by the type, if it represents a formatting type. */
+    get formatting() {
+        return this.formattingType;
+    }
+    /** Returns an object describing the enum values represented by the type, if it represents an enumeration type. */
+    get enumeration() {
+        return this.enumType;
+    }
+    get scripting() {
+        return this.scriptingType;
+    }
+    /** Returns an array describing the variant values represented by the type, if it represents an Variant type. */
+    get variant() {
+        return this.variationTypes;
+    }
+}
+ValueType.typeCache = {};
+class ScriptType {
+    constructor(underlyingType) {
+        this.underlyingType = underlyingType;
+    }
+    get source() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.ScriptSource);
+    }
+}
+class TemporalType {
+    constructor(underlyingType) {
+        this.underlyingType = underlyingType;
+    }
+    get year() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Years);
+    }
+    get quarter() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Quarters);
+    }
+    get month() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Months);
+    }
+    get day() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.DayOfMonth);
+    }
+    get paddedDateTableDate() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.PaddedDateTableDates);
+    }
+}
+class GeographyType {
+    constructor(underlyingType) {
+        this.underlyingType = underlyingType;
+    }
+    get address() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Address);
+    }
+    get city() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.City);
+    }
+    get continent() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Continent);
+    }
+    get country() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Country);
+    }
+    get county() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.County);
+    }
+    get region() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Region);
+    }
+    get postalCode() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.PostalCode);
+    }
+    get stateOrProvince() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.StateOrProvince);
+    }
+    get place() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Place);
+    }
+    get latitude() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Latitude);
+    }
+    get longitude() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Longitude);
+    }
+}
+class MiscellaneousType {
+    constructor(underlyingType) {
+        this.underlyingType = underlyingType;
+    }
+    get image() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Image);
+    }
+    get imageUrl() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.ImageUrl);
+    }
+    get webUrl() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.WebUrl);
+    }
+    get barcode() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Barcode);
+    }
+}
+class FormattingType {
+    constructor(underlyingType) {
+        this.underlyingType = underlyingType;
+    }
+    get color() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Color);
+    }
+    get formatString() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.FormatString);
+    }
+    get alignment() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.Alignment);
+    }
+    get labelDisplayUnits() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.LabelDisplayUnits);
+    }
+    get fontSize() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.FontSize);
+    }
+    get labelDensity() {
+        return matchesExtendedTypeWithAnyPrimitive(this.underlyingType, ExtendedType.LabelDensity);
+    }
+}
+/** Defines primitive value types. Must be consistent with types defined by server conceptual schema. */
+var PrimitiveType;
+(function (PrimitiveType) {
+    PrimitiveType[PrimitiveType["Null"] = 0] = "Null";
+    PrimitiveType[PrimitiveType["Text"] = 1] = "Text";
+    PrimitiveType[PrimitiveType["Decimal"] = 2] = "Decimal";
+    PrimitiveType[PrimitiveType["Double"] = 3] = "Double";
+    PrimitiveType[PrimitiveType["Integer"] = 4] = "Integer";
+    PrimitiveType[PrimitiveType["Boolean"] = 5] = "Boolean";
+    PrimitiveType[PrimitiveType["Date"] = 6] = "Date";
+    PrimitiveType[PrimitiveType["DateTime"] = 7] = "DateTime";
+    PrimitiveType[PrimitiveType["DateTimeZone"] = 8] = "DateTimeZone";
+    PrimitiveType[PrimitiveType["Time"] = 9] = "Time";
+    PrimitiveType[PrimitiveType["Duration"] = 10] = "Duration";
+    PrimitiveType[PrimitiveType["Binary"] = 11] = "Binary";
+    PrimitiveType[PrimitiveType["None"] = 12] = "None";
+    PrimitiveType[PrimitiveType["Variant"] = 13] = "Variant";
+})(PrimitiveType || (PrimitiveType = {}));
+var PrimitiveTypeStrings;
+(function (PrimitiveTypeStrings) {
+    PrimitiveTypeStrings[PrimitiveTypeStrings["Null"] = 0] = "Null";
+    PrimitiveTypeStrings[PrimitiveTypeStrings["Text"] = 1] = "Text";
+    PrimitiveTypeStrings[PrimitiveTypeStrings["Decimal"] = 2] = "Decimal";
+    PrimitiveTypeStrings[PrimitiveTypeStrings["Double"] = 3] = "Double";
+    PrimitiveTypeStrings[PrimitiveTypeStrings["Integer"] = 4] = "Integer";
+    PrimitiveTypeStrings[PrimitiveTypeStrings["Boolean"] = 5] = "Boolean";
+    PrimitiveTypeStrings[PrimitiveTypeStrings["Date"] = 6] = "Date";
+    PrimitiveTypeStrings[PrimitiveTypeStrings["DateTime"] = 7] = "DateTime";
+    PrimitiveTypeStrings[PrimitiveTypeStrings["DateTimeZone"] = 8] = "DateTimeZone";
+    PrimitiveTypeStrings[PrimitiveTypeStrings["Time"] = 9] = "Time";
+    PrimitiveTypeStrings[PrimitiveTypeStrings["Duration"] = 10] = "Duration";
+    PrimitiveTypeStrings[PrimitiveTypeStrings["Binary"] = 11] = "Binary";
+    PrimitiveTypeStrings[PrimitiveTypeStrings["None"] = 12] = "None";
+    PrimitiveTypeStrings[PrimitiveTypeStrings["Variant"] = 13] = "Variant";
+})(PrimitiveTypeStrings || (PrimitiveTypeStrings = {}));
+/** Defines extended value types, which include primitive types and known data categories constrained to expected primitive types. */
+var ExtendedType;
+(function (ExtendedType) {
+    // Flags (1 << 8-15 range [0xFF00])
+    // Important: Enum members must be declared before they are used in TypeScript.
+    ExtendedType[ExtendedType["Numeric"] = 256] = "Numeric";
+    ExtendedType[ExtendedType["Temporal"] = 512] = "Temporal";
+    ExtendedType[ExtendedType["Geography"] = 1024] = "Geography";
+    ExtendedType[ExtendedType["Miscellaneous"] = 2048] = "Miscellaneous";
+    ExtendedType[ExtendedType["Formatting"] = 4096] = "Formatting";
+    ExtendedType[ExtendedType["Scripting"] = 8192] = "Scripting";
+    // Primitive types (0-255 range [0xFF] | flags)
+    // The member names and base values must match those in PrimitiveType.
+    ExtendedType[ExtendedType["Null"] = 0] = "Null";
+    ExtendedType[ExtendedType["Text"] = 1] = "Text";
+    ExtendedType[ExtendedType["Decimal"] = 258] = "Decimal";
+    ExtendedType[ExtendedType["Double"] = 259] = "Double";
+    ExtendedType[ExtendedType["Integer"] = 260] = "Integer";
+    ExtendedType[ExtendedType["Boolean"] = 5] = "Boolean";
+    ExtendedType[ExtendedType["Date"] = 518] = "Date";
+    ExtendedType[ExtendedType["DateTime"] = 519] = "DateTime";
+    ExtendedType[ExtendedType["DateTimeZone"] = 520] = "DateTimeZone";
+    ExtendedType[ExtendedType["Time"] = 521] = "Time";
+    ExtendedType[ExtendedType["Duration"] = 10] = "Duration";
+    ExtendedType[ExtendedType["Binary"] = 11] = "Binary";
+    ExtendedType[ExtendedType["None"] = 12] = "None";
+    ExtendedType[ExtendedType["Variant"] = 13] = "Variant";
+    // Extended types (0-32767 << 16 range [0xFFFF0000] | corresponding primitive type | flags)
+    // Temporal
+    ExtendedType[ExtendedType["Years"] = 66048] = "Years";
+    ExtendedType[ExtendedType["Years_Text"] = 66049] = "Years_Text";
+    ExtendedType[ExtendedType["Years_Integer"] = 66308] = "Years_Integer";
+    ExtendedType[ExtendedType["Years_Date"] = 66054] = "Years_Date";
+    ExtendedType[ExtendedType["Years_DateTime"] = 66055] = "Years_DateTime";
+    ExtendedType[ExtendedType["Months"] = 131584] = "Months";
+    ExtendedType[ExtendedType["Months_Text"] = 131585] = "Months_Text";
+    ExtendedType[ExtendedType["Months_Integer"] = 131844] = "Months_Integer";
+    ExtendedType[ExtendedType["Months_Date"] = 131590] = "Months_Date";
+    ExtendedType[ExtendedType["Months_DateTime"] = 131591] = "Months_DateTime";
+    ExtendedType[ExtendedType["PaddedDateTableDates"] = 197127] = "PaddedDateTableDates";
+    ExtendedType[ExtendedType["Quarters"] = 262656] = "Quarters";
+    ExtendedType[ExtendedType["Quarters_Text"] = 262657] = "Quarters_Text";
+    ExtendedType[ExtendedType["Quarters_Integer"] = 262916] = "Quarters_Integer";
+    ExtendedType[ExtendedType["Quarters_Date"] = 262662] = "Quarters_Date";
+    ExtendedType[ExtendedType["Quarters_DateTime"] = 262663] = "Quarters_DateTime";
+    ExtendedType[ExtendedType["DayOfMonth"] = 328192] = "DayOfMonth";
+    ExtendedType[ExtendedType["DayOfMonth_Text"] = 328193] = "DayOfMonth_Text";
+    ExtendedType[ExtendedType["DayOfMonth_Integer"] = 328452] = "DayOfMonth_Integer";
+    ExtendedType[ExtendedType["DayOfMonth_Date"] = 328198] = "DayOfMonth_Date";
+    ExtendedType[ExtendedType["DayOfMonth_DateTime"] = 328199] = "DayOfMonth_DateTime";
+    // Geography
+    ExtendedType[ExtendedType["Address"] = 6554625] = "Address";
+    ExtendedType[ExtendedType["City"] = 6620161] = "City";
+    ExtendedType[ExtendedType["Continent"] = 6685697] = "Continent";
+    ExtendedType[ExtendedType["Country"] = 6751233] = "Country";
+    ExtendedType[ExtendedType["County"] = 6816769] = "County";
+    ExtendedType[ExtendedType["Region"] = 6882305] = "Region";
+    ExtendedType[ExtendedType["PostalCode"] = 6947840] = "PostalCode";
+    ExtendedType[ExtendedType["PostalCode_Text"] = 6947841] = "PostalCode_Text";
+    ExtendedType[ExtendedType["PostalCode_Integer"] = 6948100] = "PostalCode_Integer";
+    ExtendedType[ExtendedType["StateOrProvince"] = 7013377] = "StateOrProvince";
+    ExtendedType[ExtendedType["Place"] = 7078913] = "Place";
+    ExtendedType[ExtendedType["Latitude"] = 7144448] = "Latitude";
+    ExtendedType[ExtendedType["Latitude_Decimal"] = 7144706] = "Latitude_Decimal";
+    ExtendedType[ExtendedType["Latitude_Double"] = 7144707] = "Latitude_Double";
+    ExtendedType[ExtendedType["Longitude"] = 7209984] = "Longitude";
+    ExtendedType[ExtendedType["Longitude_Decimal"] = 7210242] = "Longitude_Decimal";
+    ExtendedType[ExtendedType["Longitude_Double"] = 7210243] = "Longitude_Double";
+    // Miscellaneous
+    ExtendedType[ExtendedType["Image"] = 13109259] = "Image";
+    ExtendedType[ExtendedType["ImageUrl"] = 13174785] = "ImageUrl";
+    ExtendedType[ExtendedType["WebUrl"] = 13240321] = "WebUrl";
+    ExtendedType[ExtendedType["Barcode"] = 13305856] = "Barcode";
+    ExtendedType[ExtendedType["Barcode_Text"] = 13305857] = "Barcode_Text";
+    ExtendedType[ExtendedType["Barcode_Integer"] = 13306116] = "Barcode_Integer";
+    // Formatting
+    ExtendedType[ExtendedType["Color"] = 19664897] = "Color";
+    ExtendedType[ExtendedType["FormatString"] = 19730433] = "FormatString";
+    ExtendedType[ExtendedType["Alignment"] = 20058113] = "Alignment";
+    ExtendedType[ExtendedType["LabelDisplayUnits"] = 20123649] = "LabelDisplayUnits";
+    ExtendedType[ExtendedType["FontSize"] = 20189443] = "FontSize";
+    ExtendedType[ExtendedType["LabelDensity"] = 20254979] = "LabelDensity";
+    // Enumeration
+    ExtendedType[ExtendedType["Enumeration"] = 26214401] = "Enumeration";
+    // Scripting
+    ExtendedType[ExtendedType["ScriptSource"] = 32776193] = "ScriptSource";
+    // NOTE: To avoid confusion, underscores should be used only to delimit primitive type variants of an extended type
+    // (e.g. Year_Integer or Latitude_Double above)
+    // Operations
+    ExtendedType[ExtendedType["SearchEnabled"] = 65541] = "SearchEnabled";
+})(ExtendedType || (ExtendedType = {}));
+var ExtendedTypeStrings;
+(function (ExtendedTypeStrings) {
+    ExtendedTypeStrings[ExtendedTypeStrings["Numeric"] = 256] = "Numeric";
+    ExtendedTypeStrings[ExtendedTypeStrings["Temporal"] = 512] = "Temporal";
+    ExtendedTypeStrings[ExtendedTypeStrings["Geography"] = 1024] = "Geography";
+    ExtendedTypeStrings[ExtendedTypeStrings["Miscellaneous"] = 2048] = "Miscellaneous";
+    ExtendedTypeStrings[ExtendedTypeStrings["Formatting"] = 4096] = "Formatting";
+    ExtendedTypeStrings[ExtendedTypeStrings["Scripting"] = 8192] = "Scripting";
+    ExtendedTypeStrings[ExtendedTypeStrings["Null"] = 0] = "Null";
+    ExtendedTypeStrings[ExtendedTypeStrings["Text"] = 1] = "Text";
+    ExtendedTypeStrings[ExtendedTypeStrings["Decimal"] = 258] = "Decimal";
+    ExtendedTypeStrings[ExtendedTypeStrings["Double"] = 259] = "Double";
+    ExtendedTypeStrings[ExtendedTypeStrings["Integer"] = 260] = "Integer";
+    ExtendedTypeStrings[ExtendedTypeStrings["Boolean"] = 5] = "Boolean";
+    ExtendedTypeStrings[ExtendedTypeStrings["Date"] = 518] = "Date";
+    ExtendedTypeStrings[ExtendedTypeStrings["DateTime"] = 519] = "DateTime";
+    ExtendedTypeStrings[ExtendedTypeStrings["DateTimeZone"] = 520] = "DateTimeZone";
+    ExtendedTypeStrings[ExtendedTypeStrings["Time"] = 521] = "Time";
+    ExtendedTypeStrings[ExtendedTypeStrings["Duration"] = 10] = "Duration";
+    ExtendedTypeStrings[ExtendedTypeStrings["Binary"] = 11] = "Binary";
+    ExtendedTypeStrings[ExtendedTypeStrings["None"] = 12] = "None";
+    ExtendedTypeStrings[ExtendedTypeStrings["Variant"] = 13] = "Variant";
+    ExtendedTypeStrings[ExtendedTypeStrings["Years"] = 66048] = "Years";
+    ExtendedTypeStrings[ExtendedTypeStrings["Years_Text"] = 66049] = "Years_Text";
+    ExtendedTypeStrings[ExtendedTypeStrings["Years_Integer"] = 66308] = "Years_Integer";
+    ExtendedTypeStrings[ExtendedTypeStrings["Years_Date"] = 66054] = "Years_Date";
+    ExtendedTypeStrings[ExtendedTypeStrings["Years_DateTime"] = 66055] = "Years_DateTime";
+    ExtendedTypeStrings[ExtendedTypeStrings["Months"] = 131584] = "Months";
+    ExtendedTypeStrings[ExtendedTypeStrings["Months_Text"] = 131585] = "Months_Text";
+    ExtendedTypeStrings[ExtendedTypeStrings["Months_Integer"] = 131844] = "Months_Integer";
+    ExtendedTypeStrings[ExtendedTypeStrings["Months_Date"] = 131590] = "Months_Date";
+    ExtendedTypeStrings[ExtendedTypeStrings["Months_DateTime"] = 131591] = "Months_DateTime";
+    ExtendedTypeStrings[ExtendedTypeStrings["PaddedDateTableDates"] = 197127] = "PaddedDateTableDates";
+    ExtendedTypeStrings[ExtendedTypeStrings["Quarters"] = 262656] = "Quarters";
+    ExtendedTypeStrings[ExtendedTypeStrings["Quarters_Text"] = 262657] = "Quarters_Text";
+    ExtendedTypeStrings[ExtendedTypeStrings["Quarters_Integer"] = 262916] = "Quarters_Integer";
+    ExtendedTypeStrings[ExtendedTypeStrings["Quarters_Date"] = 262662] = "Quarters_Date";
+    ExtendedTypeStrings[ExtendedTypeStrings["Quarters_DateTime"] = 262663] = "Quarters_DateTime";
+    ExtendedTypeStrings[ExtendedTypeStrings["DayOfMonth"] = 328192] = "DayOfMonth";
+    ExtendedTypeStrings[ExtendedTypeStrings["DayOfMonth_Text"] = 328193] = "DayOfMonth_Text";
+    ExtendedTypeStrings[ExtendedTypeStrings["DayOfMonth_Integer"] = 328452] = "DayOfMonth_Integer";
+    ExtendedTypeStrings[ExtendedTypeStrings["DayOfMonth_Date"] = 328198] = "DayOfMonth_Date";
+    ExtendedTypeStrings[ExtendedTypeStrings["DayOfMonth_DateTime"] = 328199] = "DayOfMonth_DateTime";
+    ExtendedTypeStrings[ExtendedTypeStrings["Address"] = 6554625] = "Address";
+    ExtendedTypeStrings[ExtendedTypeStrings["City"] = 6620161] = "City";
+    ExtendedTypeStrings[ExtendedTypeStrings["Continent"] = 6685697] = "Continent";
+    ExtendedTypeStrings[ExtendedTypeStrings["Country"] = 6751233] = "Country";
+    ExtendedTypeStrings[ExtendedTypeStrings["County"] = 6816769] = "County";
+    ExtendedTypeStrings[ExtendedTypeStrings["Region"] = 6882305] = "Region";
+    ExtendedTypeStrings[ExtendedTypeStrings["PostalCode"] = 6947840] = "PostalCode";
+    ExtendedTypeStrings[ExtendedTypeStrings["PostalCode_Text"] = 6947841] = "PostalCode_Text";
+    ExtendedTypeStrings[ExtendedTypeStrings["PostalCode_Integer"] = 6948100] = "PostalCode_Integer";
+    ExtendedTypeStrings[ExtendedTypeStrings["StateOrProvince"] = 7013377] = "StateOrProvince";
+    ExtendedTypeStrings[ExtendedTypeStrings["Place"] = 7078913] = "Place";
+    ExtendedTypeStrings[ExtendedTypeStrings["Latitude"] = 7144448] = "Latitude";
+    ExtendedTypeStrings[ExtendedTypeStrings["Latitude_Decimal"] = 7144706] = "Latitude_Decimal";
+    ExtendedTypeStrings[ExtendedTypeStrings["Latitude_Double"] = 7144707] = "Latitude_Double";
+    ExtendedTypeStrings[ExtendedTypeStrings["Longitude"] = 7209984] = "Longitude";
+    ExtendedTypeStrings[ExtendedTypeStrings["Longitude_Decimal"] = 7210242] = "Longitude_Decimal";
+    ExtendedTypeStrings[ExtendedTypeStrings["Longitude_Double"] = 7210243] = "Longitude_Double";
+    ExtendedTypeStrings[ExtendedTypeStrings["Image"] = 13109259] = "Image";
+    ExtendedTypeStrings[ExtendedTypeStrings["ImageUrl"] = 13174785] = "ImageUrl";
+    ExtendedTypeStrings[ExtendedTypeStrings["WebUrl"] = 13240321] = "WebUrl";
+    ExtendedTypeStrings[ExtendedTypeStrings["Barcode"] = 13305856] = "Barcode";
+    ExtendedTypeStrings[ExtendedTypeStrings["Barcode_Text"] = 13305857] = "Barcode_Text";
+    ExtendedTypeStrings[ExtendedTypeStrings["Barcode_Integer"] = 13306116] = "Barcode_Integer";
+    ExtendedTypeStrings[ExtendedTypeStrings["Color"] = 19664897] = "Color";
+    ExtendedTypeStrings[ExtendedTypeStrings["FormatString"] = 19730433] = "FormatString";
+    ExtendedTypeStrings[ExtendedTypeStrings["Alignment"] = 20058113] = "Alignment";
+    ExtendedTypeStrings[ExtendedTypeStrings["LabelDisplayUnits"] = 20123649] = "LabelDisplayUnits";
+    ExtendedTypeStrings[ExtendedTypeStrings["FontSize"] = 20189443] = "FontSize";
+    ExtendedTypeStrings[ExtendedTypeStrings["LabelDensity"] = 20254979] = "LabelDensity";
+    ExtendedTypeStrings[ExtendedTypeStrings["Enumeration"] = 26214401] = "Enumeration";
+    ExtendedTypeStrings[ExtendedTypeStrings["ScriptSource"] = 32776193] = "ScriptSource";
+    ExtendedTypeStrings[ExtendedTypeStrings["SearchEnabled"] = 65541] = "SearchEnabled";
+})(ExtendedTypeStrings || (ExtendedTypeStrings = {}));
+const PrimitiveTypeMask = 0xFF;
+const PrimitiveTypeWithFlagsMask = 0xFFFF;
+const PrimitiveTypeFlagsExcludedMask = 0xFFFF0000;
+function getPrimitiveType(extendedType) {
+    return extendedType & PrimitiveTypeMask;
+}
+function isPrimitiveType(extendedType) {
+    return (extendedType & PrimitiveTypeWithFlagsMask) === extendedType;
+}
+function getCategoryFromExtendedType(extendedType) {
+    if (isPrimitiveType(extendedType))
+        return null;
+    let category = ExtendedTypeStrings[extendedType];
+    if (category) {
+        // Check for ExtendedType declaration without a primitive type.
+        // If exists, use it as category (e.g. Longitude rather than Longitude_Double)
+        // Otherwise use the ExtendedType declaration with a primitive type (e.g. Address)
+        const delimIdx = category.lastIndexOf("_");
+        if (delimIdx > 0) {
+            const baseCategory = category.slice(0, delimIdx);
+            if (ExtendedTypeStrings[baseCategory]) {
+                category = baseCategory;
+            }
+        }
+    }
+    return category || null;
+}
+function toExtendedType(primitiveType, category) {
+    const primitiveString = PrimitiveTypeStrings[primitiveType];
+    let t = ExtendedTypeStrings[primitiveString];
+    if (t == null) {
+        t = ExtendedType.Null;
+    }
+    if (primitiveType && category) {
+        let categoryType = ExtendedTypeStrings[category];
+        if (categoryType) {
+            const categoryPrimitiveType = getPrimitiveType(categoryType);
+            if (categoryPrimitiveType === PrimitiveType.Null) {
+                // Category supports multiple primitive types, check if requested primitive type is supported
+                // (note: important to use t here rather than primitiveType as it may include primitive type flags)
+                categoryType = t | categoryType;
+                if (ExtendedTypeStrings[categoryType]) {
+                    t = categoryType;
+                }
+            }
+            else if (categoryPrimitiveType === primitiveType) {
+                // Primitive type matches the single supported type for the category
+                t = categoryType;
+            }
+        }
+    }
+    return t;
+}
+function matchesExtendedTypeWithAnyPrimitive(a, b) {
+    return (a & PrimitiveTypeFlagsExcludedMask) === (b & PrimitiveTypeFlagsExcludedMask);
+}
+//# sourceMappingURL=valueType.js.map
+
+/***/ }),
+
+/***/ 4155:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Family = exports.fallbackFonts = void 0;
+var familyInfo_1 = __webpack_require__(3823);
+exports.fallbackFonts = ["helvetica", "arial", "sans-serif"];
+exports.Family = {
+    light: new familyInfo_1.FamilyInfo(exports.fallbackFonts),
+    semilight: new familyInfo_1.FamilyInfo(exports.fallbackFonts),
+    regular: new familyInfo_1.FamilyInfo(exports.fallbackFonts),
+    semibold: new familyInfo_1.FamilyInfo(exports.fallbackFonts),
+    bold: new familyInfo_1.FamilyInfo(exports.fallbackFonts),
+    lightSecondary: new familyInfo_1.FamilyInfo(exports.fallbackFonts),
+    regularSecondary: new familyInfo_1.FamilyInfo(exports.fallbackFonts),
+    boldSecondary: new familyInfo_1.FamilyInfo(exports.fallbackFonts)
+};
+//# sourceMappingURL=family.js.map
+
+/***/ }),
+
+/***/ 4176:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.format = exports.canFormat = void 0;
+var formatting_1 = __webpack_require__(7786);
+var formattingEncoder = __webpack_require__(6573);
+var stringExtensions = __webpack_require__(4262);
+var globalize_1 = __webpack_require__(7647);
+var _currentCachedFormat;
+var _currentCachedProcessedFormat;
+// Evaluates if the value can be formatted using the NumberFormat
+function canFormat(value) {
+    return value instanceof Date;
+}
+exports.canFormat = canFormat;
+// Formats the date using provided format and culture
+function format(value, format, culture) {
+    format = format || "G";
+    var isStandard = format.length === 1;
+    try {
+        if (isStandard) {
+            return formatDateStandard(value, format, culture);
+        }
+        else {
+            return formatDateCustom(value, format, culture);
+        }
+    }
+    catch (e) {
+        return formatDateStandard(value, "G", culture);
+    }
+}
+exports.format = format;
+// Formats the date using standard format expression
+function formatDateStandard(value, format, culture) {
+    // In order to provide parity with .NET we have to support additional set of DateTime patterns.
+    var patterns = culture.calendar.patterns;
+    // Extend supported set of patterns
+    ensurePatterns(culture.calendar);
+    // Handle extended set of formats
+    var output = (0, formatting_1.findDateFormat)(value, format, culture.name);
+    if (output.format.length === 1)
+        format = patterns[output.format];
+    else
+        format = output.format;
+    // need to revisit when globalization is enabled
+    if (!culture) {
+        culture = this.getCurrentCulture();
+    }
+    return globalize_1.Globalize.format(output.value, format, culture);
+}
+// Formats the date using custom format expression
+function formatDateCustom(value, format, culture) {
+    var result;
+    var literals = [];
+    format = formattingEncoder.preserveLiterals(format, literals);
+    if (format.indexOf("F") > -1) {
+        // F is not supported so we need to replace the F with f based on the milliseconds
+        // Replace all sequences of F longer than 3 with "FFF"
+        format = stringExtensions.replaceAll(format, "FFFF", "FFF");
+        // Based on milliseconds update the format to use fff
+        var milliseconds = value.getMilliseconds();
+        if (milliseconds % 10 >= 1) {
+            format = stringExtensions.replaceAll(format, "FFF", "fff");
+        }
+        format = stringExtensions.replaceAll(format, "FFF", "FF");
+        if ((milliseconds % 100) / 10 >= 1) {
+            format = stringExtensions.replaceAll(format, "FF", "ff");
+        }
+        format = stringExtensions.replaceAll(format, "FF", "F");
+        if ((milliseconds % 1000) / 100 >= 1) {
+            format = stringExtensions.replaceAll(format, "F", "f");
+        }
+        format = stringExtensions.replaceAll(format, "F", "");
+        if (format === "" || format === "%")
+            return "";
+    }
+    format = processCustomDateTimeFormat(format);
+    result = globalize_1.Globalize.format(value, format, culture);
+    result = localize(result, culture.calendar);
+    result = formattingEncoder.restoreLiterals(result, literals, false);
+    return result;
+}
+// Translates unsupported .NET custom format expressions to the custom expressions supported by JQuery.Globalize
+function processCustomDateTimeFormat(format) {
+    if (format === _currentCachedFormat) {
+        return _currentCachedProcessedFormat;
+    }
+    _currentCachedFormat = format;
+    format = (0, formatting_1.fixDateTimeFormat)(format);
+    _currentCachedProcessedFormat = format;
+    return format;
+}
+// Localizes the time separator symbol
+function localize(value, dictionary) {
+    var timeSeparator = dictionary[":"];
+    if (timeSeparator === ":") {
+        return value;
+    }
+    var result = "";
+    var count = value.length;
+    for (var i = 0; i < count; i++) {
+        var char = value.charAt(i);
+        switch (char) {
+            case ":":
+                result += timeSeparator;
+                break;
+            default:
+                result += char;
+                break;
+        }
+    }
+    return result;
+}
+function ensurePatterns(calendar) {
+    var patterns = calendar.patterns;
+    if (patterns["g"] === undefined) {
+        patterns["g"] = patterns["f"].replace(patterns["D"], patterns["d"]); // Generic: Short date, short time
+        patterns["G"] = patterns["F"].replace(patterns["D"], patterns["d"]); // Generic: Short date, long time
+    }
+}
+//# sourceMappingURL=dateTimeFormat.js.map
+
+/***/ }),
+
+/***/ 4262:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*
+*  Power BI Visualizations
+*
+*  Copyright (c) Microsoft Corporation
+*  All rights reserved.
+*  MIT License
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the ""Software""), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in
+*  all copies or substantial portions of the Software.
+*
+*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+*  THE SOFTWARE.
+*/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.stripTagDelimiters = exports.deriveClsCompliantName = exports.stringifyAsPrettyJSON = exports.normalizeFileName = exports.escapeStringForRegex = exports.constructNameFromList = exports.findUniqueName = exports.ensureUniqueNames = exports.replaceAll = exports.repeat = exports.getLengthDifference = exports.trimWhitespace = exports.trimTrailingWhitespace = exports.isWhitespace = exports.containsWhitespace = exports.isNullOrUndefinedOrWhiteSpaceString = exports.isNullOrEmpty = exports.stringToArrayBuffer = exports.normalizeCase = exports.containsIgnoreCase = exports.contains = exports.startsWith = exports.startsWithIgnoreCase = exports.equalIgnoreCase = exports.format = exports.endsWith = void 0;
+/* eslint-disable no-useless-escape */
+var HtmlTagRegex = new RegExp("[<>]", "g");
+/**
+ * Checks if a string ends with a sub-string.
+ */
+function endsWith(str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
+}
+exports.endsWith = endsWith;
+function format() {
+    var args = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        args[_i] = arguments[_i];
+    }
+    var s = args[0];
+    if (isNullOrUndefinedOrWhiteSpaceString(s))
+        return s;
+    for (var i = 0; i < args.length - 1; i++) {
+        var reg = new RegExp("\\{" + i + "\\}", "gm");
+        s = s.replace(reg, args[i + 1]);
+    }
+    return s;
+}
+exports.format = format;
+/**
+ * Compares two strings for equality, ignoring case.
+ */
+function equalIgnoreCase(a, b) {
+    return normalizeCase(a) === normalizeCase(b);
+}
+exports.equalIgnoreCase = equalIgnoreCase;
+function startsWithIgnoreCase(a, b) {
+    var normalizedSearchString = normalizeCase(b);
+    return normalizeCase(a).indexOf(normalizedSearchString) === 0;
+}
+exports.startsWithIgnoreCase = startsWithIgnoreCase;
+function startsWith(a, b) {
+    return a.indexOf(b) === 0;
+}
+exports.startsWith = startsWith;
+// Determines whether a string contains a specified substring (by case-sensitive comparison).
+function contains(source, substring) {
+    if (source == null)
+        return false;
+    return source.indexOf(substring) !== -1;
+}
+exports.contains = contains;
+// Determines whether a string contains a specified substring (while ignoring case).
+function containsIgnoreCase(source, substring) {
+    if (source == null)
+        return false;
+    return contains(normalizeCase(source), normalizeCase(substring));
+}
+exports.containsIgnoreCase = containsIgnoreCase;
+/**
+ * Normalizes case for a string.
+ * Used by equalIgnoreCase method.
+ */
+function normalizeCase(value) {
+    return value.toUpperCase();
+}
+exports.normalizeCase = normalizeCase;
+/**
+ * Receives a string and returns an ArrayBuffer of its characters.
+ * @return An ArrayBuffer of the string's characters.
+ * If the string is empty or null or undefined - returns null.
+ */
+function stringToArrayBuffer(str) {
+    if (isNullOrEmpty(str)) {
+        return null;
+    }
+    var buffer = new ArrayBuffer(str.length);
+    var bufferView = new Uint8Array(buffer);
+    for (var i = 0, strLen = str.length; i < strLen; i++) {
+        bufferView[i] = str.charCodeAt(i);
+    }
+    return bufferView;
+}
+exports.stringToArrayBuffer = stringToArrayBuffer;
+/**
+ * Is string null or empty or undefined?
+ * @return True if the value is null or undefined or empty string,
+ * otherwise false.
+ */
+function isNullOrEmpty(value) {
+    return (value == null) || (value.length === 0);
+}
+exports.isNullOrEmpty = isNullOrEmpty;
+/**
+ * Returns true if the string is null, undefined, empty, or only includes white spaces.
+ * @return True if the str is null, undefined, empty, or only includes white spaces,
+ * otherwise false.
+ */
+function isNullOrUndefinedOrWhiteSpaceString(str) {
+    return isNullOrEmpty(str) || isNullOrEmpty(str.trim());
+}
+exports.isNullOrUndefinedOrWhiteSpaceString = isNullOrUndefinedOrWhiteSpaceString;
+/**
+ * Returns a value indicating whether the str contains any whitespace.
+ */
+function containsWhitespace(str) {
+    var expr = /\s/;
+    return expr.test(str);
+}
+exports.containsWhitespace = containsWhitespace;
+/**
+ * Returns a value indicating whether the str is a whitespace string.
+ */
+function isWhitespace(str) {
+    return str.trim() === "";
+}
+exports.isWhitespace = isWhitespace;
+/**
+ * Returns the string with any trailing whitespace from str removed.
+ */
+function trimTrailingWhitespace(str) {
+    return str.replace(/\s+$/, "");
+}
+exports.trimTrailingWhitespace = trimTrailingWhitespace;
+/**
+ * Returns the string with any leading and trailing whitespace from str removed.
+ */
+function trimWhitespace(str) {
+    return str.replace(/^\s+/, "").replace(/\s+$/, "");
+}
+exports.trimWhitespace = trimWhitespace;
+/**
+ * Returns length difference between the two provided strings.
+ */
+function getLengthDifference(left, right) {
+    return Math.abs(left.length - right.length);
+}
+exports.getLengthDifference = getLengthDifference;
+/**
+ * Repeat char or string several times.
+ * @param char The string to repeat.
+ * @param count How many times to repeat the string.
+ */
+function repeat(char, count) {
+    var result = "";
+    for (var i = 0; i < count; i++) {
+        result += char;
+    }
+    return result;
+}
+exports.repeat = repeat;
+/**
+ * Replace all the occurrences of the textToFind in the text with the textToReplace.
+ * @param text The original string.
+ * @param textToFind Text to find in the original string.
+ * @param textToReplace New text replacing the textToFind.
+ */
+function replaceAll(text, textToFind, textToReplace) {
+    if (!textToFind)
+        return text;
+    var pattern = escapeStringForRegex(textToFind);
+    return text.replace(new RegExp(pattern, "gi"), textToReplace);
+}
+exports.replaceAll = replaceAll;
+function ensureUniqueNames(names) {
+    var usedNames = {};
+    // Make sure we are giving fair chance for all columns to stay with their original name
+    // First we fill the used names map to contain all the original unique names from the list.
+    for (var _i = 0, names_1 = names; _i < names_1.length; _i++) {
+        var name_1 = names_1[_i];
+        usedNames[name_1] = false;
+    }
+    var uniqueNames = [];
+    // Now we go over all names and find a unique name for each
+    for (var _a = 0, names_2 = names; _a < names_2.length; _a++) {
+        var name_2 = names_2[_a];
+        var uniqueName = name_2;
+        // If the (original) column name is already taken lets try to find another name
+        if (usedNames[uniqueName]) {
+            var counter = 0;
+            // Find a name that is not already in the map
+            while (usedNames[uniqueName] !== undefined) {
+                uniqueName = name_2 + "." + (++counter);
+            }
+        }
+        uniqueNames.push(uniqueName);
+        usedNames[uniqueName] = true;
+    }
+    return uniqueNames;
+}
+exports.ensureUniqueNames = ensureUniqueNames;
+/**
+ * Returns a name that is not specified in the values.
+ */
+function findUniqueName(usedNames, baseName) {
+    // Find a unique name
+    var i = 0, uniqueName = baseName;
+    while (usedNames[uniqueName]) {
+        uniqueName = baseName + (++i);
+    }
+    return uniqueName;
+}
+exports.findUniqueName = findUniqueName;
+function constructNameFromList(list, separator, maxCharacter) {
+    var labels = [];
+    var exceeded;
+    var length = 0;
+    for (var _i = 0, list_1 = list; _i < list_1.length; _i++) {
+        var item = list_1[_i];
+        if (length + item.length > maxCharacter && labels.length > 0) {
+            exceeded = true;
+            break;
+        }
+        labels.push(item);
+        length += item.length;
+    }
+    var separatorWithSpace = " " + separator + " ";
+    var name = labels.join(separatorWithSpace);
+    if (exceeded)
+        name += separatorWithSpace + "...";
+    return name;
+}
+exports.constructNameFromList = constructNameFromList;
+function escapeStringForRegex(s) {
+    return s.replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, "\\$1");
+}
+exports.escapeStringForRegex = escapeStringForRegex;
+/**
+ * Remove file name reserved characters <>:"/\|?* from input string.
+ */
+function normalizeFileName(fileName) {
+    return fileName.replace(/[\<\>\:"\/\\\|\?*]/g, "");
+}
+exports.normalizeFileName = normalizeFileName;
+/**
+ * Similar to JSON.stringify, but strips away escape sequences so that the resulting
+ * string is human-readable (and parsable by JSON formatting/validating tools).
+ */
+function stringifyAsPrettyJSON(object) {
+    // let specialCharacterRemover = (key: string, value: string) => value.replace(/[^\w\s]/gi, "");
+    return JSON.stringify(object /*, specialCharacterRemover*/);
+}
+exports.stringifyAsPrettyJSON = stringifyAsPrettyJSON;
+/**
+ * Derive a CLS-compliant name from a specified string.  If no allowed characters are present, return a fallback string instead.
+ * (6708134): this should have a fully Unicode-aware implementation
+ */
+function deriveClsCompliantName(input, fallback) {
+    var result = input.replace(/^[^A-Za-z]*/g, "").replace(/[ :\.\/\\\-\u00a0\u1680\u180e\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]/g, "_").replace(/[\W]/g, "");
+    return result.length > 0 ? result : fallback;
+}
+exports.deriveClsCompliantName = deriveClsCompliantName;
+// Performs cheap sanitization by stripping away HTML tag (<>) characters.
+function stripTagDelimiters(s) {
+    return s.replace(HtmlTagRegex, "");
+}
+exports.stripTagDelimiters = stripTagDelimiters;
+//# sourceMappingURL=stringExtensions.js.map
+
+/***/ }),
+
+/***/ 4529:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   createValueColumns: () => (/* binding */ createValueColumns),
+/* harmony export */   groupValues: () => (/* binding */ groupValues),
+/* harmony export */   setGrouped: () => (/* binding */ setGrouped)
+/* harmony export */ });
+// TODO: refactor & focus DataViewTransform into a service with well-defined dependencies.
+// TODO: refactor this, setGrouped, and groupValues to a test helper to stop using it in the product
+function createValueColumns(values = [], valueIdentityFields, source) {
+    const result = values;
+    setGrouped(result);
+    if (valueIdentityFields) {
+        result.identityFields = valueIdentityFields;
+    }
+    if (source) {
+        result.source = source;
+    }
+    return result;
+}
+function setGrouped(values, groupedResult) {
+    values.grouped = groupedResult
+        ? () => groupedResult
+        : () => groupValues(values);
+}
+/** Group together the values with a common identity. */
+function groupValues(values) {
+    const groups = [];
+    let currentGroup;
+    for (let i = 0, len = values.length; i < len; i++) {
+        const value = values[i];
+        if (!currentGroup || currentGroup.identity !== value.identity) {
+            currentGroup = {
+                values: []
+            };
+            if (value.identity) {
+                currentGroup.identity = value.identity;
+                const source = value.source;
+                // allow null, which will be formatted as (Blank).
+                if (source.groupName !== undefined) {
+                    currentGroup.name = source.groupName;
+                }
+                else if (source.displayName) {
+                    currentGroup.name = source.displayName;
+                }
+            }
+            groups.push(currentGroup);
+        }
+        currentGroup.values.push(value);
+    }
+    return groups;
+}
+//# sourceMappingURL=dataViewTransform.js.map
+
+/***/ }),
+
+/***/ 4741:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*
+*  Power BI Visualizations
+*
+*  Copyright (c) Microsoft Corporation
+*  All rights reserved.
+*  MIT License
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the ""Software""), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in
+*  all copies or substantial portions of the Software.
+*
+*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+*  THE SOFTWARE.
+*/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DateTimeUnit = void 0;
+// Enumeration of DateTimeUnits
+var DateTimeUnit;
+(function (DateTimeUnit) {
+    DateTimeUnit[DateTimeUnit["Year"] = 0] = "Year";
+    DateTimeUnit[DateTimeUnit["Month"] = 1] = "Month";
+    DateTimeUnit[DateTimeUnit["Week"] = 2] = "Week";
+    DateTimeUnit[DateTimeUnit["Day"] = 3] = "Day";
+    DateTimeUnit[DateTimeUnit["Hour"] = 4] = "Hour";
+    DateTimeUnit[DateTimeUnit["Minute"] = 5] = "Minute";
+    DateTimeUnit[DateTimeUnit["Second"] = 6] = "Second";
+    DateTimeUnit[DateTimeUnit["Millisecond"] = 7] = "Millisecond";
+})(DateTimeUnit = exports.DateTimeUnit || (exports.DateTimeUnit = {}));
+//# sourceMappingURL=iFormattingService.js.map
+
+/***/ }),
+
+/***/ 4793:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   endsWith: () => (/* binding */ endsWith)
+/* harmony export */ });
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+/**
+ * Extensions to String class.
+ */
+/**
+ * Checks if a string ends with a sub-string.
+ */
+function endsWith(str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
+}
+//# sourceMappingURL=stringExtensions.js.map
+
+/***/ }),
+
+/***/ 4865:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   getBitCount: () => (/* binding */ getBitCount),
+/* harmony export */   hasFlag: () => (/* binding */ hasFlag),
+/* harmony export */   resetFlag: () => (/* binding */ resetFlag),
+/* harmony export */   setFlag: () => (/* binding */ setFlag),
+/* harmony export */   toString: () => (/* binding */ toString)
+/* harmony export */ });
+/* harmony import */ var _double__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(312);
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+// NOTE: this file includes standalone utilities that should have no dependencies on external libraries, including jQuery.
+
+/**
+ * Extensions for Enumerations.
+ */
+/**
+ * Gets a value indicating whether the value has the bit flags set.
+ */
+function hasFlag(value, flag) {
+    return (value & flag) === flag;
+}
+/**
+ * Sets a value of a flag without modifying any other flags.
+ */
+function setFlag(value, flag) {
+    return value |= flag;
+}
+/**
+ * Resets a value of a flag without modifying any other flags.
+ */
+function resetFlag(value, flag) {
+    return value &= ~flag;
+}
+/**
+ * According to the TypeScript Handbook, this is safe to do.
+ */
+function toString(enumType, value) {
+    return enumType[value];
+}
+/**
+ * Returns the number of 1's in the specified value that is a set of binary bit flags.
+ */
+function getBitCount(value) {
+    if (!(0,_double__WEBPACK_IMPORTED_MODULE_0__.isInteger)(value))
+        return 0;
+    let bitCount = 0;
+    let shiftingValue = value;
+    while (shiftingValue !== 0) {
+        if ((shiftingValue & 1) === 1) {
+            bitCount++;
+        }
+        shiftingValue = shiftingValue >>> 1;
+    }
+    return bitCount;
+}
+//# sourceMappingURL=enumExtensions.js.map
+
+/***/ }),
+
+/***/ 5003:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   inherit: () => (/* binding */ inherit),
+/* harmony export */   inheritSingle: () => (/* binding */ inheritSingle),
+/* harmony export */   overrideArray: () => (/* binding */ overrideArray)
+/* harmony export */ });
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+/**
+ * Returns a new object with the provided obj as its prototype.
+ */
+function inherit(obj, extension) {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    function wrapCtor() { }
+    wrapCtor.prototype = obj;
+    const inherited = new wrapCtor();
+    if (extension)
+        extension(inherited);
+    return inherited;
+}
+/**
+ * Returns a new object with the provided obj as its prototype
+ * if, and only if, the prototype has not been previously set
+ */
+function inheritSingle(obj) {
+    const proto = Object.getPrototypeOf(obj);
+    if (proto === Object.prototype || proto === Array.prototype)
+        obj = inherit(obj);
+    return obj;
+}
+/**
+ * Uses the provided callback function to selectively replace contents in the provided array.
+ * @return A new array with those values overriden
+ * or undefined if no overrides are necessary.
+ */
+function overrideArray(prototype, override) {
+    if (!prototype)
+        return;
+    let overwritten;
+    for (let i = 0, len = prototype.length; i < len; i++) {
+        const value = override(prototype[i]);
+        if (value) {
+            if (!overwritten)
+                overwritten = inherit(prototype);
+            overwritten[i] = value;
+        }
+    }
+    return overwritten;
+}
+//# sourceMappingURL=prototype.js.map
+
+/***/ }),
+
+/***/ 5098:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   NumericSequence: () => (/* binding */ NumericSequence)
+/* harmony export */ });
+/* harmony import */ var _double__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(312);
+/* harmony import */ var _numericSequenceRange__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(441);
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+
+
+class NumericSequence {
+    // eslint-disable-next-line max-lines-per-function
+    static calculate(range, expectedCount, maxAllowedMargin, minPower, useZeroRefPoint, steps) {
+        const result = new NumericSequence();
+        if (expectedCount === undefined)
+            expectedCount = 10;
+        else
+            expectedCount = _double__WEBPACK_IMPORTED_MODULE_0__.ensureInRange(expectedCount, NumericSequence.MIN_COUNT, NumericSequence.MAX_COUNT);
+        if (minPower === undefined)
+            minPower = _double__WEBPACK_IMPORTED_MODULE_0__.MIN_EXP;
+        if (useZeroRefPoint === undefined)
+            useZeroRefPoint = false;
+        if (maxAllowedMargin === undefined)
+            maxAllowedMargin = 1;
+        if (steps === undefined)
+            steps = [1, 2, 5];
+        // Handle single stop case
+        if (range.forcedSingleStop) {
+            result.interval = range.getSize();
+            result.intervalOffset = result.interval - (range.forcedSingleStop - range.min);
+            result.min = range.min;
+            result.max = range.max;
+            result.sequence = [range.forcedSingleStop];
+            return result;
+        }
+        let interval = 0;
+        let min = 0;
+        let max = 9;
+        const canExtendMin = maxAllowedMargin > 0 && !range.hasFixedMin;
+        const canExtendMax = maxAllowedMargin > 0 && !range.hasFixedMax;
+        const size = range.getSize();
+        let exp = _double__WEBPACK_IMPORTED_MODULE_0__.log10(size);
+        // Account for Exp of steps
+        const stepExp = _double__WEBPACK_IMPORTED_MODULE_0__.log10(steps[0]);
+        exp = exp - stepExp;
+        // Account for MaxCount
+        const expectedCountExp = _double__WEBPACK_IMPORTED_MODULE_0__.log10(expectedCount);
+        exp = exp - expectedCountExp;
+        // Account for MinPower
+        exp = Math.max(exp, minPower - stepExp + 1);
+        let count = undefined;
+        // Create array of "good looking" numbers
+        if (interval !== 0) {
+            // If explicit interval is defined - use it instead of the steps array.
+            const power = _double__WEBPACK_IMPORTED_MODULE_0__.pow10(exp);
+            const roundMin = _double__WEBPACK_IMPORTED_MODULE_0__.floorToPrecision(range.min, power);
+            const roundMax = _double__WEBPACK_IMPORTED_MODULE_0__.ceilToPrecision(range.max, power);
+            const roundRange = _numericSequenceRange__WEBPACK_IMPORTED_MODULE_1__.NumericSequenceRange.calculateFixedRange(roundMin, roundMax);
+            roundRange.shrinkByStep(range, interval);
+            min = roundRange.min;
+            max = roundRange.max;
+            count = Math.floor(roundRange.getSize() / interval);
+        }
+        else {
+            // No interval defined -> find optimal interval
+            let dexp;
+            for (dexp = 0; dexp < 3; dexp++) {
+                const e = exp + dexp;
+                const power = _double__WEBPACK_IMPORTED_MODULE_0__.pow10(e);
+                const roundMin = _double__WEBPACK_IMPORTED_MODULE_0__.floorToPrecision(range.min, power);
+                const roundMax = _double__WEBPACK_IMPORTED_MODULE_0__.ceilToPrecision(range.max, power);
+                // Go throught the steps array looking for the smallest step that produces the right interval count.
+                const stepsCount = steps.length;
+                const stepPower = _double__WEBPACK_IMPORTED_MODULE_0__.pow10(e - 1);
+                for (let i = 0; i < stepsCount; i++) {
+                    const step = steps[i] * stepPower;
+                    const roundRange = _numericSequenceRange__WEBPACK_IMPORTED_MODULE_1__.NumericSequenceRange.calculateFixedRange(roundMin, roundMax, useZeroRefPoint);
+                    roundRange.shrinkByStep(range, step);
+                    // If the range is based on Data we might need to extend it to provide nice data margins.
+                    if (canExtendMin && range.min === roundRange.min && maxAllowedMargin >= 1)
+                        roundRange.min -= step;
+                    if (canExtendMax && range.max === roundRange.max && maxAllowedMargin >= 1)
+                        roundRange.max += step;
+                    // Count the intervals
+                    count = _double__WEBPACK_IMPORTED_MODULE_0__.ceilWithPrecision(roundRange.getSize() / step, _double__WEBPACK_IMPORTED_MODULE_0__.DEFAULT_PRECISION);
+                    if (count <= expectedCount || (dexp === 2 && i === stepsCount - 1) || (expectedCount === 1 && count === 2 && (step > range.getSize() || (range.min < 0 && range.max > 0 && step * 2 >= range.getSize())))) {
+                        interval = step;
+                        min = roundRange.min;
+                        max = roundRange.max;
+                        break;
+                    }
+                }
+                // Increase the scale power until the interval is found
+                if (interval !== 0)
+                    break;
+            }
+        }
+        // Avoid extreme count cases (>1000 ticks)
+        if (count > expectedCount * 32 || count > NumericSequence.MAX_COUNT) {
+            count = Math.min(expectedCount * 32, NumericSequence.MAX_COUNT);
+            interval = (max - min) / count;
+        }
+        result.min = min;
+        result.max = max;
+        result.interval = interval;
+        result.intervalOffset = min - range.min;
+        result.maxAllowedMargin = maxAllowedMargin;
+        result.canExtendMin = canExtendMin;
+        result.canExtendMax = canExtendMax;
+        // Fill in the Sequence
+        const precision = _double__WEBPACK_IMPORTED_MODULE_0__.getPrecision(interval, 0);
+        result.precision = precision;
+        const sequence = [];
+        let x = _double__WEBPACK_IMPORTED_MODULE_0__.roundToPrecision(min, precision);
+        sequence.push(x);
+        for (let i = 0; i < count; i++) {
+            x = _double__WEBPACK_IMPORTED_MODULE_0__.roundToPrecision(x + interval, precision);
+            sequence.push(x);
+        }
+        result.sequence = sequence;
+        result.trimMinMax(range.min, range.max);
+        return result;
+    }
+    /**
+     * Calculates the sequence of int numbers which are mapped to the multiples of the units grid.
+     * @min - The minimum of the range.
+     * @max - The maximum of the range.
+     * @maxCount - The max count of intervals.
+     * @steps - array of intervals.
+     */
+    static calculateUnits(min, max, maxCount, steps) {
+        // Initialization actions
+        maxCount = _double__WEBPACK_IMPORTED_MODULE_0__.ensureInRange(maxCount, NumericSequence.MIN_COUNT, NumericSequence.MAX_COUNT);
+        if (min === max) {
+            max = min + 1;
+        }
+        let stepCount = 0;
+        let step = 0;
+        // Calculate step
+        for (let i = 0; i < steps.length; i++) {
+            step = steps[i];
+            const maxStepCount = _double__WEBPACK_IMPORTED_MODULE_0__.ceilWithPrecision(max / step);
+            const minStepCount = _double__WEBPACK_IMPORTED_MODULE_0__.floorWithPrecision(min / step);
+            stepCount = maxStepCount - minStepCount;
+            if (stepCount <= maxCount) {
+                break;
+            }
+        }
+        // Calculate the offset
+        let offset = -min;
+        offset = offset % step;
+        // Create sequence
+        const result = new NumericSequence();
+        result.sequence = [];
+        for (let x = min + offset;; x += step) {
+            result.sequence.push(x);
+            if (x >= max)
+                break;
+        }
+        result.interval = step;
+        result.intervalOffset = offset;
+        result.min = result.sequence[0];
+        result.max = result.sequence[result.sequence.length - 1];
+        return result;
+    }
+    trimMinMax(min, max) {
+        const minMargin = (min - this.min) / this.interval;
+        const maxMargin = (this.max - max) / this.interval;
+        const marginPrecision = 0.001;
+        if (!this.canExtendMin || (minMargin > this.maxAllowedMargin && minMargin > marginPrecision)) {
+            this.min = min;
+        }
+        if (!this.canExtendMax || (maxMargin > this.maxAllowedMargin && maxMargin > marginPrecision)) {
+            this.max = max;
+        }
+    }
+}
+NumericSequence.MIN_COUNT = 1;
+NumericSequence.MAX_COUNT = 1000;
+//# sourceMappingURL=numericSequence.js.map
+
+/***/ }),
+
+/***/ 5176:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   XOR: () => (/* binding */ XOR)
+/* harmony export */ });
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+// NOTE: this file includes standalone utilities that should have no dependencies on external libraries, including jQuery.
+function XOR(a, b) {
+    return (a || b) && !(a && b);
+}
+//# sourceMappingURL=logicExtensions.js.map
+
+/***/ }),
+
+/***/ 5510:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+/* eslint-disable no-useless-escape */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.formattingEncoder = exports.dateTimeFormat = exports.numberFormat = exports.formattingService = exports.FormattingService = void 0;
+var globalize_1 = __webpack_require__(7647);
+var globalize_cultures_1 = __webpack_require__(5978);
+(0, globalize_cultures_1.default)(globalize_1.Globalize);
+var dateTimeFormat = __webpack_require__(4176);
+exports.dateTimeFormat = dateTimeFormat;
+var numberFormat = __webpack_require__(2128);
+exports.numberFormat = numberFormat;
+var formattingEncoder = __webpack_require__(6573);
+exports.formattingEncoder = formattingEncoder;
+var iFormattingService_1 = __webpack_require__(4741);
+var IndexedTokensRegex = /({{)|(}})|{(\d+[^}]*)}/g;
+// Formatting Service
+var FormattingService = /** @class */ (function () {
+    function FormattingService() {
+    }
+    FormattingService.prototype.formatValue = function (value, formatValue, cultureSelector) {
+        // Handle special cases
+        if (value === undefined || value === null) {
+            return "";
+        }
+        var gculture = this.getCulture(cultureSelector);
+        if (dateTimeFormat.canFormat(value)) {
+            // Dates
+            return dateTimeFormat.format(value, formatValue, gculture);
+        }
+        else if (numberFormat.canFormat(value)) {
+            // Numbers
+            return numberFormat.format(value, formatValue, gculture);
+        }
+        // Other data types - return as string
+        return value.toString();
+    };
+    FormattingService.prototype.format = function (formatWithIndexedTokens, args, culture) {
+        var _this = this;
+        if (!formatWithIndexedTokens) {
+            return "";
+        }
+        return formatWithIndexedTokens.replace(IndexedTokensRegex, function (match, left, right, argToken) {
+            if (left) {
+                return "{";
+            }
+            else if (right) {
+                return "}";
+            }
+            else {
+                var parts = argToken.split(":");
+                var argIndex = parseInt(parts[0], 10);
+                var argFormat = parts[1];
+                return _this.formatValue(args[argIndex], argFormat, culture);
+            }
+        });
+    };
+    FormattingService.prototype.isStandardNumberFormat = function (format) {
+        return numberFormat.isStandardFormat(format);
+    };
+    FormattingService.prototype.formatNumberWithCustomOverride = function (value, format, nonScientificOverrideFormat, culture) {
+        var gculture = this.getCulture(culture);
+        return numberFormat.formatWithCustomOverride(value, format, nonScientificOverrideFormat, gculture);
+    };
+    FormattingService.prototype.dateFormatString = function (unit) {
+        if (!this._dateTimeScaleFormatInfo)
+            this.initialize();
+        return this._dateTimeScaleFormatInfo.getFormatString(unit);
+    };
+    /**
+     * Sets the current localization culture
+     * @param cultureSelector - name of a culture: "en", "en-UK", "fr-FR" etc. (See National Language Support (NLS) for full lists. Use "default" for invariant culture).
+     */
+    FormattingService.prototype.setCurrentCulture = function (cultureSelector) {
+        if (this._currentCultureSelector !== cultureSelector) {
+            this._currentCulture = this.getCulture(cultureSelector);
+            this._currentCultureSelector = cultureSelector;
+            this._dateTimeScaleFormatInfo = new DateTimeScaleFormatInfo(this._currentCulture);
+        }
+    };
+    /**
+     * Gets the culture assotiated with the specified cultureSelector ("en", "en-US", "fr-FR" etc).
+     * @param cultureSelector - name of a culture: "en", "en-UK", "fr-FR" etc. (See National Language Support (NLS) for full lists. Use "default" for invariant culture).
+     * Exposing this function for testability of unsupported cultures
+     */
+    FormattingService.prototype.getCulture = function (cultureSelector) {
+        if (cultureSelector == null) {
+            if (this._currentCulture == null) {
+                this.initialize();
+            }
+            return this._currentCulture;
+        }
+        else {
+            var culture = globalize_1.Globalize.findClosestCulture(cultureSelector);
+            if (!culture)
+                culture = globalize_1.Globalize.culture("en-US");
+            return culture;
+        }
+    };
+    // By default the Globalization module initializes to the culture/calendar provided in the language/culture URL params
+    FormattingService.prototype.initialize = function () {
+        var cultureName = this.getCurrentCulture();
+        this.setCurrentCulture(cultureName);
+        var calendarName = this.getUrlParam("calendar");
+        if (calendarName) {
+            var culture = this._currentCulture;
+            var c = culture.calendars[calendarName];
+            if (c) {
+                culture.calendar = c;
+            }
+        }
+    };
+    /**
+     *  Exposing this function for testability
+     */
+    FormattingService.prototype.getCurrentCulture = function () {
+        if (window === null || window === void 0 ? void 0 : window.navigator) {
+            return window.navigator.userLanguage || window.navigator["language"];
+        }
+        return "en-US";
+    };
+    /**
+     *  Exposing this function for testability
+     *  @param name: queryString name
+     */
+    FormattingService.prototype.getUrlParam = function (name) {
+        var param = window.location.search.match(RegExp("[?&]" + name + "=([^&]*)"));
+        return param ? param[1] : undefined;
+    };
+    return FormattingService;
+}());
+exports.FormattingService = FormattingService;
+// DateTimeScaleFormatInfo is used to calculate and keep the Date formats used for different units supported by the DateTimeScaleModel
+var DateTimeScaleFormatInfo = /** @class */ (function () {
+    // Constructor
+    /**
+     * Creates new instance of the DateTimeScaleFormatInfo class.
+     * @param culture - culture which calendar info is going to be used to derive the formats.
+     */
+    function DateTimeScaleFormatInfo(culture) {
+        var calendar = culture.calendar;
+        var patterns = calendar.patterns;
+        var monthAbbreviations = calendar["months"]["namesAbbr"];
+        var cultureHasMonthAbbr = monthAbbreviations && monthAbbreviations[0];
+        var yearMonthPattern = patterns["Y"];
+        var monthDayPattern = patterns["M"];
+        var fullPattern = patterns["f"];
+        var longTimePattern = patterns["T"];
+        var shortTimePattern = patterns["t"];
+        var separator = fullPattern.indexOf(",") > -1 ? ", " : " ";
+        var hasYearSymbol = yearMonthPattern.indexOf("yyyy'") === 0 && yearMonthPattern.length > 6 && yearMonthPattern[6] === "\'";
+        this.YearPattern = hasYearSymbol ? yearMonthPattern.substring(0, 7) : "yyyy";
+        var yearPos = fullPattern.indexOf("yy");
+        var monthPos = fullPattern.indexOf("MMMM");
+        this.MonthPattern = cultureHasMonthAbbr && monthPos > -1 ? (yearPos > monthPos ? "MMM yyyy" : "yyyy MMM") : yearMonthPattern;
+        this.DayPattern = cultureHasMonthAbbr ? monthDayPattern.replace("MMMM", "MMM") : monthDayPattern;
+        var minutePos = fullPattern.indexOf("mm");
+        var pmPos = fullPattern.indexOf("tt");
+        var shortHourPattern = pmPos > -1 ? shortTimePattern.replace(":mm ", "") : shortTimePattern;
+        this.HourPattern = yearPos < minutePos ? this.DayPattern + separator + shortHourPattern : shortHourPattern + separator + this.DayPattern;
+        this.MinutePattern = shortTimePattern;
+        this.SecondPattern = longTimePattern;
+        this.MillisecondPattern = longTimePattern.replace("ss", "ss.fff");
+        // Special cases
+        switch (culture.name) {
+            case "fi-FI":
+                this.DayPattern = this.DayPattern.replace("'ta'", ""); // Fix for finish 'ta' suffix for month names.
+                this.HourPattern = this.HourPattern.replace("'ta'", "");
+                break;
+        }
+    }
+    // Methods
+    /**
+     * Returns the format string of the provided DateTimeUnit.
+     * @param unit - date or time unit
+     */
+    DateTimeScaleFormatInfo.prototype.getFormatString = function (unit) {
+        switch (unit) {
+            case iFormattingService_1.DateTimeUnit.Year:
+                return this.YearPattern;
+            case iFormattingService_1.DateTimeUnit.Month:
+                return this.MonthPattern;
+            case iFormattingService_1.DateTimeUnit.Week:
+            case iFormattingService_1.DateTimeUnit.Day:
+                return this.DayPattern;
+            case iFormattingService_1.DateTimeUnit.Hour:
+                return this.HourPattern;
+            case iFormattingService_1.DateTimeUnit.Minute:
+                return this.MinutePattern;
+            case iFormattingService_1.DateTimeUnit.Second:
+                return this.SecondPattern;
+            case iFormattingService_1.DateTimeUnit.Millisecond:
+                return this.MillisecondPattern;
+        }
+    };
+    return DateTimeScaleFormatInfo;
+}());
+var formattingService = new FormattingService();
+exports.formattingService = formattingService;
+//# sourceMappingURL=formattingService.js.map
+
+/***/ }),
+
+/***/ 5978:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/*
+ * Globalize Cultures
+ *
+ * http://github.com/jquery/globalize
+ *
+ * Copyright Software Freedom Conservancy, Inc.
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://jquery.org/license
+ *
+ * This file was generated by the Globalize Culture Generator
+ * Translation: bugs found in this file need to be fixed in the generator
+ */
+var powerbiGlobalizeLocales_1 = __webpack_require__(6774);
+function injectCultures(Globalize) {
+    Object.keys(powerbiGlobalizeLocales_1.locales).forEach(function (locale) { return Globalize.addCultureInfo.apply(Globalize, powerbiGlobalizeLocales_1.locales[locale]); });
+}
+exports["default"] = injectCultures;
+//# sourceMappingURL=globalize.cultures.js.map
+
+/***/ }),
+
+/***/ 6052:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+/*
+*  Power BI Visualizations
+*
+*  Copyright (c) Microsoft Corporation
+*  All rights reserved.
+*  MIT License
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the ""Software""), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in
+*  all copies or substantial portions of the Software.
+*
+*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+*  THE SOFTWARE.
+*/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.calculateExactDigitsPrecision = exports.getDisplayUnits = exports.formatListOr = exports.formatListAnd = exports.getFormatStringByColumn = exports.getFormatString = exports.createDisplayUnitSystem = exports.formatVariantMeasureValue = exports.format = exports.create = exports.checkValueInBounds = exports.createDefaultFormatter = exports.setLocaleOptions = exports.getFormatMetadata = exports.getLocalizedString = exports.DefaultDateFormat = exports.DefaultNumericFormat = exports.DefaultIntegerFormat = void 0;
+var displayUnitSystem_1 = __webpack_require__(2746);
+var displayUnitSystemType_1 = __webpack_require__(7346);
+var stringExtensions = __webpack_require__(4262);
+var formattingService_1 = __webpack_require__(5510);
+var dateTimeSequence_1 = __webpack_require__(1628);
+var powerbi_visuals_utils_typeutils_1 = __webpack_require__(2317);
+var powerbi_visuals_utils_dataviewutils_1 = __webpack_require__(7978);
+// powerbi.extensibility.utils.type
+var ValueType = powerbi_visuals_utils_typeutils_1.valueType.ValueType;
+var PrimitiveType = powerbi_visuals_utils_typeutils_1.valueType.PrimitiveType;
+var StringExtensions = stringExtensions;
+var BeautifiedFormat = {
+    "0.00 %;-0.00 %;0.00 %": "Percentage",
+    "0.0 %;-0.0 %;0.0 %": "Percentage1",
+};
+exports.DefaultIntegerFormat = "g";
+exports.DefaultNumericFormat = "#,0.00";
+exports.DefaultDateFormat = "d";
+var defaultLocalizedStrings = {
+    "NullValue": "(Blank)",
+    "BooleanTrue": "True",
+    "BooleanFalse": "False",
+    "NaNValue": "NaN",
+    "InfinityValue": "+Infinity",
+    "NegativeInfinityValue": "-Infinity",
+    "RestatementComma": "{0}, {1}",
+    "RestatementCompoundAnd": "{0} and {1}",
+    "RestatementCompoundOr": "{0} or {1}",
+    "DisplayUnitSystem_EAuto_Title": "Auto",
+    "DisplayUnitSystem_E0_Title": "None",
+    "DisplayUnitSystem_E3_LabelFormat": "{0}K",
+    "DisplayUnitSystem_E3_Title": "Thousands",
+    "DisplayUnitSystem_E6_LabelFormat": "{0}M",
+    "DisplayUnitSystem_E6_Title": "Millions",
+    "DisplayUnitSystem_E9_LabelFormat": "{0}bn",
+    "DisplayUnitSystem_E9_Title": "Billions",
+    "DisplayUnitSystem_E12_LabelFormat": "{0}T",
+    "DisplayUnitSystem_E12_Title": "Trillions",
+    "Percentage": "#,0.##%",
+    "Percentage1": "#,0.#%",
+    "TableTotalLabel": "Total",
+    "Tooltip_HighlightedValueDisplayName": "Highlighted",
+    "Funnel_PercentOfFirst": "Percent of first",
+    "Funnel_PercentOfPrevious": "Percent of previous",
+    "Funnel_PercentOfFirst_Highlight": "Percent of first (highlighted)",
+    "Funnel_PercentOfPrevious_Highlight": "Percent of previous (highlighted)",
+    // Geotagging strings
+    "GeotaggingString_Continent": "continent",
+    "GeotaggingString_Continents": "continents",
+    "GeotaggingString_Country": "country",
+    "GeotaggingString_Countries": "countries",
+    "GeotaggingString_State": "state",
+    "GeotaggingString_States": "states",
+    "GeotaggingString_City": "city",
+    "GeotaggingString_Cities": "cities",
+    "GeotaggingString_Town": "town",
+    "GeotaggingString_Towns": "towns",
+    "GeotaggingString_Province": "province",
+    "GeotaggingString_Provinces": "provinces",
+    "GeotaggingString_County": "county",
+    "GeotaggingString_Counties": "counties",
+    "GeotaggingString_Village": "village",
+    "GeotaggingString_Villages": "villages",
+    "GeotaggingString_Post": "post",
+    "GeotaggingString_Zip": "zip",
+    "GeotaggingString_Code": "code",
+    "GeotaggingString_Place": "place",
+    "GeotaggingString_Places": "places",
+    "GeotaggingString_Address": "address",
+    "GeotaggingString_Addresses": "addresses",
+    "GeotaggingString_Street": "street",
+    "GeotaggingString_Streets": "streets",
+    "GeotaggingString_Longitude": "longitude",
+    "GeotaggingString_Longitude_Short": "lon",
+    "GeotaggingString_Longitude_Short2": "long",
+    "GeotaggingString_Latitude": "latitude",
+    "GeotaggingString_Latitude_Short": "lat",
+    "GeotaggingString_PostalCode": "postal code",
+    "GeotaggingString_PostalCodes": "postal codes",
+    "GeotaggingString_ZipCode": "zip code",
+    "GeotaggingString_ZipCodes": "zip codes",
+    "GeotaggingString_Territory": "territory",
+    "GeotaggingString_Territories": "territories",
+};
+function beautify(format) {
+    var key = BeautifiedFormat[format];
+    if (key)
+        return defaultLocalizedStrings[key] || format;
+    return format;
+}
+function describeUnit(exponent) {
+    var exponentLookup = (exponent === -1) ? "Auto" : exponent.toString();
+    var title = defaultLocalizedStrings["DisplayUnitSystem_E" + exponentLookup + "_Title"];
+    var format = (exponent <= 0) ? "{0}" : defaultLocalizedStrings["DisplayUnitSystem_E" + exponentLookup + "_LabelFormat"];
+    if (title || format)
+        return { title: title, format: format };
+}
+function getLocalizedString(stringId) {
+    return defaultLocalizedStrings[stringId];
+}
+exports.getLocalizedString = getLocalizedString;
+// NOTE: Define default locale options, but these can be overriden by setLocaleOptions.
+var localizationOptions = {
+    nullValue: defaultLocalizedStrings["NullValue"],
+    trueValue: defaultLocalizedStrings["BooleanTrue"],
+    falseValue: defaultLocalizedStrings["BooleanFalse"],
+    NaN: defaultLocalizedStrings["NaNValue"],
+    infinity: defaultLocalizedStrings["InfinityValue"],
+    negativeInfinity: defaultLocalizedStrings["NegativeInfinityValue"],
+    beautify: function (format) { return beautify(format); },
+    describe: function (exponent) { return describeUnit(exponent); },
+    restatementComma: defaultLocalizedStrings["RestatementComma"],
+    restatementCompoundAnd: defaultLocalizedStrings["RestatementCompoundAnd"],
+    restatementCompoundOr: defaultLocalizedStrings["RestatementCompoundOr"],
+};
+var MaxScaledDecimalPlaces = 2;
+var MaxValueForDisplayUnitRounding = 1000;
+var MinIntegerValueForDisplayUnits = 10000;
+var MinPrecisionForDisplayUnits = 2;
+var DateTimeMetadataColumn = {
+    displayName: "",
+    type: ValueType.fromPrimitiveTypeAndCategory(PrimitiveType.DateTime),
+};
+function getFormatMetadata(format) {
+    return formattingService_1.numberFormat.getCustomFormatMetadata(format);
+}
+exports.getFormatMetadata = getFormatMetadata;
+function setLocaleOptions(options) {
+    localizationOptions = options;
+    displayUnitSystem_1.DefaultDisplayUnitSystem.RESET();
+    displayUnitSystem_1.WholeUnitsDisplayUnitSystem.RESET();
+}
+exports.setLocaleOptions = setLocaleOptions;
+function createDefaultFormatter(formatString, allowFormatBeautification, cultureSelector) {
+    var formatBeautified = allowFormatBeautification
+        ? localizationOptions.beautify(formatString)
+        : formatString;
+    return {
+        format: function (value) {
+            if (value == null) {
+                return localizationOptions.nullValue;
+            }
+            return formatCore({
+                value: value,
+                cultureSelector: cultureSelector,
+                format: formatBeautified
+            });
+        }
+    };
+}
+exports.createDefaultFormatter = createDefaultFormatter;
+/**
+ * Check that provided value is in provided bounds. If not -- replace it by minimal or maximal replacement value
+ * @param targetNum checking value
+ * @param min minimal bound of value
+ * @param max maximal bound of value
+ * @param lessMinReplacement value that will be returned if checking value is lesser than minimal
+ * @param greaterMaxReplacement value that will be returned if checking value is greater than maximal
+ */
+function checkValueInBounds(targetNum, min, max, lessMinReplacement, greaterMaxReplacement) {
+    if (lessMinReplacement === void 0) { lessMinReplacement = min; }
+    if (greaterMaxReplacement === void 0) { greaterMaxReplacement = max; }
+    if (max !== undefined && max !== null) {
+        targetNum = targetNum <= max ? targetNum : greaterMaxReplacement;
+    }
+    if (min !== undefined && min !== null) {
+        targetNum = targetNum > min ? targetNum : lessMinReplacement;
+    }
+    return targetNum;
+}
+exports.checkValueInBounds = checkValueInBounds;
+// Creates an IValueFormatter to be used for a range of values.
+function create(options) {
+    var format = options.allowFormatBeautification
+        ? localizationOptions.beautify(options.format)
+        : options.format;
+    var cultureSelector = options.cultureSelector;
+    if (shouldUseNumericDisplayUnits(options)) {
+        var displayUnitSystem_2 = createDisplayUnitSystem(options.displayUnitSystemType);
+        var singleValueFormattingMode_1 = !!options.formatSingleValues;
+        displayUnitSystem_2.update(Math.max(Math.abs(options.value || 0), Math.abs(options.value2 || 0)));
+        var forcePrecision_1 = options.precision != null;
+        var decimals_1;
+        if (forcePrecision_1)
+            decimals_1 = -options.precision;
+        else if (displayUnitSystem_2.displayUnit && displayUnitSystem_2.displayUnit.value > 1)
+            decimals_1 = -MaxScaledDecimalPlaces;
+        return {
+            format: function (value) {
+                var formattedValue = getStringFormat(value, true /*nullsAreBlank*/);
+                if (!StringExtensions.isNullOrUndefinedOrWhiteSpaceString(formattedValue)) {
+                    return formattedValue;
+                }
+                // Round to Double.DEFAULT_PRECISION
+                if (value
+                    && !displayUnitSystem_2.isScalingUnit()
+                    && Math.abs(value) < MaxValueForDisplayUnitRounding
+                    && !forcePrecision_1) {
+                    value = powerbi_visuals_utils_typeutils_1.double.roundToPrecision(value);
+                }
+                if (singleValueFormattingMode_1) {
+                    return displayUnitSystem_2.formatSingleValue(value, format, decimals_1, forcePrecision_1, cultureSelector);
+                }
+                else {
+                    return displayUnitSystem_2.format(value, format, decimals_1, forcePrecision_1, cultureSelector);
+                }
+            },
+            displayUnit: displayUnitSystem_2.displayUnit,
+            options: options
+        };
+    }
+    if (shouldUseDateUnits(options.value, options.value2, options.tickCount)) {
+        var unit_1 = dateTimeSequence_1.DateTimeSequence.GET_INTERVAL_UNIT(options.value /* minDate */, options.value2 /* maxDate */, options.tickCount);
+        return {
+            format: function (value) {
+                if (value == null) {
+                    return localizationOptions.nullValue;
+                }
+                var formatString = formattingService_1.formattingService.dateFormatString(unit_1);
+                return formatCore({
+                    value: value,
+                    cultureSelector: cultureSelector,
+                    format: formatString,
+                });
+            },
+            options: options
+        };
+    }
+    return createDefaultFormatter(format, false, cultureSelector);
+}
+exports.create = create;
+function format(value, format, allowFormatBeautification, cultureSelector) {
+    if (value == null) {
+        return localizationOptions.nullValue;
+    }
+    var formatString = allowFormatBeautification
+        ? localizationOptions.beautify(format)
+        : format;
+    return formatCore({
+        value: value,
+        cultureSelector: cultureSelector,
+        format: formatString
+    });
+}
+exports.format = format;
+/**
+ * Value formatting function to handle variant measures.
+ * For a Date/Time value within a non-date/time field, it's formatted with the default date/time formatString instead of as a number
+ * @param {any} value Value to be formatted
+ * @param {DataViewMetadataColumn} column Field which the value belongs to
+ * @param {DataViewObjectPropertyIdentifier} formatStringProp formatString Property ID
+ * @param {boolean} nullsAreBlank? Whether to show "(Blank)" instead of empty string for null values
+ * @returns Formatted value
+ */
+function formatVariantMeasureValue(value, column, formatStringProp, nullsAreBlank, cultureSelector) {
+    // If column type is not datetime, but the value is of time datetime,
+    // then use the default date format string
+    if (!(column && column.type && column.type.dateTime) && value instanceof Date) {
+        var valueFormat = getFormatString(DateTimeMetadataColumn, null, false);
+        return formatCore({
+            value: value,
+            nullsAreBlank: nullsAreBlank,
+            cultureSelector: cultureSelector,
+            format: valueFormat
+        });
+    }
+    else {
+        var valueFormat = getFormatString(column, formatStringProp);
+        return formatCore({
+            value: value,
+            nullsAreBlank: nullsAreBlank,
+            cultureSelector: cultureSelector,
+            format: valueFormat
+        });
+    }
+}
+exports.formatVariantMeasureValue = formatVariantMeasureValue;
+function createDisplayUnitSystem(displayUnitSystemType) {
+    if (displayUnitSystemType == null)
+        return new displayUnitSystem_1.DefaultDisplayUnitSystem(localizationOptions.describe);
+    switch (displayUnitSystemType) {
+        case displayUnitSystemType_1.DisplayUnitSystemType.Default:
+            return new displayUnitSystem_1.DefaultDisplayUnitSystem(localizationOptions.describe);
+        case displayUnitSystemType_1.DisplayUnitSystemType.WholeUnits:
+            return new displayUnitSystem_1.WholeUnitsDisplayUnitSystem(localizationOptions.describe);
+        case displayUnitSystemType_1.DisplayUnitSystemType.Verbose:
+            return new displayUnitSystem_1.NoDisplayUnitSystem();
+        case displayUnitSystemType_1.DisplayUnitSystemType.DataLabels:
+            return new displayUnitSystem_1.DataLabelsDisplayUnitSystem(localizationOptions.describe);
+        default:
+            return new displayUnitSystem_1.DefaultDisplayUnitSystem(localizationOptions.describe);
+    }
+}
+exports.createDisplayUnitSystem = createDisplayUnitSystem;
+function shouldUseNumericDisplayUnits(options) {
+    var value = options.value;
+    var value2 = options.value2;
+    var format = options.format;
+    // For singleValue visuals like card, gauge we don't want to roundoff data to the nearest thousands so format the whole number / integers below 10K to not use display units
+    if (options.formatSingleValues && format) {
+        if (Math.abs(value) < MinIntegerValueForDisplayUnits) {
+            var isCustomFormat = !formattingService_1.numberFormat.isStandardFormat(format);
+            if (isCustomFormat) {
+                var precision = formattingService_1.numberFormat.getCustomFormatMetadata(format, true /*calculatePrecision*/).precision;
+                if (precision < MinPrecisionForDisplayUnits)
+                    return false;
+            }
+            else if (powerbi_visuals_utils_typeutils_1.double.isInteger(value))
+                return false;
+        }
+    }
+    if ((typeof value === "number") || (typeof value2 === "number")) {
+        return true;
+    }
+}
+function shouldUseDateUnits(value, value2, tickCount) {
+    // must check both value and value2 because we'll need to get an interval for date units
+    return (value instanceof Date) && (value2 instanceof Date) && (tickCount !== undefined && tickCount !== null);
+}
+/*
+    * Get the column format. Order of precendence is:
+    *  1. Column format
+    *  2. Default PowerView policy for column type
+    */
+function getFormatString(column, formatStringProperty, suppressTypeFallback) {
+    if (column) {
+        if (formatStringProperty) {
+            var propertyValue = powerbi_visuals_utils_dataviewutils_1.dataViewObjects.getValue(column.objects, formatStringProperty);
+            if (propertyValue)
+                return propertyValue;
+        }
+        if (!suppressTypeFallback) {
+            var columnType = column.type;
+            if (columnType) {
+                if (columnType.dateTime)
+                    return exports.DefaultDateFormat;
+                if (columnType.integer) {
+                    if (columnType.temporal && columnType.temporal.year)
+                        return "0";
+                    return exports.DefaultIntegerFormat;
+                }
+                if (columnType.numeric)
+                    return exports.DefaultNumericFormat;
+            }
+        }
+    }
+}
+exports.getFormatString = getFormatString;
+function getFormatStringByColumn(column, suppressTypeFallback) {
+    if (column) {
+        if (column.format) {
+            return column.format;
+        }
+        if (!suppressTypeFallback) {
+            var columnType = column.type;
+            if (columnType) {
+                if (columnType.dateTime) {
+                    return exports.DefaultDateFormat;
+                }
+                if (columnType.integer) {
+                    if (columnType.temporal && columnType.temporal.year) {
+                        return "0";
+                    }
+                    return exports.DefaultIntegerFormat;
+                }
+                if (columnType.numeric) {
+                    return exports.DefaultNumericFormat;
+                }
+            }
+        }
+    }
+    return undefined;
+}
+exports.getFormatStringByColumn = getFormatStringByColumn;
+function formatListCompound(strings, conjunction) {
+    var result;
+    if (!strings) {
+        return null;
+    }
+    var length = strings.length;
+    if (length > 0) {
+        result = strings[0];
+        var lastIndex = length - 1;
+        for (var i = 1, len = lastIndex; i < len; i++) {
+            var value = strings[i];
+            result = StringExtensions.format(localizationOptions.restatementComma, result, value);
+        }
+        if (length > 1) {
+            var value = strings[lastIndex];
+            result = StringExtensions.format(conjunction, result, value);
+        }
+    }
+    else {
+        result = null;
+    }
+    return result;
+}
+// The returned string will look like 'A, B, ..., and C'
+function formatListAnd(strings) {
+    return formatListCompound(strings, localizationOptions.restatementCompoundAnd);
+}
+exports.formatListAnd = formatListAnd;
+// The returned string will look like 'A, B, ..., or C'
+function formatListOr(strings) {
+    return formatListCompound(strings, localizationOptions.restatementCompoundOr);
+}
+exports.formatListOr = formatListOr;
+function formatCore(options) {
+    var value = options.value, format = options.format, nullsAreBlank = options.nullsAreBlank, cultureSelector = options.cultureSelector;
+    var formattedValue = getStringFormat(value, nullsAreBlank ? nullsAreBlank : false);
+    if (!StringExtensions.isNullOrUndefinedOrWhiteSpaceString(formattedValue)) {
+        return formattedValue;
+    }
+    return formattingService_1.formattingService.formatValue(value, format, cultureSelector);
+}
+function getStringFormat(value, nullsAreBlank) {
+    if (value == null && nullsAreBlank) {
+        return localizationOptions.nullValue;
+    }
+    if (value === true) {
+        return localizationOptions.trueValue;
+    }
+    if (value === false) {
+        return localizationOptions.falseValue;
+    }
+    if (typeof value === "number" && isNaN(value)) {
+        return localizationOptions.NaN;
+    }
+    if (value === Number.NEGATIVE_INFINITY) {
+        return localizationOptions.negativeInfinity;
+    }
+    if (value === Number.POSITIVE_INFINITY) {
+        return localizationOptions.infinity;
+    }
+    return "";
+}
+function getDisplayUnits(displayUnitSystemType) {
+    var displayUnitSystem = createDisplayUnitSystem(displayUnitSystemType);
+    return displayUnitSystem.units;
+}
+exports.getDisplayUnits = getDisplayUnits;
+/**
+ * Precision calculating function to build values showing minimum 3 digits as 3.56 or 25.7 or 754 or 2345
+ * @param {number} inputValue Value to be basement for precision calculation
+ * @param {string} format Format that will be used for value formatting (to detect percentage values)
+ * @param {number} displayUnits Dispaly units that will be used for value formatting (to correctly calculate precision)
+ * @param {number} digitsNum Number of visible digits, including digits before separator
+ * @returns calculated precision
+ */
+function calculateExactDigitsPrecision(inputValue, format, displayUnits, digitsNum) {
+    if (!inputValue && inputValue !== 0) {
+        return 0;
+    }
+    var precision = 0;
+    var inPercent = format && format.indexOf("%") !== -1;
+    var value = inPercent ? inputValue * 100 : inputValue;
+    value = displayUnits > 0 ? value / displayUnits : value;
+    var leftPartLength = parseInt(value).toString().length;
+    if ((inPercent || displayUnits > 0) && leftPartLength >= digitsNum) {
+        return 0;
+    }
+    // Auto units, calculate final value 
+    if (displayUnits === 0) {
+        var unitsDegree = Math.floor(leftPartLength / 3);
+        unitsDegree = leftPartLength % 3 === 0 ? unitsDegree - 1 : unitsDegree;
+        var divider = Math.pow(1000, unitsDegree);
+        if (divider > 0) {
+            value = value / divider;
+        }
+    }
+    leftPartLength = parseInt(value).toString().length;
+    var restOfDiv = leftPartLength % digitsNum;
+    if (restOfDiv === 0) {
+        precision = 0;
+    }
+    else {
+        precision = digitsNum - restOfDiv;
+    }
+    return precision;
+}
+exports.calculateExactDigitsPrecision = calculateExactDigitsPrecision;
+//# sourceMappingURL=valueFormatter.js.map
+
+/***/ }),
+
+/***/ 6573:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.restoreLiterals = exports.preserveLiterals = exports.removeLiterals = void 0;
+// quoted and escaped literal patterns
+// NOTE: the final three cases match .NET behavior
+var literalPatterns = [
+    "'[^']*'",
+    "\"[^\"]*\"",
+    "\\\\.",
+    "'[^']*$",
+    "\"[^\"]*$",
+    "\\\\$", // backslash at end of string
+];
+var literalMatcher = new RegExp(literalPatterns.join("|"), "g");
+// Unicode U+E000 - U+F8FF is a private area and so we can use the chars from the range to encode the escaped sequences
+function removeLiterals(format) {
+    literalMatcher.lastIndex = 0;
+    // just in case consecutive non-literals have some meaning
+    return format.replace(literalMatcher, "\uE100");
+}
+exports.removeLiterals = removeLiterals;
+function preserveLiterals(format, literals) {
+    literalMatcher.lastIndex = 0;
+    for (;;) {
+        var match = literalMatcher.exec(format);
+        if (!match)
+            break;
+        var literal = match[0];
+        var literalOffset = literalMatcher.lastIndex - literal.length;
+        var token = String.fromCharCode(0xE100 + literals.length);
+        literals.push(literal);
+        format = format.substring(0, literalOffset) + token + format.substring(literalMatcher.lastIndex);
+        // back to avoid skipping due to removed literal substring
+        literalMatcher.lastIndex = literalOffset + 1;
+    }
+    return format;
+}
+exports.preserveLiterals = preserveLiterals;
+function restoreLiterals(format, literals, quoted) {
+    if (quoted === void 0) { quoted = true; }
+    var count = literals.length;
+    for (var i = 0; i < count; i++) {
+        var token = String.fromCharCode(0xE100 + i);
+        var literal = literals[i];
+        if (!quoted) {
+            // caller wants literals to be re-inserted without escaping
+            var firstChar = literal[0];
+            if (firstChar === "\\" || literal.length === 1 || literal[literal.length - 1] !== firstChar) {
+                // either escaped literal OR quoted literal that's missing the trailing quote
+                // in either case we only remove the leading character
+                literal = literal.substring(1);
+            }
+            else {
+                // so must be a quoted literal with both starting and ending quote
+                literal = literal.substring(1, literal.length - 1);
+            }
+        }
+        format = format.replace(token, literal);
+    }
+    return format;
+}
+exports.restoreLiterals = restoreLiterals;
+//# sourceMappingURL=formattingEncoder.js.map
+
+/***/ }),
+
+/***/ 6667:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   A: () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* unused harmony export FormattingSettingsService */
+/* harmony import */ var _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9754);
+
+class FormattingSettingsService {
+    constructor(localizationManager) {
+        this.localizationManager = localizationManager;
+    }
+    /**
+     * Build visual formatting settings model from metadata dataView
+     *
+     * @param dataViews metadata dataView object
+     * @returns visual formatting settings model
+     */
+    populateFormattingSettingsModel(typeClass, dataView) {
+        var _a, _b;
+        const defaultSettings = new typeClass();
+        const dataViewObjects = (_a = dataView === null || dataView === void 0 ? void 0 : dataView.metadata) === null || _a === void 0 ? void 0 : _a.objects;
+        if (dataViewObjects) {
+            // loop over each formatting property and set its new value if exists
+            (_b = defaultSettings.cards) === null || _b === void 0 ? void 0 : _b.forEach((card) => {
+                var _a;
+                if (card instanceof _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__/* .CompositeCard */ .St)
+                    (_a = card.topLevelSlice) === null || _a === void 0 ? void 0 : _a.setPropertiesValues(dataViewObjects, card.name);
+                const cardGroupInstances = (card instanceof _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__/* .SimpleCard */ .Tn ? [card] : card.groups);
+                cardGroupInstances.forEach((cardGroupInstance) => {
+                    var _a, _b, _c, _d;
+                    // Set current top level toggle value
+                    (_a = cardGroupInstance.topLevelSlice) === null || _a === void 0 ? void 0 : _a.setPropertiesValues(dataViewObjects, card.name);
+                    (_b = cardGroupInstance === null || cardGroupInstance === void 0 ? void 0 : cardGroupInstance.slices) === null || _b === void 0 ? void 0 : _b.forEach((slice) => {
+                        slice === null || slice === void 0 ? void 0 : slice.setPropertiesValues(dataViewObjects, card.name);
+                    });
+                    (_d = (_c = cardGroupInstance === null || cardGroupInstance === void 0 ? void 0 : cardGroupInstance.container) === null || _c === void 0 ? void 0 : _c.containerItems) === null || _d === void 0 ? void 0 : _d.forEach((containerItem) => {
+                        var _a;
+                        (_a = containerItem === null || containerItem === void 0 ? void 0 : containerItem.slices) === null || _a === void 0 ? void 0 : _a.forEach((slice) => {
+                            slice === null || slice === void 0 ? void 0 : slice.setPropertiesValues(dataViewObjects, card.name);
+                        });
+                    });
+                });
+            });
+        }
+        return defaultSettings;
+    }
+    /**
+     * Build formatting model by parsing formatting settings model object
+     *
+     * @returns powerbi visual formatting model
+     */
+    buildFormattingModel(formattingSettingsModel) {
+        const formattingModel = {
+            cards: []
+        };
+        formattingSettingsModel.cards
+            .filter(({ visible = true }) => visible)
+            .forEach((card) => {
+            var _a;
+            const formattingCard = {
+                displayName: (this.localizationManager && card.displayNameKey) ? this.localizationManager.getDisplayName(card.displayNameKey) : card.displayName,
+                description: (this.localizationManager && card.descriptionKey) ? this.localizationManager.getDisplayName(card.descriptionKey) : card.description,
+                groups: [],
+                uid: card.name + "-card",
+                analyticsPane: card.analyticsPane,
+            };
+            const objectName = card.name;
+            if (card.topLevelSlice) {
+                const topLevelToggleSlice = card.topLevelSlice.getFormattingSlice(objectName, this.localizationManager);
+                topLevelToggleSlice.suppressDisplayName = true;
+                formattingCard.topLevelToggle = topLevelToggleSlice;
+            }
+            (_a = card.onPreProcess) === null || _a === void 0 ? void 0 : _a.call(card);
+            const isSimpleCard = card instanceof _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__/* .SimpleCard */ .Tn;
+            const cardGroupInstances = (isSimpleCard ?
+                [card].filter(({ visible = true }) => visible) :
+                card.groups.filter(({ visible = true }) => visible));
+            cardGroupInstances
+                .forEach((cardGroupInstance) => {
+                const groupUid = cardGroupInstance.name + "-group";
+                // Build formatting group for each group
+                const formattingGroup = {
+                    displayName: isSimpleCard ? undefined : (this.localizationManager && cardGroupInstance.displayNameKey)
+                        ? this.localizationManager.getDisplayName(cardGroupInstance.displayNameKey) : cardGroupInstance.displayName,
+                    description: isSimpleCard ? undefined : (this.localizationManager && cardGroupInstance.descriptionKey)
+                        ? this.localizationManager.getDisplayName(cardGroupInstance.descriptionKey) : cardGroupInstance.description,
+                    slices: [],
+                    uid: groupUid,
+                    collapsible: cardGroupInstance.collapsible,
+                    delaySaveSlices: cardGroupInstance.delaySaveSlices,
+                    disabled: cardGroupInstance.disabled,
+                    disabledReason: cardGroupInstance.disabledReason,
+                };
+                formattingCard.groups.push(formattingGroup);
+                // In case formatting model adds data points or top categories (Like when you modify specific visual category color).
+                // these categories use same object name and property name from capabilities and the generated uid will be the same for these formatting categories properties
+                // Solution => Save slice names to modify each slice uid to be unique by adding counter value to the new slice uid
+                const sliceNames = {};
+                // Build formatting container slice for each property
+                if (cardGroupInstance.container) {
+                    const container = cardGroupInstance.container;
+                    const containerUid = groupUid + "-container";
+                    const formattingContainer = {
+                        displayName: (this.localizationManager && container.displayNameKey)
+                            ? this.localizationManager.getDisplayName(container.displayNameKey) : container.displayName,
+                        description: (this.localizationManager && container.descriptionKey)
+                            ? this.localizationManager.getDisplayName(container.descriptionKey) : container.description,
+                        containerItems: [],
+                        uid: containerUid
+                    };
+                    container.containerItems.forEach((containerItem) => {
+                        // Build formatting container item object
+                        const containerIemName = containerItem.displayNameKey ? containerItem.displayNameKey : containerItem.displayName;
+                        const containerItemUid = containerUid + containerIemName;
+                        const formattingContainerItem = {
+                            displayName: (this.localizationManager && containerItem.displayNameKey)
+                                ? this.localizationManager.getDisplayName(containerItem.displayNameKey) : containerItem.displayName,
+                            slices: [],
+                            uid: containerItemUid
+                        };
+                        // Build formatting slices and add them to current formatting container item
+                        this.buildFormattingSlices({ slices: containerItem.slices, objectName, sliceNames, formattingSlices: formattingContainerItem.slices });
+                        formattingContainer.containerItems.push(formattingContainerItem);
+                    });
+                    formattingGroup.container = formattingContainer;
+                }
+                if (cardGroupInstance.slices) {
+                    if (cardGroupInstance.topLevelSlice) {
+                        const topLevelToggleSlice = cardGroupInstance.topLevelSlice.getFormattingSlice(objectName, this.localizationManager);
+                        topLevelToggleSlice.suppressDisplayName = true;
+                        (formattingGroup.displayName == undefined ? formattingCard : formattingGroup).topLevelToggle = topLevelToggleSlice;
+                    }
+                    // Build formatting slice for each property
+                    this.buildFormattingSlices({ slices: cardGroupInstance.slices, objectName, sliceNames, formattingSlices: formattingGroup.slices });
+                }
+            });
+            formattingCard.revertToDefaultDescriptors = this.getRevertToDefaultDescriptor(card);
+            formattingModel.cards.push(formattingCard);
+        });
+        return formattingModel;
+    }
+    buildFormattingSlices({ slices, objectName, sliceNames, formattingSlices }) {
+        // Filter slices based on their visibility
+        slices === null || slices === void 0 ? void 0 : slices.filter(({ visible = true }) => visible).forEach((slice) => {
+            const formattingSlice = slice === null || slice === void 0 ? void 0 : slice.getFormattingSlice(objectName, this.localizationManager);
+            if (formattingSlice) {
+                // Modify formatting slice uid if needed
+                if (sliceNames[slice.name] === undefined) {
+                    sliceNames[slice.name] = 0;
+                }
+                else {
+                    sliceNames[slice.name]++;
+                    formattingSlice.uid = `${formattingSlice.uid}-${sliceNames[slice.name]}`;
+                }
+                formattingSlices.push(formattingSlice);
+            }
+        });
+    }
+    getRevertToDefaultDescriptor(card) {
+        var _a;
+        // Proceeded slice names are saved to prevent duplicated default descriptors in case of using 
+        // formatting categories & selectors, since they have the same descriptor objectName and propertyName
+        const sliceNames = {};
+        const revertToDefaultDescriptors = [];
+        let cardSlicesDefaultDescriptors;
+        let cardContainerSlicesDefaultDescriptors = [];
+        // eslint-disable-next-line
+        if (card instanceof _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__/* .CompositeCard */ .St && card.topLevelSlice)
+            revertToDefaultDescriptors.push(...(_a = card.topLevelSlice) === null || _a === void 0 ? void 0 : _a.getRevertToDefaultDescriptor(card.name));
+        const cardGroupInstances = (card instanceof _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__/* .SimpleCard */ .Tn ?
+            [card].filter(({ visible = true }) => visible) :
+            card.groups.filter(({ visible = true }) => visible));
+        cardGroupInstances.forEach((cardGroupInstance) => {
+            var _a, _b;
+            cardSlicesDefaultDescriptors = this.getSlicesRevertToDefaultDescriptor(card.name, cardGroupInstance.slices, sliceNames, cardGroupInstance.topLevelSlice);
+            (_b = (_a = cardGroupInstance.container) === null || _a === void 0 ? void 0 : _a.containerItems) === null || _b === void 0 ? void 0 : _b.forEach((containerItem) => {
+                cardContainerSlicesDefaultDescriptors = cardContainerSlicesDefaultDescriptors.concat(this.getSlicesRevertToDefaultDescriptor(card.name, containerItem.slices, sliceNames));
+            });
+            revertToDefaultDescriptors.push(...cardSlicesDefaultDescriptors.concat(cardContainerSlicesDefaultDescriptors));
+        });
+        return revertToDefaultDescriptors;
+    }
+    getSlicesRevertToDefaultDescriptor(cardName, slices, sliceNames, topLevelSlice) {
+        let revertToDefaultDescriptors = [];
+        if (topLevelSlice) {
+            sliceNames[topLevelSlice.name] = true;
+            revertToDefaultDescriptors = revertToDefaultDescriptors.concat(topLevelSlice.getRevertToDefaultDescriptor(cardName));
+        }
+        slices === null || slices === void 0 ? void 0 : slices.forEach((slice) => {
+            if (slice && !sliceNames[slice.name]) {
+                sliceNames[slice.name] = true;
+                revertToDefaultDescriptors = revertToDefaultDescriptors.concat(slice.getRevertToDefaultDescriptor(cardName));
+            }
+        });
+        return revertToDefaultDescriptors;
+    }
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (FormattingSettingsService);
+//# sourceMappingURL=FormattingSettingsService.js.map
+
+/***/ }),
+
+/***/ 6774:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.locales = void 0;
+exports.locales = {"en-US":["en-US","default",{"englishName":"English (United States)"}]}
+
+/***/ }),
+
+/***/ 7093:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+/*
+*  Power BI Visualizations
+*
+*  Copyright (c) Microsoft Corporation
+*  All rights reserved.
+*  MIT License
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the ""Software""), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in
+*  all copies or substantial portions of the Software.
+*
+*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+*  THE SOFTWARE.
+*/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.wordBreakOverflowingText = exports.wordBreak = exports.svgEllipsis = exports.getTailoredTextOrDefault = exports.getDivElementWidth = exports.getSvgMeasurementProperties = exports.getMeasurementProperties = exports.measureSvgTextElementWidth = exports.estimateSvgTextHeight = exports.estimateSvgTextBaselineDelta = exports.measureSvgTextHeight = exports.measureSvgTextRect = exports.measureSvgTextWidth = exports.removeSpanElement = void 0;
+// powerbi.extensibility.utils.type
+var powerbi_visuals_utils_typeutils_1 = __webpack_require__(2317);
+// powerbi.extensibility.utils.formatting
+var wordBreaker = __webpack_require__(8857);
+var ephemeralStorageService_1 = __webpack_require__(3073);
+var ellipsis = "...";
+var spanElement;
+var svgTextElement;
+var canvasCtx;
+var fallbackFontFamily;
+/**
+ * Idempotent function for adding the elements to the DOM.
+ */
+function ensureDOM() {
+    if (spanElement) {
+        return;
+    }
+    spanElement = document.createElement("span");
+    document.body.appendChild(spanElement);
+    // The style hides the svg element from the canvas, preventing canvas from scrolling down to show svg black square.
+    /* eslint-disable-next-line powerbi-visuals/no-http-string */
+    var svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svgElement.setAttribute("height", "0");
+    svgElement.setAttribute("width", "0");
+    svgElement.setAttribute("position", "absolute");
+    svgElement.style.top = "0px";
+    svgElement.style.left = "0px";
+    svgElement.style.position = "absolute";
+    svgElement.style.height = "0px";
+    svgElement.style.width = "0px";
+    /* eslint-disable-next-line powerbi-visuals/no-http-string */
+    svgTextElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    svgElement.appendChild(svgTextElement);
+    document.body.appendChild(svgElement);
+    var canvasElement = document.createElement("canvas");
+    canvasCtx = canvasElement.getContext("2d");
+    var style = window.getComputedStyle(svgTextElement);
+    if (style) {
+        fallbackFontFamily = style.fontFamily;
+    }
+    else {
+        fallbackFontFamily = "";
+    }
+}
+/**
+ * Removes spanElement from DOM.
+ */
+function removeSpanElement() {
+    if (spanElement && spanElement.remove) {
+        spanElement.remove();
+    }
+    spanElement = null;
+}
+exports.removeSpanElement = removeSpanElement;
+/**
+ * Measures the width of the text with the given SVG text properties.
+ * @param textProperties The text properties to use for text measurement.
+ * @param text The text to measure.
+ */
+function measureSvgTextWidth(textProperties, text) {
+    ensureDOM();
+    canvasCtx.font =
+        (textProperties.fontStyle || "") + " " +
+            (textProperties.fontVariant || "") + " " +
+            (textProperties.fontWeight || "") + " " +
+            textProperties.fontSize + " " +
+            (textProperties.fontFamily || fallbackFontFamily);
+    return canvasCtx.measureText(text || textProperties.text).width;
+}
+exports.measureSvgTextWidth = measureSvgTextWidth;
+/**
+ * Return the rect with the given SVG text properties.
+ * @param textProperties The text properties to use for text measurement.
+ * @param text The text to measure.
+ */
+function measureSvgTextRect(textProperties, text) {
+    ensureDOM();
+    // Removes DOM elements faster than innerHTML
+    while (svgTextElement.firstChild) {
+        svgTextElement.removeChild(svgTextElement.firstChild);
+    }
+    svgTextElement.setAttribute("style", null);
+    svgTextElement.style.visibility = "hidden";
+    svgTextElement.style.fontFamily = textProperties.fontFamily || fallbackFontFamily;
+    svgTextElement.style.fontVariant = textProperties.fontVariant;
+    svgTextElement.style.fontSize = textProperties.fontSize;
+    svgTextElement.style.fontWeight = textProperties.fontWeight;
+    svgTextElement.style.fontStyle = textProperties.fontStyle;
+    svgTextElement.style.whiteSpace = textProperties.whiteSpace || "nowrap";
+    svgTextElement.appendChild(document.createTextNode(text || textProperties.text));
+    // We're expecting the browser to give a synchronous measurement here
+    // We're using SVGTextElement because it works across all browsers
+    return svgTextElement.getBBox();
+}
+exports.measureSvgTextRect = measureSvgTextRect;
+/**
+ * Measures the height of the text with the given SVG text properties.
+ * @param textProperties The text properties to use for text measurement.
+ * @param text The text to measure.
+ */
+function measureSvgTextHeight(textProperties, text) {
+    return measureSvgTextRect(textProperties, text).height;
+}
+exports.measureSvgTextHeight = measureSvgTextHeight;
+/**
+ * Returns the text Rect with the given SVG text properties.
+ * Does NOT return text width; obliterates text value
+ * @param {TextProperties} textProperties - The text properties to use for text measurement
+ */
+function estimateSvgTextRect(textProperties) {
+    var propertiesKey = textProperties.fontFamily + textProperties.fontSize;
+    var rect = ephemeralStorageService_1.ephemeralStorageService.getData(propertiesKey);
+    if (rect == null) {
+        // To estimate we check the height of a particular character, once it is cached, subsequent
+        // calls should always get the height from the cache (regardless of the text).
+        var estimatedTextProperties = {
+            fontFamily: textProperties.fontFamily,
+            fontSize: textProperties.fontSize,
+            text: "M",
+        };
+        rect = exports.measureSvgTextRect(estimatedTextProperties);
+        // NOTE: In some cases (disconnected/hidden DOM) we may provide incorrect measurement results (zero sized bounding-box), so
+        // we only store values in the cache if we are confident they are correct.
+        if (rect.height > 0)
+            ephemeralStorageService_1.ephemeralStorageService.setData(propertiesKey, rect);
+    }
+    return rect;
+}
+/**
+ * Returns the text Rect with the given SVG text properties.
+ * @param {TextProperties} textProperties - The text properties to use for text measurement
+ */
+function estimateSvgTextBaselineDelta(textProperties) {
+    var rect = estimateSvgTextRect(textProperties);
+    return rect.y + rect.height;
+}
+exports.estimateSvgTextBaselineDelta = estimateSvgTextBaselineDelta;
+/**
+ * Estimates the height of the text with the given SVG text properties.
+ * @param {TextProperties} textProperties - The text properties to use for text measurement
+ */
+function estimateSvgTextHeight(textProperties, tightFightForNumeric) {
+    if (tightFightForNumeric === void 0) { tightFightForNumeric = false; }
+    var height = estimateSvgTextRect(textProperties).height;
+    // replace it with new baseline calculation
+    if (tightFightForNumeric)
+        height *= 0.7;
+    return height;
+}
+exports.estimateSvgTextHeight = estimateSvgTextHeight;
+/**
+ * Measures the width of the svgElement.
+ * @param svgElement The SVGTextElement to be measured.
+ */
+function measureSvgTextElementWidth(svgElement) {
+    return measureSvgTextWidth(getSvgMeasurementProperties(svgElement));
+}
+exports.measureSvgTextElementWidth = measureSvgTextElementWidth;
+/**
+ * Fetches the text measurement properties of the given DOM element.
+ * @param element The selector for the DOM Element.
+ */
+function getMeasurementProperties(element) {
+    var style = window.getComputedStyle(element);
+    return {
+        text: element.value || element.textContent,
+        fontFamily: style.fontFamily,
+        fontSize: style.fontSize,
+        fontWeight: style.fontWeight,
+        fontStyle: style.fontStyle,
+        fontVariant: style.fontVariant,
+        whiteSpace: style.whiteSpace
+    };
+}
+exports.getMeasurementProperties = getMeasurementProperties;
+/**
+ * Fetches the text measurement properties of the given SVG text element.
+ * @param element The SVGTextElement to be measured.
+ */
+function getSvgMeasurementProperties(element) {
+    var style = window.getComputedStyle(element);
+    if (style) {
+        return {
+            text: element.textContent,
+            fontFamily: style.fontFamily,
+            fontSize: style.fontSize,
+            fontWeight: style.fontWeight,
+            fontStyle: style.fontStyle,
+            fontVariant: style.fontVariant,
+            whiteSpace: style.whiteSpace
+        };
+    }
+    else {
+        return {
+            text: element.textContent,
+            fontFamily: "",
+            fontSize: "0",
+        };
+    }
+}
+exports.getSvgMeasurementProperties = getSvgMeasurementProperties;
+/**
+ * Returns the width of a div element.
+ * @param element The div element.
+ */
+function getDivElementWidth(element) {
+    var style = window.getComputedStyle(element);
+    if (style)
+        return style.width;
+    else
+        return "0";
+}
+exports.getDivElementWidth = getDivElementWidth;
+/**
+ * Compares labels text size to the available size and renders ellipses when the available size is smaller.
+ * @param textProperties The text properties (including text content) to use for text measurement.
+ * @param maxWidth The maximum width available for rendering the text.
+ */
+function getTailoredTextOrDefault(textProperties, maxWidth) {
+    ensureDOM();
+    var strLength = textProperties.text.length;
+    if (strLength === 0) {
+        return textProperties.text;
+    }
+    var width = measureSvgTextWidth(textProperties);
+    if (width < maxWidth) {
+        return textProperties.text;
+    }
+    var ellipsesWidth = measureSvgTextWidth(textProperties, ellipsis);
+    if (ellipsesWidth >= width) {
+        return textProperties.text;
+    }
+    // Create a copy of the textProperties so we don't modify the one that's passed in.
+    var copiedTextProperties = powerbi_visuals_utils_typeutils_1.prototype.inherit(textProperties);
+    // Take the properties and apply them to svgTextElement
+    // Then, do the binary search to figure out the substring we want
+    // Set the substring on textElement argument
+    var text = copiedTextProperties.text = ellipsis + copiedTextProperties.text;
+    var min = 1;
+    var max = text.length;
+    var i = ellipsis.length;
+    while (min <= max) {
+        // num | 0 preferred to Math.floor(num) for performance benefits
+        i = (min + max) / 2 | 0;
+        copiedTextProperties.text = text.substring(0, i);
+        width = measureSvgTextWidth(copiedTextProperties);
+        if (maxWidth > width) {
+            min = i + 1;
+        }
+        else if (maxWidth < width) {
+            max = i - 1;
+        }
+        else {
+            break;
+        }
+    }
+    // Since the search algorithm almost never finds an exact match,
+    // it will pick one of the closest two, which could result in a
+    // value bigger with than 'maxWidth' thus we need to go back by
+    // one to guarantee a smaller width than 'maxWidth'.
+    copiedTextProperties.text = text.substring(0, i);
+    width = measureSvgTextWidth(copiedTextProperties);
+    if (width > maxWidth) {
+        i--;
+    }
+    return textProperties.text.substring(0, i - ellipsis.length) + ellipsis;
+}
+exports.getTailoredTextOrDefault = getTailoredTextOrDefault;
+/**
+ * Compares labels text size to the available size and renders ellipses when the available size is smaller.
+ * @param textElement The SVGTextElement containing the text to render.
+ * @param maxWidth The maximum width available for rendering the text.
+ */
+function svgEllipsis(textElement, maxWidth) {
+    var properties = getSvgMeasurementProperties(textElement);
+    var originalText = properties.text;
+    var tailoredText = getTailoredTextOrDefault(properties, maxWidth);
+    if (originalText !== tailoredText) {
+        textElement.textContent = tailoredText;
+    }
+}
+exports.svgEllipsis = svgEllipsis;
+/**
+ * Word break textContent of <text> SVG element into <tspan>s
+ * Each tspan will be the height of a single line of text
+ * @param textElement - the SVGTextElement containing the text to wrap
+ * @param maxWidth - the maximum width available
+ * @param maxHeight - the maximum height available (defaults to single line)
+ * @param linePadding - (optional) padding to add to line height
+ */
+function wordBreak(textElement, maxWidth, maxHeight, linePadding) {
+    if (linePadding === void 0) { linePadding = 0; }
+    var properties = getSvgMeasurementProperties(textElement);
+    var height = estimateSvgTextHeight(properties) + linePadding;
+    var maxNumLines = Math.max(1, Math.floor(maxHeight / height));
+    // Save y of parent textElement to apply as first tspan dy
+    var firstDY = textElement ? textElement.getAttribute("y") : null;
+    // Store and clear text content
+    var labelText = textElement ? textElement.textContent : null;
+    textElement.textContent = null;
+    // Append a tspan for each word broken section
+    var words = wordBreaker.splitByWidth(labelText, properties, measureSvgTextWidth, maxWidth, maxNumLines);
+    var fragment = document.createDocumentFragment();
+    for (var i = 0, ilen = words.length; i < ilen; i++) {
+        var dy = i === 0 ? firstDY : height;
+        properties.text = words[i];
+        /* eslint-disable-next-line powerbi-visuals/no-http-string */
+        var textElement_1 = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+        textElement_1.setAttribute("x", "0");
+        textElement_1.setAttribute("dy", dy ? dy.toString() : null);
+        textElement_1.appendChild(document.createTextNode(getTailoredTextOrDefault(properties, maxWidth)));
+        fragment.appendChild(textElement_1);
+    }
+    textElement.appendChild(fragment);
+}
+exports.wordBreak = wordBreak;
+/**
+ * Word break textContent of span element into <span>s
+ * Each span will be the height of a single line of text
+ * @param textElement - the element containing the text to wrap
+ * @param maxWidth - the maximum width available
+ * @param maxHeight - the maximum height available (defaults to single line)
+ * @param linePadding - (optional) padding to add to line height
+ */
+function wordBreakOverflowingText(textElement, maxWidth, maxHeight, linePadding) {
+    if (linePadding === void 0) { linePadding = 0; }
+    var properties = getSvgMeasurementProperties(textElement);
+    var height = estimateSvgTextHeight(properties) + linePadding;
+    var maxNumLines = Math.max(1, Math.floor(maxHeight / height));
+    // Store and clear text content
+    var labelText = textElement.textContent;
+    textElement.textContent = null;
+    // Append a span for each word broken section
+    var words = wordBreaker.splitByWidth(labelText, properties, measureSvgTextWidth, maxWidth, maxNumLines);
+    var fragment = document.createDocumentFragment();
+    for (var i = 0; i < words.length; i++) {
+        var span = document.createElement("span");
+        span.style.overflow = "hidden";
+        span.style.whiteSpace = "nowrap";
+        span.style.textOverflow = "ellipsis";
+        span.style.display = "block";
+        span.style.width = powerbi_visuals_utils_typeutils_1.pixelConverter.toString(maxWidth);
+        span.appendChild(document.createTextNode(words[i]));
+        span.appendChild(document.createTextNode(getTailoredTextOrDefault(properties, maxWidth)));
+        fragment.appendChild(span);
+    }
+    textElement.appendChild(fragment);
+}
+exports.wordBreakOverflowingText = wordBreakOverflowingText;
+//# sourceMappingURL=textMeasurementService.js.map
+
+/***/ }),
+
+/***/ 7146:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   categoryIsAlsoSeriesRole: () => (/* binding */ categoryIsAlsoSeriesRole),
+/* harmony export */   getMiscellaneousTypeDescriptor: () => (/* binding */ getMiscellaneousTypeDescriptor),
+/* harmony export */   getSeriesName: () => (/* binding */ getSeriesName),
+/* harmony export */   hasImageUrlColumn: () => (/* binding */ hasImageUrlColumn),
+/* harmony export */   isImageUrlColumn: () => (/* binding */ isImageUrlColumn),
+/* harmony export */   isWebUrlColumn: () => (/* binding */ isWebUrlColumn)
+/* harmony export */ });
+/* harmony import */ var _dataRoleHelper__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1880);
+// powerbi.extensibility.utils.dataview
+
+function categoryIsAlsoSeriesRole(dataView, seriesRoleName, categoryRoleName) {
+    if (dataView.categories && dataView.categories.length > 0) {
+        // Need to pivot data if our category soure is a series role
+        const category = dataView.categories[0];
+        return category.source &&
+            _dataRoleHelper__WEBPACK_IMPORTED_MODULE_0__.hasRole(category.source, seriesRoleName) &&
+            _dataRoleHelper__WEBPACK_IMPORTED_MODULE_0__.hasRole(category.source, categoryRoleName);
+    }
+    return false;
+}
+function getSeriesName(source) {
+    return (source.groupName !== undefined)
+        ? source.groupName
+        : source.queryName;
+}
+function isImageUrlColumn(column) {
+    const misc = getMiscellaneousTypeDescriptor(column);
+    return misc != null && misc.imageUrl === true;
+}
+function isWebUrlColumn(column) {
+    const misc = getMiscellaneousTypeDescriptor(column);
+    return misc != null && misc.webUrl === true;
+}
+function getMiscellaneousTypeDescriptor(column) {
+    return column
+        && column.type
+        && column.type.misc;
+}
+function hasImageUrlColumn(dataView) {
+    if (!dataView || !dataView.metadata || !dataView.metadata.columns || !dataView.metadata.columns.length) {
+        return false;
+    }
+    return dataView.metadata.columns.some((column) => isImageUrlColumn(column) === true);
+}
+//# sourceMappingURL=converterHelper.js.map
+
+/***/ }),
+
+/***/ 7346:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*
+ *  Power BI Visualizations
+ *
+ *  Copyright (c) Microsoft Corporation
+ *  All rights reserved.
+ *  MIT License
+ *
+ *  Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the ""Software""), to deal
+ *  in the Software without restriction, including without limitation the rights
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *  copies of the Software, and to permit persons to whom the Software is
+ *  furnished to do so, subject to the following conditions:
+ *
+ *  The above copyright notice and this permission notice shall be included in
+ *  all copies or substantial portions of the Software.
+ *
+ *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *  THE SOFTWARE.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.DisplayUnitSystemType = void 0;
+// The system used to determine display units used during formatting
+var DisplayUnitSystemType;
+(function (DisplayUnitSystemType) {
+    // Default display unit system, which saves space by using units such as K, M, bn with PowerView rules for when to pick a unit. Suitable for chart axes.
+    DisplayUnitSystemType[DisplayUnitSystemType["Default"] = 0] = "Default";
+    // A verbose display unit system that will only respect the formatting defined in the model. Suitable for explore mode single-value cards.
+    DisplayUnitSystemType[DisplayUnitSystemType["Verbose"] = 1] = "Verbose";
+    /**
+     * A display unit system that uses units such as K, M, bn if we have at least one of those units (e.g. 0.9M is not valid as it's less than 1 million).
+     * Suitable for dashboard tile cards
+     */
+    DisplayUnitSystemType[DisplayUnitSystemType["WholeUnits"] = 2] = "WholeUnits";
+    // A display unit system that also contains Auto and None units for data labels
+    DisplayUnitSystemType[DisplayUnitSystemType["DataLabels"] = 3] = "DataLabels";
+})(DisplayUnitSystemType = exports.DisplayUnitSystemType || (exports.DisplayUnitSystemType = {}));
+//# sourceMappingURL=displayUnitSystemType.js.map
+
+/***/ }),
+
+/***/ 7574:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+/*
+*  Power BI Visualizations
+*
+*  Copyright (c) Microsoft Corporation
+*  All rights reserved.
+*  MIT License
+*
+*  Permission is hereby granted, free of charge, to any person obtaining a copy
+*  of this software and associated documentation files (the ""Software""), to deal
+*  in the Software without restriction, including without limitation the rights
+*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*  copies of the Software, and to permit persons to whom the Software is
+*  furnished to do so, subject to the following conditions:
+*
+*  The above copyright notice and this permission notice shall be included in
+*  all copies or substantial portions of the Software.
+*
+*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+*  THE SOFTWARE.
+*/
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.replaceSpaceWithNBSP = exports.removeEllipses = exports.removeBreakingSpaces = void 0;
+/**
+ * Contains functions/constants to aid in text manupilation.
+ */
+/**
+ * Remove breaking spaces from given string and replace by none breaking space (&nbsp).
+ */
+function removeBreakingSpaces(str) {
+    return str.toString().replace(new RegExp(" ", "g"), "&nbsp");
+}
+exports.removeBreakingSpaces = removeBreakingSpaces;
+/**
+ * Remove ellipses from a given string
+ */
+function removeEllipses(str) {
+    return str.replace(/(…)|(\.\.\.)/g, "");
+}
+exports.removeEllipses = removeEllipses;
+/**
+* Replace every whitespace (0x20) with Non-Breaking Space (0xA0)
+    * @param {string} txt String to replace White spaces
+    * @returns Text after replcing white spaces
+    */
+function replaceSpaceWithNBSP(txt) {
+    if (txt != null) {
+        return txt.replace(/ /g, "\xA0");
+    }
+}
+exports.replaceSpaceWithNBSP = replaceSpaceWithNBSP;
+//# sourceMappingURL=textUtil.js.map
+
+/***/ }),
+
+/***/ 7647:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -6957,219 +8000,15 @@ exports.Globalize.culture = function (cultureSelector) {
 
 /***/ }),
 
-/***/ 667:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   A: () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* unused harmony export FormattingSettingsService */
-/* harmony import */ var _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(754);
-
-class FormattingSettingsService {
-    constructor(localizationManager) {
-        this.localizationManager = localizationManager;
-    }
-    /**
-     * Build visual formatting settings model from metadata dataView
-     *
-     * @param dataViews metadata dataView object
-     * @returns visual formatting settings model
-     */
-    populateFormattingSettingsModel(typeClass, dataView) {
-        var _a, _b;
-        const defaultSettings = new typeClass();
-        const dataViewObjects = (_a = dataView === null || dataView === void 0 ? void 0 : dataView.metadata) === null || _a === void 0 ? void 0 : _a.objects;
-        if (dataViewObjects) {
-            // loop over each formatting property and set its new value if exists
-            (_b = defaultSettings.cards) === null || _b === void 0 ? void 0 : _b.forEach((card) => {
-                var _a;
-                if (card instanceof _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__/* .CompositeCard */ .St)
-                    (_a = card.topLevelSlice) === null || _a === void 0 ? void 0 : _a.setPropertiesValues(dataViewObjects, card.name);
-                const cardGroupInstances = (card instanceof _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__/* .SimpleCard */ .Tn ? [card] : card.groups);
-                cardGroupInstances.forEach((cardGroupInstance) => {
-                    var _a, _b, _c, _d;
-                    // Set current top level toggle value
-                    (_a = cardGroupInstance.topLevelSlice) === null || _a === void 0 ? void 0 : _a.setPropertiesValues(dataViewObjects, card.name);
-                    (_b = cardGroupInstance === null || cardGroupInstance === void 0 ? void 0 : cardGroupInstance.slices) === null || _b === void 0 ? void 0 : _b.forEach((slice) => {
-                        slice === null || slice === void 0 ? void 0 : slice.setPropertiesValues(dataViewObjects, card.name);
-                    });
-                    (_d = (_c = cardGroupInstance === null || cardGroupInstance === void 0 ? void 0 : cardGroupInstance.container) === null || _c === void 0 ? void 0 : _c.containerItems) === null || _d === void 0 ? void 0 : _d.forEach((containerItem) => {
-                        var _a;
-                        (_a = containerItem === null || containerItem === void 0 ? void 0 : containerItem.slices) === null || _a === void 0 ? void 0 : _a.forEach((slice) => {
-                            slice === null || slice === void 0 ? void 0 : slice.setPropertiesValues(dataViewObjects, card.name);
-                        });
-                    });
-                });
-            });
-        }
-        return defaultSettings;
-    }
-    /**
-     * Build formatting model by parsing formatting settings model object
-     *
-     * @returns powerbi visual formatting model
-     */
-    buildFormattingModel(formattingSettingsModel) {
-        const formattingModel = {
-            cards: []
-        };
-        formattingSettingsModel.cards
-            .filter(({ visible = true }) => visible)
-            .forEach((card) => {
-            var _a;
-            const formattingCard = {
-                displayName: (this.localizationManager && card.displayNameKey) ? this.localizationManager.getDisplayName(card.displayNameKey) : card.displayName,
-                description: (this.localizationManager && card.descriptionKey) ? this.localizationManager.getDisplayName(card.descriptionKey) : card.description,
-                groups: [],
-                uid: card.name + "-card",
-                analyticsPane: card.analyticsPane,
-            };
-            const objectName = card.name;
-            if (card.topLevelSlice) {
-                const topLevelToggleSlice = card.topLevelSlice.getFormattingSlice(objectName, this.localizationManager);
-                topLevelToggleSlice.suppressDisplayName = true;
-                formattingCard.topLevelToggle = topLevelToggleSlice;
-            }
-            (_a = card.onPreProcess) === null || _a === void 0 ? void 0 : _a.call(card);
-            const isSimpleCard = card instanceof _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__/* .SimpleCard */ .Tn;
-            const cardGroupInstances = (isSimpleCard ?
-                [card].filter(({ visible = true }) => visible) :
-                card.groups.filter(({ visible = true }) => visible));
-            cardGroupInstances
-                .forEach((cardGroupInstance) => {
-                const groupUid = cardGroupInstance.name + "-group";
-                // Build formatting group for each group
-                const formattingGroup = {
-                    displayName: isSimpleCard ? undefined : (this.localizationManager && cardGroupInstance.displayNameKey)
-                        ? this.localizationManager.getDisplayName(cardGroupInstance.displayNameKey) : cardGroupInstance.displayName,
-                    description: isSimpleCard ? undefined : (this.localizationManager && cardGroupInstance.descriptionKey)
-                        ? this.localizationManager.getDisplayName(cardGroupInstance.descriptionKey) : cardGroupInstance.description,
-                    slices: [],
-                    uid: groupUid,
-                    collapsible: cardGroupInstance.collapsible,
-                    delaySaveSlices: cardGroupInstance.delaySaveSlices,
-                    disabled: cardGroupInstance.disabled,
-                    disabledReason: cardGroupInstance.disabledReason,
-                };
-                formattingCard.groups.push(formattingGroup);
-                // In case formatting model adds data points or top categories (Like when you modify specific visual category color).
-                // these categories use same object name and property name from capabilities and the generated uid will be the same for these formatting categories properties
-                // Solution => Save slice names to modify each slice uid to be unique by adding counter value to the new slice uid
-                const sliceNames = {};
-                // Build formatting container slice for each property
-                if (cardGroupInstance.container) {
-                    const container = cardGroupInstance.container;
-                    const containerUid = groupUid + "-container";
-                    const formattingContainer = {
-                        displayName: (this.localizationManager && container.displayNameKey)
-                            ? this.localizationManager.getDisplayName(container.displayNameKey) : container.displayName,
-                        description: (this.localizationManager && container.descriptionKey)
-                            ? this.localizationManager.getDisplayName(container.descriptionKey) : container.description,
-                        containerItems: [],
-                        uid: containerUid
-                    };
-                    container.containerItems.forEach((containerItem) => {
-                        // Build formatting container item object
-                        const containerIemName = containerItem.displayNameKey ? containerItem.displayNameKey : containerItem.displayName;
-                        const containerItemUid = containerUid + containerIemName;
-                        const formattingContainerItem = {
-                            displayName: (this.localizationManager && containerItem.displayNameKey)
-                                ? this.localizationManager.getDisplayName(containerItem.displayNameKey) : containerItem.displayName,
-                            slices: [],
-                            uid: containerItemUid
-                        };
-                        // Build formatting slices and add them to current formatting container item
-                        this.buildFormattingSlices({ slices: containerItem.slices, objectName, sliceNames, formattingSlices: formattingContainerItem.slices });
-                        formattingContainer.containerItems.push(formattingContainerItem);
-                    });
-                    formattingGroup.container = formattingContainer;
-                }
-                if (cardGroupInstance.slices) {
-                    if (cardGroupInstance.topLevelSlice) {
-                        const topLevelToggleSlice = cardGroupInstance.topLevelSlice.getFormattingSlice(objectName, this.localizationManager);
-                        topLevelToggleSlice.suppressDisplayName = true;
-                        (formattingGroup.displayName == undefined ? formattingCard : formattingGroup).topLevelToggle = topLevelToggleSlice;
-                    }
-                    // Build formatting slice for each property
-                    this.buildFormattingSlices({ slices: cardGroupInstance.slices, objectName, sliceNames, formattingSlices: formattingGroup.slices });
-                }
-            });
-            formattingCard.revertToDefaultDescriptors = this.getRevertToDefaultDescriptor(card);
-            formattingModel.cards.push(formattingCard);
-        });
-        return formattingModel;
-    }
-    buildFormattingSlices({ slices, objectName, sliceNames, formattingSlices }) {
-        // Filter slices based on their visibility
-        slices === null || slices === void 0 ? void 0 : slices.filter(({ visible = true }) => visible).forEach((slice) => {
-            const formattingSlice = slice === null || slice === void 0 ? void 0 : slice.getFormattingSlice(objectName, this.localizationManager);
-            if (formattingSlice) {
-                // Modify formatting slice uid if needed
-                if (sliceNames[slice.name] === undefined) {
-                    sliceNames[slice.name] = 0;
-                }
-                else {
-                    sliceNames[slice.name]++;
-                    formattingSlice.uid = `${formattingSlice.uid}-${sliceNames[slice.name]}`;
-                }
-                formattingSlices.push(formattingSlice);
-            }
-        });
-    }
-    getRevertToDefaultDescriptor(card) {
-        var _a;
-        // Proceeded slice names are saved to prevent duplicated default descriptors in case of using 
-        // formatting categories & selectors, since they have the same descriptor objectName and propertyName
-        const sliceNames = {};
-        const revertToDefaultDescriptors = [];
-        let cardSlicesDefaultDescriptors;
-        let cardContainerSlicesDefaultDescriptors = [];
-        // eslint-disable-next-line
-        if (card instanceof _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__/* .CompositeCard */ .St && card.topLevelSlice)
-            revertToDefaultDescriptors.push(...(_a = card.topLevelSlice) === null || _a === void 0 ? void 0 : _a.getRevertToDefaultDescriptor(card.name));
-        const cardGroupInstances = (card instanceof _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__/* .SimpleCard */ .Tn ?
-            [card].filter(({ visible = true }) => visible) :
-            card.groups.filter(({ visible = true }) => visible));
-        cardGroupInstances.forEach((cardGroupInstance) => {
-            var _a, _b;
-            cardSlicesDefaultDescriptors = this.getSlicesRevertToDefaultDescriptor(card.name, cardGroupInstance.slices, sliceNames, cardGroupInstance.topLevelSlice);
-            (_b = (_a = cardGroupInstance.container) === null || _a === void 0 ? void 0 : _a.containerItems) === null || _b === void 0 ? void 0 : _b.forEach((containerItem) => {
-                cardContainerSlicesDefaultDescriptors = cardContainerSlicesDefaultDescriptors.concat(this.getSlicesRevertToDefaultDescriptor(card.name, containerItem.slices, sliceNames));
-            });
-            revertToDefaultDescriptors.push(...cardSlicesDefaultDescriptors.concat(cardContainerSlicesDefaultDescriptors));
-        });
-        return revertToDefaultDescriptors;
-    }
-    getSlicesRevertToDefaultDescriptor(cardName, slices, sliceNames, topLevelSlice) {
-        let revertToDefaultDescriptors = [];
-        if (topLevelSlice) {
-            sliceNames[topLevelSlice.name] = true;
-            revertToDefaultDescriptors = revertToDefaultDescriptors.concat(topLevelSlice.getRevertToDefaultDescriptor(cardName));
-        }
-        slices === null || slices === void 0 ? void 0 : slices.forEach((slice) => {
-            if (slice && !sliceNames[slice.name]) {
-                sliceNames[slice.name] = true;
-                revertToDefaultDescriptors = revertToDefaultDescriptors.concat(slice.getRevertToDefaultDescriptor(cardName));
-            }
-        });
-        return revertToDefaultDescriptors;
-    }
-}
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (FormattingSettingsService);
-//# sourceMappingURL=FormattingSettingsService.js.map
-
-/***/ }),
-
-/***/ 674:
+/***/ 7674:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   O: () => (/* reexport safe */ _FormattingSettingsService__WEBPACK_IMPORTED_MODULE_1__.A),
 /* harmony export */   z: () => (/* reexport module object */ _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__)
 /* harmony export */ });
-/* harmony import */ var _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(754);
-/* harmony import */ var _FormattingSettingsService__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(667);
+/* harmony import */ var _FormattingSettingsComponents__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9754);
+/* harmony import */ var _FormattingSettingsService__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(6667);
 
 
 
@@ -7177,883 +8016,7 @@ class FormattingSettingsService {
 
 /***/ }),
 
-/***/ 732:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   equals: () => (/* binding */ equals)
-/* harmony export */ });
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-// NOTE: this file includes standalone utilities that should have no dependencies on external libraries, including jQuery.
-/**
- * Performs JSON-style comparison of two objects.
- */
-function equals(x, y) {
-    if (x === y)
-        return true;
-    return JSON.stringify(x) === JSON.stringify(y);
-}
-//# sourceMappingURL=jsonComparer.js.map
-
-/***/ }),
-
-/***/ 741:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-/*
-*  Power BI Visualizations
-*
-*  Copyright (c) Microsoft Corporation
-*  All rights reserved.
-*  MIT License
-*
-*  Permission is hereby granted, free of charge, to any person obtaining a copy
-*  of this software and associated documentation files (the ""Software""), to deal
-*  in the Software without restriction, including without limitation the rights
-*  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-*  copies of the Software, and to permit persons to whom the Software is
-*  furnished to do so, subject to the following conditions:
-*
-*  The above copyright notice and this permission notice shall be included in
-*  all copies or substantial portions of the Software.
-*
-*  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-*  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-*  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-*  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-*  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-*  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-*  THE SOFTWARE.
-*/
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DateTimeUnit = void 0;
-// Enumeration of DateTimeUnits
-var DateTimeUnit;
-(function (DateTimeUnit) {
-    DateTimeUnit[DateTimeUnit["Year"] = 0] = "Year";
-    DateTimeUnit[DateTimeUnit["Month"] = 1] = "Month";
-    DateTimeUnit[DateTimeUnit["Week"] = 2] = "Week";
-    DateTimeUnit[DateTimeUnit["Day"] = 3] = "Day";
-    DateTimeUnit[DateTimeUnit["Hour"] = 4] = "Hour";
-    DateTimeUnit[DateTimeUnit["Minute"] = 5] = "Minute";
-    DateTimeUnit[DateTimeUnit["Second"] = 6] = "Second";
-    DateTimeUnit[DateTimeUnit["Millisecond"] = 7] = "Millisecond";
-})(DateTimeUnit = exports.DateTimeUnit || (exports.DateTimeUnit = {}));
-//# sourceMappingURL=iFormattingService.js.map
-
-/***/ }),
-
-/***/ 746:
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        if (typeof b !== "function" && b !== null)
-            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.DataLabelsDisplayUnitSystem = exports.WholeUnitsDisplayUnitSystem = exports.DefaultDisplayUnitSystem = exports.NoDisplayUnitSystem = exports.DisplayUnitSystem = exports.DisplayUnit = void 0;
-/* eslint-disable no-useless-escape */
-var formattingService_1 = __webpack_require__(510);
-var powerbi_visuals_utils_typeutils_1 = __webpack_require__(317);
-// Constants
-var maxExponent = 24;
-var defaultScientificBigNumbersBoundary = 1E15;
-var scientificSmallNumbersBoundary = 1E-4;
-var PERCENTAGE_FORMAT = "%";
-var SCIENTIFIC_FORMAT = "E+0";
-var DEFAULT_SCIENTIFIC_FORMAT = "0.##" + SCIENTIFIC_FORMAT;
-// Regular expressions
-/**
- * This regex looks for strings that match one of the following conditions:
- *   - Optionally contain "0", "#", followed by a period, followed by at least one "0" or "#" (Ex. ###,000.###)
- *   - Contains at least one of "0", "#", or "," (Ex. ###,000)
- *   - Contain a "g" (indicates to use the general .NET numeric format string)
- * The entire string (start to end) must match, and the match is not case-sensitive.
- */
-var SUPPORTED_SCIENTIFIC_FORMATS = /^([0\#,]*\.[0\#]+|[0\#,]+|g)$/i;
-var DisplayUnit = /** @class */ (function () {
-    function DisplayUnit() {
-    }
-    // Methods
-    DisplayUnit.prototype.project = function (value) {
-        if (this.value) {
-            return powerbi_visuals_utils_typeutils_1.double.removeDecimalNoise(value / this.value);
-        }
-        else {
-            return value;
-        }
-    };
-    DisplayUnit.prototype.reverseProject = function (value) {
-        if (this.value) {
-            return value * this.value;
-        }
-        else {
-            return value;
-        }
-    };
-    DisplayUnit.prototype.isApplicableTo = function (value) {
-        value = Math.abs(value);
-        var precision = powerbi_visuals_utils_typeutils_1.double.getPrecision(value, 3);
-        return powerbi_visuals_utils_typeutils_1.double.greaterOrEqualWithPrecision(value, this.applicableRangeMin, precision) && powerbi_visuals_utils_typeutils_1.double.lessWithPrecision(value, this.applicableRangeMax, precision);
-    };
-    DisplayUnit.prototype.isScaling = function () {
-        return this.value > 1;
-    };
-    return DisplayUnit;
-}());
-exports.DisplayUnit = DisplayUnit;
-var DisplayUnitSystem = /** @class */ (function () {
-    // Constructor
-    function DisplayUnitSystem(units) {
-        this.units = units ? units : [];
-    }
-    Object.defineProperty(DisplayUnitSystem.prototype, "title", {
-        // Properties
-        get: function () {
-            return this.displayUnit ? this.displayUnit.title : undefined;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    // Methods
-    DisplayUnitSystem.prototype.update = function (value) {
-        if (value === undefined)
-            return;
-        this.unitBaseValue = value;
-        this.displayUnit = this.findApplicableDisplayUnit(value);
-    };
-    DisplayUnitSystem.prototype.findApplicableDisplayUnit = function (value) {
-        for (var _i = 0, _a = this.units; _i < _a.length; _i++) {
-            var unit = _a[_i];
-            if (unit.isApplicableTo(value))
-                return unit;
-        }
-        return undefined;
-    };
-    DisplayUnitSystem.prototype.format = function (value, format, decimals, trailingZeros, cultureSelector) {
-        decimals = this.getNumberOfDecimalsForFormatting(format, decimals);
-        var nonScientificFormat = "";
-        if (this.isFormatSupported(format)
-            && !this.hasScientitifcFormat(format)
-            && this.isScalingUnit()
-            && this.shouldRespectScalingUnit(format)) {
-            value = this.displayUnit.project(value);
-            nonScientificFormat = this.displayUnit.labelFormat;
-        }
-        return this.formatHelper({
-            value: value,
-            nonScientificFormat: nonScientificFormat,
-            format: format,
-            decimals: decimals,
-            trailingZeros: trailingZeros,
-            cultureSelector: cultureSelector
-        });
-    };
-    DisplayUnitSystem.prototype.isFormatSupported = function (format) {
-        return !DisplayUnitSystem.UNSUPPORTED_FORMATS.test(format);
-    };
-    DisplayUnitSystem.prototype.isPercentageFormat = function (format) {
-        return format && format.indexOf(PERCENTAGE_FORMAT) >= 0;
-    };
-    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-    DisplayUnitSystem.prototype.shouldRespectScalingUnit = function (format) {
-        return true;
-    };
-    DisplayUnitSystem.prototype.getNumberOfDecimalsForFormatting = function (format, decimals) {
-        return decimals;
-    };
-    DisplayUnitSystem.prototype.isScalingUnit = function () {
-        return this.displayUnit && this.displayUnit.isScaling();
-    };
-    DisplayUnitSystem.prototype.formatHelper = function (options) {
-        var value = options.value, cultureSelector = options.cultureSelector, decimals = options.decimals, trailingZeros = options.trailingZeros;
-        var nonScientificFormat = options.nonScientificFormat, format = options.format;
-        // If the format is "general" and we want to override the number of decimal places then use the default numeric format string.
-        if ((format === "g" || format === "G") && decimals != null) {
-            format = "#,0.00";
-        }
-        format = formattingService_1.numberFormat.addDecimalsToFormat(format, decimals, trailingZeros);
-        if (format && !formattingService_1.formattingService.isStandardNumberFormat(format)) {
-            return formattingService_1.formattingService.formatNumberWithCustomOverride(value, format, nonScientificFormat, cultureSelector);
-        }
-        if (!format) {
-            format = "G";
-        }
-        if (!nonScientificFormat) {
-            nonScientificFormat = "{0}";
-        }
-        var text = formattingService_1.formattingService.formatValue(value, format, cultureSelector);
-        return formattingService_1.formattingService.format(nonScientificFormat, [text]);
-    };
-    //  Formats a single value by choosing an appropriate base for the DisplayUnitSystem before formatting.
-    DisplayUnitSystem.prototype.formatSingleValue = function (value, format, decimals, trailingZeros, cultureSelector) {
-        // Change unit base to a value appropriate for this value
-        this.update(this.shouldUseValuePrecision(value) ? powerbi_visuals_utils_typeutils_1.double.getPrecision(value, 8) : value);
-        return this.format(value, format, decimals, trailingZeros, cultureSelector);
-    };
-    DisplayUnitSystem.prototype.shouldUseValuePrecision = function (value) {
-        if (this.units.length === 0)
-            return true;
-        // Check if the value is big enough to have a valid unit by checking against the smallest unit (that it's value bigger than 1).
-        var applicableRangeMin = 0;
-        for (var i = 0; i < this.units.length; i++) {
-            if (this.units[i].isScaling()) {
-                applicableRangeMin = this.units[i].applicableRangeMin;
-                break;
-            }
-        }
-        return Math.abs(value) < applicableRangeMin;
-    };
-    DisplayUnitSystem.prototype.isScientific = function (value) {
-        return value < -defaultScientificBigNumbersBoundary || value > defaultScientificBigNumbersBoundary ||
-            (-scientificSmallNumbersBoundary < value && value < scientificSmallNumbersBoundary && value !== 0);
-    };
-    DisplayUnitSystem.prototype.hasScientitifcFormat = function (format) {
-        return format && format.toUpperCase().indexOf("E") !== -1;
-    };
-    DisplayUnitSystem.prototype.supportsScientificFormat = function (format) {
-        if (format)
-            return SUPPORTED_SCIENTIFIC_FORMATS.test(format);
-        return true;
-    };
-    DisplayUnitSystem.prototype.shouldFallbackToScientific = function (value, format) {
-        return !this.hasScientitifcFormat(format)
-            && this.supportsScientificFormat(format)
-            && this.isScientific(value);
-    };
-    DisplayUnitSystem.prototype.getScientificFormat = function (data, format, decimals, trailingZeros) {
-        // Use scientific format outside of the range
-        if (this.isFormatSupported(format) && this.shouldFallbackToScientific(data, format)) {
-            var numericFormat = formattingService_1.numberFormat.getNumericFormat(data, format);
-            if (decimals)
-                numericFormat = formattingService_1.numberFormat.addDecimalsToFormat(numericFormat ? numericFormat : "0", Math.abs(decimals), trailingZeros);
-            if (numericFormat)
-                return numericFormat + SCIENTIFIC_FORMAT;
-            else
-                return DEFAULT_SCIENTIFIC_FORMAT;
-        }
-        return format;
-    };
-    DisplayUnitSystem.UNSUPPORTED_FORMATS = /^(p\d*)|(e\d*)$/i;
-    return DisplayUnitSystem;
-}());
-exports.DisplayUnitSystem = DisplayUnitSystem;
-// Provides a unit system that is defined by formatting in the model, and is suitable for visualizations shown in single number visuals in explore mode.
-var NoDisplayUnitSystem = /** @class */ (function (_super) {
-    __extends(NoDisplayUnitSystem, _super);
-    // Constructor
-    function NoDisplayUnitSystem() {
-        return _super.call(this, []) || this;
-    }
-    return NoDisplayUnitSystem;
-}(DisplayUnitSystem));
-exports.NoDisplayUnitSystem = NoDisplayUnitSystem;
-/** Provides a unit system that creates a more concise format for displaying values. This is suitable for most of the cases where
-    we are showing values (chart axes) and as such it is the default unit system. */
-var DefaultDisplayUnitSystem = /** @class */ (function (_super) {
-    __extends(DefaultDisplayUnitSystem, _super);
-    // Constructor
-    function DefaultDisplayUnitSystem(unitLookup) {
-        return _super.call(this, DefaultDisplayUnitSystem.getUnits(unitLookup)) || this;
-    }
-    // Methods
-    DefaultDisplayUnitSystem.prototype.format = function (data, format, decimals, trailingZeros, cultureSelector) {
-        format = this.getScientificFormat(data, format, decimals, trailingZeros);
-        return _super.prototype.format.call(this, data, format, decimals, trailingZeros, cultureSelector);
-    };
-    DefaultDisplayUnitSystem.RESET = function () {
-        DefaultDisplayUnitSystem.units = null;
-    };
-    DefaultDisplayUnitSystem.getUnits = function (unitLookup) {
-        if (!DefaultDisplayUnitSystem.units) {
-            DefaultDisplayUnitSystem.units = createDisplayUnits(unitLookup, function (value, previousUnitValue, min) {
-                // When dealing with millions/billions/trillions we need to switch to millions earlier: for example instead of showing 100K 200K 300K we should show 0.1M 0.2M 0.3M etc
-                if (value - previousUnitValue >= 1000) {
-                    return value / 10;
-                }
-                return min;
-            });
-            // Ensure last unit has max of infinity
-            DefaultDisplayUnitSystem.units[DefaultDisplayUnitSystem.units.length - 1].applicableRangeMax = Infinity;
-        }
-        return DefaultDisplayUnitSystem.units;
-    };
-    return DefaultDisplayUnitSystem;
-}(DisplayUnitSystem));
-exports.DefaultDisplayUnitSystem = DefaultDisplayUnitSystem;
-/** Provides a unit system that creates a more concise format for displaying values, but only allows showing a unit if we have at least
-    one of those units (e.g. 0.9M is not allowed since it's less than 1 million). This is suitable for cases such as dashboard tiles
-    where we have restricted space but do not want to show partial units. */
-var WholeUnitsDisplayUnitSystem = /** @class */ (function (_super) {
-    __extends(WholeUnitsDisplayUnitSystem, _super);
-    // Constructor
-    function WholeUnitsDisplayUnitSystem(unitLookup) {
-        return _super.call(this, WholeUnitsDisplayUnitSystem.getUnits(unitLookup)) || this;
-    }
-    WholeUnitsDisplayUnitSystem.RESET = function () {
-        WholeUnitsDisplayUnitSystem.units = null;
-    };
-    WholeUnitsDisplayUnitSystem.getUnits = function (unitLookup) {
-        if (!WholeUnitsDisplayUnitSystem.units) {
-            WholeUnitsDisplayUnitSystem.units = createDisplayUnits(unitLookup);
-            // Ensure last unit has max of infinity
-            WholeUnitsDisplayUnitSystem.units[WholeUnitsDisplayUnitSystem.units.length - 1].applicableRangeMax = Infinity;
-        }
-        return WholeUnitsDisplayUnitSystem.units;
-    };
-    WholeUnitsDisplayUnitSystem.prototype.format = function (data, format, decimals, trailingZeros, cultureSelector) {
-        format = this.getScientificFormat(data, format, decimals, trailingZeros);
-        return _super.prototype.format.call(this, data, format, decimals, trailingZeros, cultureSelector);
-    };
-    return WholeUnitsDisplayUnitSystem;
-}(DisplayUnitSystem));
-exports.WholeUnitsDisplayUnitSystem = WholeUnitsDisplayUnitSystem;
-var DataLabelsDisplayUnitSystem = /** @class */ (function (_super) {
-    __extends(DataLabelsDisplayUnitSystem, _super);
-    function DataLabelsDisplayUnitSystem(unitLookup) {
-        return _super.call(this, DataLabelsDisplayUnitSystem.getUnits(unitLookup)) || this;
-    }
-    DataLabelsDisplayUnitSystem.prototype.isFormatSupported = function (format) {
-        return !DataLabelsDisplayUnitSystem.UNSUPPORTED_FORMATS.test(format);
-    };
-    DataLabelsDisplayUnitSystem.getUnits = function (unitLookup) {
-        if (!DataLabelsDisplayUnitSystem.units) {
-            var units = [];
-            var adjustMinBasedOnPreviousUnit = function (value, previousUnitValue, min) {
-                // Never returns true, we are always ignoring
-                // We do not early switch (e.g. 100K instead of 0.1M)
-                // Intended? If so, remove this function, otherwise, remove if statement
-                if (value === -1)
-                    if (value - previousUnitValue >= 1000) {
-                        return value / 10;
-                    }
-                return min;
-            };
-            // Add Auto & None
-            var names = unitLookup(-1);
-            addUnitIfNonEmpty(units, DataLabelsDisplayUnitSystem.AUTO_DISPLAYUNIT_VALUE, names.title, names.format, adjustMinBasedOnPreviousUnit);
-            names = unitLookup(0);
-            addUnitIfNonEmpty(units, DataLabelsDisplayUnitSystem.NONE_DISPLAYUNIT_VALUE, names.title, names.format, adjustMinBasedOnPreviousUnit);
-            // Add normal units
-            DataLabelsDisplayUnitSystem.units = units.concat(createDisplayUnits(unitLookup, adjustMinBasedOnPreviousUnit));
-            // Ensure last unit has max of infinity
-            DataLabelsDisplayUnitSystem.units[DataLabelsDisplayUnitSystem.units.length - 1].applicableRangeMax = Infinity;
-        }
-        return DataLabelsDisplayUnitSystem.units;
-    };
-    DataLabelsDisplayUnitSystem.prototype.format = function (data, format, decimals, trailingZeros, cultureSelector) {
-        format = this.getScientificFormat(data, format, decimals, trailingZeros);
-        return _super.prototype.format.call(this, data, format, decimals, trailingZeros, cultureSelector);
-    };
-    // Constants
-    DataLabelsDisplayUnitSystem.AUTO_DISPLAYUNIT_VALUE = 0;
-    DataLabelsDisplayUnitSystem.NONE_DISPLAYUNIT_VALUE = 1;
-    DataLabelsDisplayUnitSystem.UNSUPPORTED_FORMATS = /^(e\d*)$/i;
-    return DataLabelsDisplayUnitSystem;
-}(DisplayUnitSystem));
-exports.DataLabelsDisplayUnitSystem = DataLabelsDisplayUnitSystem;
-function createDisplayUnits(unitLookup, adjustMinBasedOnPreviousUnit) {
-    var units = [];
-    for (var i = 3; i < maxExponent; i++) {
-        var names = unitLookup(i);
-        if (names)
-            addUnitIfNonEmpty(units, powerbi_visuals_utils_typeutils_1.double.pow10(i), names.title, names.format, adjustMinBasedOnPreviousUnit);
-    }
-    return units;
-}
-function addUnitIfNonEmpty(units, value, title, labelFormat, adjustMinBasedOnPreviousUnit) {
-    if (title || labelFormat) {
-        var min = value;
-        if (units.length > 0) {
-            var previousUnit = units[units.length - 1];
-            if (adjustMinBasedOnPreviousUnit)
-                min = adjustMinBasedOnPreviousUnit(value, previousUnit.value, min);
-            previousUnit.applicableRangeMax = min;
-        }
-        var unit = new DisplayUnit();
-        unit.value = value;
-        unit.applicableRangeMin = min;
-        unit.applicableRangeMax = min * 1000;
-        unit.title = title;
-        unit.labelFormat = labelFormat;
-        units.push(unit);
-    }
-}
-//# sourceMappingURL=displayUnitSystem.js.map
-
-/***/ }),
-
-/***/ 754:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Kx: () => (/* binding */ Model),
-/* harmony export */   PA: () => (/* binding */ ItemDropdown),
-/* harmony export */   St: () => (/* binding */ CompositeCard),
-/* harmony export */   Tn: () => (/* binding */ SimpleCard),
-/* harmony export */   iB: () => (/* binding */ NumUpDown),
-/* harmony export */   jF: () => (/* binding */ ToggleSwitch),
-/* harmony export */   ks: () => (/* binding */ TextInput),
-/* harmony export */   sk: () => (/* binding */ ColorPicker)
-/* harmony export */ });
-/* unused harmony exports CardGroupEntity, Group, SimpleSlice, AlignmentGroup, Slider, DatePicker, AutoDropdown, DurationPicker, ErrorRangeControl, FieldPicker, ItemFlagsSelection, AutoFlagsSelection, TextArea, FontPicker, GradientBar, ImageUpload, ListEditor, ReadOnlyText, ShapeMapSelector, CompositeSlice, FontControl, MarginPadding, Container, ContainerItem */
-/* harmony import */ var _utils_FormattingSettingsUtils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(639);
-/**
- * Powerbi utils components classes for custom visual formatting pane objects
- *
- */
-
-class NamedEntity {
-}
-class CardGroupEntity extends NamedEntity {
-}
-class Model {
-}
-/** CompositeCard is use to populate a card into the formatting pane with multiple groups */
-class CompositeCard extends NamedEntity {
-}
-class Group extends CardGroupEntity {
-    constructor(object) {
-        super();
-        Object.assign(this, object);
-    }
-}
-/** SimpleCard is use to populate a card into the formatting pane in a single group */
-class SimpleCard extends CardGroupEntity {
-}
-class SimpleSlice extends NamedEntity {
-    constructor(object) {
-        super();
-        Object.assign(this, object);
-    }
-    getFormattingSlice(objectName, localizationManager) {
-        const controlType = this.type;
-        const propertyName = this.name;
-        const sliceDisplayName = (localizationManager && this.displayNameKey) ? localizationManager.getDisplayName(this.displayNameKey) : this.displayName;
-        const sliceDescription = (localizationManager && this.descriptionKey) ? localizationManager.getDisplayName(this.descriptionKey) : this.description;
-        const componentDisplayName = {
-            displayName: sliceDisplayName,
-            description: sliceDescription,
-            uid: objectName + '-' + propertyName,
-        };
-        return Object.assign(Object.assign({}, componentDisplayName), { control: {
-                type: controlType,
-                properties: this.getFormattingComponent(objectName, localizationManager)
-            } });
-    }
-    // eslint-disable-next-line
-    getFormattingComponent(objectName, localizationManager) {
-        return {
-            descriptor: _utils_FormattingSettingsUtils__WEBPACK_IMPORTED_MODULE_0__/* .getDescriptor */ .y(objectName, this),
-            value: this.value,
-        };
-    }
-    getRevertToDefaultDescriptor(objectName) {
-        return [{
-                objectName: objectName,
-                propertyName: this.name
-            }];
-    }
-    setPropertiesValues(dataViewObjects, objectName) {
-        var _a;
-        const newValue = (_a = dataViewObjects === null || dataViewObjects === void 0 ? void 0 : dataViewObjects[objectName]) === null || _a === void 0 ? void 0 : _a[this.name];
-        this.value = _utils_FormattingSettingsUtils__WEBPACK_IMPORTED_MODULE_0__/* .getPropertyValue */ .D(this, newValue, this.value);
-    }
-}
-class AlignmentGroup extends SimpleSlice {
-    constructor(object) {
-        super(object);
-        this.type = "AlignmentGroup" /* visuals.FormattingComponent.AlignmentGroup */;
-    }
-    getFormattingComponent(objectName) {
-        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { mode: this.mode, supportsNoSelection: this.supportsNoSelection });
-    }
-}
-class ToggleSwitch extends SimpleSlice {
-    constructor(object) {
-        super(object);
-        this.type = "ToggleSwitch" /* visuals.FormattingComponent.ToggleSwitch */;
-    }
-}
-class ColorPicker extends SimpleSlice {
-    constructor(object) {
-        super(object);
-        this.type = "ColorPicker" /* visuals.FormattingComponent.ColorPicker */;
-    }
-    getFormattingComponent(objectName) {
-        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { defaultColor: this.defaultColor, isNoFillItemSupported: this.isNoFillItemSupported });
-    }
-}
-class NumUpDown extends SimpleSlice {
-    constructor(object) {
-        super(object);
-        this.type = "NumUpDown" /* visuals.FormattingComponent.NumUpDown */;
-    }
-    getFormattingComponent(objectName) {
-        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { options: this.options });
-    }
-}
-class Slider extends NumUpDown {
-    constructor() {
-        super(...arguments);
-        this.type = "Slider" /* visuals.FormattingComponent.Slider */;
-    }
-}
-class DatePicker extends SimpleSlice {
-    constructor(object) {
-        super(object);
-        this.type = "DatePicker" /* visuals.FormattingComponent.DatePicker */;
-    }
-    getFormattingComponent(objectName, localizationManager) {
-        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { placeholder: (localizationManager && this.placeholderKey) ? localizationManager.getDisplayName(this.placeholderKey) : this.placeholder, validators: this.validators });
-    }
-}
-class ItemDropdown extends SimpleSlice {
-    constructor(object) {
-        super(object);
-        this.type = "Dropdown" /* visuals.FormattingComponent.Dropdown */;
-    }
-    getFormattingComponent(objectName) {
-        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { items: this.items });
-    }
-}
-class AutoDropdown extends SimpleSlice {
-    constructor(object) {
-        super(object);
-        this.type = "Dropdown" /* visuals.FormattingComponent.Dropdown */;
-    }
-    getFormattingComponent(objectName) {
-        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { mergeValues: this.mergeValues, filterValues: this.filterValues });
-    }
-}
-class DurationPicker extends SimpleSlice {
-    constructor(object) {
-        super(object);
-        this.type = "DurationPicker" /* visuals.FormattingComponent.DurationPicker */;
-    }
-    getFormattingComponent(objectName) {
-        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { validators: this.validators });
-    }
-}
-class ErrorRangeControl extends SimpleSlice {
-    constructor(object) {
-        super(object);
-        this.type = "ErrorRangeControl" /* visuals.FormattingComponent.ErrorRangeControl */;
-    }
-    getFormattingComponent(objectName) {
-        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { validators: this.validators });
-    }
-}
-class FieldPicker extends SimpleSlice {
-    constructor(object) {
-        super(object);
-        this.type = "FieldPicker" /* visuals.FormattingComponent.FieldPicker */;
-    }
-    getFormattingComponent(objectName) {
-        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { validators: this.validators, allowMultipleValues: this.allowMultipleValues });
-    }
-}
-class ItemFlagsSelection extends SimpleSlice {
-    constructor(object) {
-        super(object);
-        this.type = "FlagsSelection" /* visuals.FormattingComponent.FlagsSelection */;
-    }
-    getFormattingComponent(objectName) {
-        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { items: this.items });
-    }
-}
-class AutoFlagsSelection extends SimpleSlice {
-    constructor() {
-        super(...arguments);
-        this.type = "FlagsSelection" /* visuals.FormattingComponent.FlagsSelection */;
-    }
-}
-class TextInput extends SimpleSlice {
-    constructor(object) {
-        super(object);
-        this.type = "TextInput" /* visuals.FormattingComponent.TextInput */;
-    }
-    getFormattingComponent(objectName) {
-        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { placeholder: this.placeholder });
-    }
-}
-class TextArea extends TextInput {
-    constructor() {
-        super(...arguments);
-        this.type = "TextArea" /* visuals.FormattingComponent.TextArea */;
-    }
-}
-class FontPicker extends SimpleSlice {
-    constructor() {
-        super(...arguments);
-        this.type = "FontPicker" /* visuals.FormattingComponent.FontPicker */;
-    }
-}
-class GradientBar extends SimpleSlice {
-    constructor() {
-        super(...arguments);
-        this.type = "GradientBar" /* visuals.FormattingComponent.GradientBar */;
-    }
-}
-class ImageUpload extends SimpleSlice {
-    constructor() {
-        super(...arguments);
-        this.type = "ImageUpload" /* visuals.FormattingComponent.ImageUpload */;
-    }
-}
-class ListEditor extends SimpleSlice {
-    constructor() {
-        super(...arguments);
-        this.type = "ListEditor" /* visuals.FormattingComponent.ListEditor */;
-    }
-}
-class ReadOnlyText extends SimpleSlice {
-    constructor() {
-        super(...arguments);
-        this.type = "ReadOnlyText" /* visuals.FormattingComponent.ReadOnlyText */;
-    }
-}
-class ShapeMapSelector extends SimpleSlice {
-    constructor(object) {
-        super(object);
-        this.type = "ShapeMapSelector" /* visuals.FormattingComponent.ShapeMapSelector */;
-    }
-    getFormattingComponent(objectName) {
-        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { isAzMapReferenceSelector: this.isAzMapReferenceSelector });
-    }
-}
-class CompositeSlice extends NamedEntity {
-    constructor(object) {
-        super();
-        Object.assign(this, object);
-    }
-    getFormattingSlice(objectName, localizationManager) {
-        const controlType = this.type;
-        const propertyName = this.name;
-        const componentDisplayName = {
-            displayName: (localizationManager && this.displayNameKey) ? localizationManager.getDisplayName(this.displayNameKey) : this.displayName,
-            description: (localizationManager && this.descriptionKey) ? localizationManager.getDisplayName(this.descriptionKey) : this.description,
-            uid: objectName + '-' + propertyName,
-        };
-        return Object.assign(Object.assign({}, componentDisplayName), { control: {
-                type: controlType,
-                properties: this.getFormattingComponent(objectName)
-            } });
-    }
-}
-class FontControl extends CompositeSlice {
-    constructor(object) {
-        super(object);
-        this.type = "FontControl" /* visuals.FormattingComponent.FontControl */;
-    }
-    getFormattingComponent(objectName) {
-        var _a, _b, _c;
-        return {
-            fontFamily: this.fontFamily.getFormattingComponent(objectName),
-            fontSize: this.fontSize.getFormattingComponent(objectName),
-            bold: (_a = this.bold) === null || _a === void 0 ? void 0 : _a.getFormattingComponent(objectName),
-            italic: (_b = this.italic) === null || _b === void 0 ? void 0 : _b.getFormattingComponent(objectName),
-            underline: (_c = this.underline) === null || _c === void 0 ? void 0 : _c.getFormattingComponent(objectName)
-        };
-    }
-    getRevertToDefaultDescriptor(objectName) {
-        return this.fontFamily.getRevertToDefaultDescriptor(objectName)
-            .concat(this.fontSize.getRevertToDefaultDescriptor(objectName))
-            .concat(this.bold ? this.bold.getRevertToDefaultDescriptor(objectName) : [])
-            .concat(this.italic ? this.italic.getRevertToDefaultDescriptor(objectName) : [])
-            .concat(this.underline ? this.underline.getRevertToDefaultDescriptor(objectName) : []);
-    }
-    setPropertiesValues(dataViewObjects, objectName) {
-        var _a, _b, _c;
-        this.fontFamily.setPropertiesValues(dataViewObjects, objectName);
-        this.fontSize.setPropertiesValues(dataViewObjects, objectName);
-        (_a = this.bold) === null || _a === void 0 ? void 0 : _a.setPropertiesValues(dataViewObjects, objectName);
-        (_b = this.italic) === null || _b === void 0 ? void 0 : _b.setPropertiesValues(dataViewObjects, objectName);
-        (_c = this.underline) === null || _c === void 0 ? void 0 : _c.setPropertiesValues(dataViewObjects, objectName);
-    }
-}
-class MarginPadding extends CompositeSlice {
-    constructor(object) {
-        super(object);
-        this.type = "MarginPadding" /* visuals.FormattingComponent.MarginPadding */;
-    }
-    getFormattingComponent(objectName) {
-        return {
-            left: this.left.getFormattingComponent(objectName),
-            right: this.right.getFormattingComponent(objectName),
-            top: this.top.getFormattingComponent(objectName),
-            bottom: this.bottom.getFormattingComponent(objectName)
-        };
-    }
-    getRevertToDefaultDescriptor(objectName) {
-        return this.left.getRevertToDefaultDescriptor(objectName)
-            .concat(this.right.getRevertToDefaultDescriptor(objectName))
-            .concat(this.top.getRevertToDefaultDescriptor(objectName))
-            .concat(this.bottom.getRevertToDefaultDescriptor(objectName));
-    }
-    setPropertiesValues(dataViewObjects, objectName) {
-        this.left.setPropertiesValues(dataViewObjects, objectName);
-        this.right.setPropertiesValues(dataViewObjects, objectName);
-        this.top.setPropertiesValues(dataViewObjects, objectName);
-        this.bottom.setPropertiesValues(dataViewObjects, objectName);
-    }
-}
-class Container extends NamedEntity {
-    constructor(object) {
-        super();
-        Object.assign(this, object);
-    }
-}
-class ContainerItem extends (/* unused pure expression or super */ null && (NamedEntity)) {
-}
-//# sourceMappingURL=FormattingSettingsComponents.js.map
-
-/***/ }),
-
-/***/ 774:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.locales = void 0;
-exports.locales = {"en-US":["en-US","default",{"englishName":"English (United States)"}]}
-
-/***/ }),
-
-/***/ 781:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   fromPoint: () => (/* binding */ fromPoint),
-/* harmony export */   fromPointToPixel: () => (/* binding */ fromPointToPixel),
-/* harmony export */   toPoint: () => (/* binding */ toPoint),
-/* harmony export */   toString: () => (/* binding */ toString)
-/* harmony export */ });
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-const PxPtRatio = 4 / 3;
-const PixelString = "px";
-/**
- * Appends 'px' to the end of number value for use as pixel string in styles
- */
-function toString(px) {
-    return px + PixelString;
-}
-/**
- * Converts point value (pt) to pixels
- * Returns a string for font-size property
- * e.g. fromPoint(8) => '24px'
- */
-function fromPoint(pt) {
-    return toString(fromPointToPixel(pt));
-}
-/**
- * Converts point value (pt) to pixels
- * Returns a number for font-size property
- * e.g. fromPoint(8) => 24px
- */
-function fromPointToPixel(pt) {
-    return (PxPtRatio * pt);
-}
-/**
- * Converts pixel value (px) to pt
- * e.g. toPoint(24) => 8
- */
-function toPoint(px) {
-    return px / PxPtRatio;
-}
-//# sourceMappingURL=pixelConverter.js.map
-
-/***/ }),
-
-/***/ 786:
+/***/ 7786:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -8178,57 +8141,74 @@ exports.fixDateTimeFormat = fixDateTimeFormat;
 
 /***/ }),
 
-/***/ 793:
+/***/ 7978:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   endsWith: () => (/* binding */ endsWith)
+/* harmony export */   converterHelper: () => (/* reexport module object */ _converterHelper__WEBPACK_IMPORTED_MODULE_0__),
+/* harmony export */   dataRoleHelper: () => (/* reexport module object */ _dataRoleHelper__WEBPACK_IMPORTED_MODULE_1__),
+/* harmony export */   dataViewObject: () => (/* reexport module object */ _dataViewObject__WEBPACK_IMPORTED_MODULE_2__),
+/* harmony export */   dataViewObjects: () => (/* reexport module object */ _dataViewObjects__WEBPACK_IMPORTED_MODULE_3__),
+/* harmony export */   dataViewObjectsParser: () => (/* reexport module object */ _dataViewObjectsParser__WEBPACK_IMPORTED_MODULE_4__),
+/* harmony export */   dataViewTransform: () => (/* reexport module object */ _dataViewTransform__WEBPACK_IMPORTED_MODULE_5__),
+/* harmony export */   dataViewWildcard: () => (/* reexport module object */ _dataViewWildcard__WEBPACK_IMPORTED_MODULE_6__)
 /* harmony export */ });
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
-/**
- * Extensions to String class.
- */
-/**
- * Checks if a string ends with a sub-string.
- */
-function endsWith(str, suffix) {
-    return str.indexOf(suffix, str.length - suffix.length) !== -1;
-}
-//# sourceMappingURL=stringExtensions.js.map
+/* harmony import */ var _converterHelper__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7146);
+/* harmony import */ var _dataRoleHelper__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1880);
+/* harmony import */ var _dataViewObject__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(8182);
+/* harmony import */ var _dataViewObjects__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(3901);
+/* harmony import */ var _dataViewObjectsParser__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(2470);
+/* harmony import */ var _dataViewTransform__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(4529);
+/* harmony import */ var _dataViewWildcard__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(1107);
+
+
+
+
+
+
+
+
+//# sourceMappingURL=index.js.map
 
 /***/ }),
 
-/***/ 795:
+/***/ 8182:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   XOR: () => (/* binding */ XOR)
+/* harmony export */   getFillColorByPropertyName: () => (/* binding */ getFillColorByPropertyName),
+/* harmony export */   getValue: () => (/* binding */ getValue)
+/* harmony export */ });
+function getValue(object, propertyName, defaultValue) {
+    if (!object) {
+        return defaultValue;
+    }
+    const propertyValue = object[propertyName];
+    if (propertyValue === undefined) {
+        return defaultValue;
+    }
+    return propertyValue;
+}
+/** Gets the solid color from a fill property using only a propertyName */
+function getFillColorByPropertyName(object, propertyName, defaultColor) {
+    const value = getValue(object, propertyName);
+    if (!value || !value.solid) {
+        return defaultColor;
+    }
+    return value.solid.color;
+}
+//# sourceMappingURL=dataViewObject.js.map
+
+/***/ }),
+
+/***/ 8441:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   run: () => (/* binding */ run)
 /* harmony export */ });
 /*
  *  Power BI Visualizations
@@ -8256,22 +8236,41 @@ __webpack_require__.r(__webpack_exports__);
  *  THE SOFTWARE.
  */
 // NOTE: this file includes standalone utilities that should have no dependencies on external libraries, including jQuery.
-function XOR(a, b) {
-    return (a || b) && !(a && b);
+/**
+ * Runs exec on regex starting from 0 index
+ * This is the expected behavior but RegExp actually remember
+ * the last index they stopped at (found match at) and will
+ * return unexpected results when run in sequence.
+ * @param regex - regular expression object
+ * @param value - string to search wiht regex
+ * @param start - index within value to start regex
+ */
+function run(regex, value, start) {
+    regex.lastIndex = start || 0;
+    return regex.exec(value);
 }
-//# sourceMappingURL=logicExtensions.js.map
+//# sourceMappingURL=regExpExtensions.js.map
 
 /***/ }),
 
-/***/ 822:
+/***/ 8529:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+//# sourceMappingURL=interfaces.js.map
+
+/***/ }),
+
+/***/ 8545:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   NumericSequenceRange: () => (/* binding */ NumericSequenceRange),
-/* harmony export */   hasValue: () => (/* binding */ hasValue)
+/* harmony export */   TextSizeMax: () => (/* binding */ TextSizeMax),
+/* harmony export */   TextSizeMin: () => (/* binding */ TextSizeMin),
+/* harmony export */   getScale: () => (/* binding */ getScale)
 /* harmony export */ });
-/* harmony import */ var _double__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(312);
 /*
  *  Power BI Visualizations
  *
@@ -8297,146 +8296,88 @@ __webpack_require__.r(__webpack_exports__);
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-
-class NumericSequenceRange {
-    _ensureIncludeZero() {
-        if (this.includeZero) {
-            // fixed min and max has higher priority than includeZero
-            if (this.min > 0 && !this.hasFixedMin) {
-                this.min = 0;
-            }
-            if (this.max < 0 && !this.hasFixedMax) {
-                this.max = 0;
-            }
-        }
-    }
-    _ensureNotEmpty() {
-        if (this.min === this.max) {
-            if (!this.min) {
-                this.min = 0;
-                this.max = NumericSequenceRange.DEFAULT_MAX;
-                this.hasFixedMin = true;
-                this.hasFixedMax = true;
-            }
-            else {
-                // We are dealing with a single data value (includeZero is not set)
-                // In order to fix the range we need to extend it in both directions by half of the interval.
-                // Interval is calculated based on the number:
-                // 1. Integers below 10,000 are extended by 0.5: so the [2006-2006] empty range is extended to [2005.5-2006.5] range and the ForsedSingleStop=2006
-                // 2. Other numbers are extended by half of their power: [700,001-700,001] => [650,001-750,001] and the ForsedSingleStop=null as we want the intervals to be calculated to cover the range.
-                const value = this.min;
-                const exp = _double__WEBPACK_IMPORTED_MODULE_0__.log10(Math.abs(value));
-                let step;
-                if (exp >= 0 && exp < 4) {
-                    step = 0.5;
-                    this.forcedSingleStop = value;
-                }
-                else {
-                    step = _double__WEBPACK_IMPORTED_MODULE_0__.pow10(exp) / 2;
-                    this.forcedSingleStop = null;
-                }
-                this.min = value - step;
-                this.max = value + step;
-            }
-        }
-    }
-    _ensureDirection() {
-        if (this.min > this.max) {
-            const temp = this.min;
-            this.min = this.max;
-            this.max = temp;
-        }
-    }
-    getSize() {
-        return this.max - this.min;
-    }
-    shrinkByStep(range, step) {
-        let oldCount = this.min / step;
-        let newCount = range.min / step;
-        let deltaCount = Math.floor(newCount - oldCount);
-        this.min += deltaCount * step;
-        oldCount = this.max / step;
-        newCount = range.max / step;
-        deltaCount = Math.ceil(newCount - oldCount);
-        this.max += deltaCount * step;
-    }
-    static calculate(dataMin, dataMax, fixedMin, fixedMax, includeZero) {
-        const result = new NumericSequenceRange();
-        result.includeZero = includeZero ? true : false;
-        result.hasDataRange = hasValue(dataMin) && hasValue(dataMax);
-        result.hasFixedMin = hasValue(fixedMin);
-        result.hasFixedMax = hasValue(fixedMax);
-        dataMin = _double__WEBPACK_IMPORTED_MODULE_0__.ensureInRange(dataMin, NumericSequenceRange.MIN_SUPPORTED_DOUBLE, NumericSequenceRange.MAX_SUPPORTED_DOUBLE);
-        dataMax = _double__WEBPACK_IMPORTED_MODULE_0__.ensureInRange(dataMax, NumericSequenceRange.MIN_SUPPORTED_DOUBLE, NumericSequenceRange.MAX_SUPPORTED_DOUBLE);
-        // Calculate the range using the min, max, dataRange
-        if (result.hasFixedMin && result.hasFixedMax) {
-            result.min = fixedMin;
-            result.max = fixedMax;
-        }
-        else if (result.hasFixedMin) {
-            result.min = fixedMin;
-            result.max = dataMax > fixedMin ? dataMax : fixedMin;
-        }
-        else if (result.hasFixedMax) {
-            result.min = dataMin < fixedMax ? dataMin : fixedMax;
-            result.max = fixedMax;
-        }
-        else if (result.hasDataRange) {
-            result.min = dataMin;
-            result.max = dataMax;
-        }
-        else {
-            result.min = 0;
-            result.max = 0;
-        }
-        result._ensureIncludeZero();
-        result._ensureNotEmpty();
-        result._ensureDirection();
-        if (result.min === 0) {
-            result.hasFixedMin = true; // If the range starts from zero we should prevent extending the intervals into the negative range
-        }
-        else if (result.max === 0) {
-            result.hasFixedMax = true; // If the range ends at zero we should prevent extending the intervals into the positive range
-        }
-        return result;
-    }
-    static calculateDataRange(dataMin, dataMax, includeZero) {
-        if (!hasValue(dataMin) || !hasValue(dataMax)) {
-            return NumericSequenceRange.calculateFixedRange(0, NumericSequenceRange.DEFAULT_MAX);
-        }
-        else {
-            return NumericSequenceRange.calculate(dataMin, dataMax, null, null, includeZero);
-        }
-    }
-    static calculateFixedRange(fixedMin, fixedMax, includeZero) {
-        const result = new NumericSequenceRange();
-        result.hasDataRange = false;
-        result.includeZero = includeZero;
-        result.min = fixedMin;
-        result.max = fixedMax;
-        result._ensureIncludeZero();
-        result._ensureNotEmpty();
-        result._ensureDirection();
-        result.hasFixedMin = true;
-        result.hasFixedMax = true;
-        return result;
-    }
+// NOTE: this file includes standalone utilities that should have no dependencies on external libraries, including jQuery.
+/**
+ * Values are in terms of 'pt'
+ * Convert to pixels using PixelConverter.fromPoint
+ */
+/**
+ * Stored in terms of 'pt'
+ * Convert to pixels using PixelConverter.fromPoint
+ */
+const TextSizeMin = 8;
+/**
+ * Stored in terms of 'pt'
+ * Convert to pixels using PixelConverter.fromPoint
+ */
+const TextSizeMax = 40;
+const TextSizeRange = TextSizeMax - TextSizeMin;
+/**
+ * Returns the percentage of this value relative to the TextSizeMax
+ * @param textSize - should be given in terms of 'pt'
+ */
+function getScale(textSize) {
+    return (textSize - TextSizeMin) / TextSizeRange;
 }
-NumericSequenceRange.DEFAULT_MAX = 10;
-NumericSequenceRange.MIN_SUPPORTED_DOUBLE = -1E307;
-NumericSequenceRange.MAX_SUPPORTED_DOUBLE = 1E307;
-/** Note: Exported for testability */
-function hasValue(value) {
-    return value !== undefined && value !== null;
-}
-//# sourceMappingURL=numericSequenceRange.js.map
+//# sourceMappingURL=textSizeDefaults.js.map
 
 /***/ }),
 
-/***/ 823:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ 8639:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   D: () => (/* binding */ getPropertyValue),
+/* harmony export */   y: () => (/* binding */ getDescriptor)
+/* harmony export */ });
+/**
+ * Build and return formatting descriptor for simple slice
+ *
+ * @param objectName Object name from capabilities
+ * @param slice formatting simple slice
+ * @returns simple slice formatting descriptor
+ */
+function getDescriptor(objectName, slice) {
+    return {
+        objectName: objectName,
+        propertyName: slice.name,
+        selector: slice.selector,
+        altConstantValueSelector: slice.altConstantSelector,
+        instanceKind: slice.instanceKind
+    };
+}
+/**
+ * Get property value from dataview objects if exists
+ * Else return the default value from formatting settings object
+ *
+ * @param value dataview object value
+ * @param defaultValue formatting settings default value
+ * @returns formatting property value
+ */
+function getPropertyValue(slice, value, defaultValue) {
+    if (value == null || (typeof value === "object" && !value.solid)) {
+        return defaultValue;
+    }
+    if (value.solid) {
+        return { value: value === null || value === void 0 ? void 0 : value.solid.color };
+    }
+    if ((slice === null || slice === void 0 ? void 0 : slice.type) === "Dropdown" /* visuals.FormattingComponent.Dropdown */ && slice.items) {
+        const itemsArray = slice.items;
+        return itemsArray.find(item => item.value == value);
+    }
+    return value;
+}
+//# sourceMappingURL=FormattingSettingsUtils.js.map
 
+/***/ }),
+
+/***/ 8732:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   equals: () => (/* binding */ equals)
+/* harmony export */ });
 /*
  *  Power BI Visualizations
  *
@@ -8462,73 +8403,28 @@ function hasValue(value) {
  *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *  THE SOFTWARE.
  */
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.FamilyInfo = void 0;
-var FamilyInfo = /** @class */ (function () {
-    function FamilyInfo(families) {
-        this.families = families;
-    }
-    Object.defineProperty(FamilyInfo.prototype, "family", {
-        /**
-         * Gets the first font "wf_" font family since it will always be loaded.
-         */
-        get: function () {
-            return this.getFamily();
-        },
-        enumerable: false,
-        configurable: true
-    });
-    /**
-    * Gets the first font family that matches regex (if provided).
-    * Default regex looks for "wf_" fonts which are always loaded.
-    */
-    FamilyInfo.prototype.getFamily = function (regex) {
-        if (regex === void 0) { regex = /^wf_/; }
-        if (!this.families) {
-            return null;
-        }
-        if (regex) {
-            for (var _i = 0, _a = this.families; _i < _a.length; _i++) {
-                var fontFamily = _a[_i];
-                if (regex.test(fontFamily)) {
-                    return fontFamily;
-                }
-            }
-        }
-        return this.families[0];
-    };
-    Object.defineProperty(FamilyInfo.prototype, "css", {
-        /**
-         * Gets the CSS string for the "font-family" CSS attribute.
-         */
-        get: function () {
-            return this.getCSS();
-        },
-        enumerable: false,
-        configurable: true
-    });
-    /**
-     * Gets the CSS string for the "font-family" CSS attribute.
-     */
-    FamilyInfo.prototype.getCSS = function () {
-        return this.families ? this.families.map((function (font) { return font.indexOf(" ") > 0 ? "'" + font + "'" : font; })).join(", ") : null;
-    };
-    return FamilyInfo;
-}());
-exports.FamilyInfo = FamilyInfo;
-//# sourceMappingURL=familyInfo.js.map
+// NOTE: this file includes standalone utilities that should have no dependencies on external libraries, including jQuery.
+/**
+ * Performs JSON-style comparison of two objects.
+ */
+function equals(x, y) {
+    if (x === y)
+        return true;
+    return JSON.stringify(x) === JSON.stringify(y);
+}
+//# sourceMappingURL=jsonComparer.js.map
 
 /***/ }),
 
-/***/ 849:
+/***/ 8849:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   b: () => (/* binding */ Visual)
 /* harmony export */ });
-/* harmony import */ var powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(674);
-/* harmony import */ var powerbi_visuals_utils_formattingutils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(230);
-/* harmony import */ var _settings__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(480);
+/* harmony import */ var powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7674);
+/* harmony import */ var powerbi_visuals_utils_formattingutils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(1230);
+/* harmony import */ var _settings__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(1480);
 /*
  *  Power BI Visual CLI
  *
@@ -8782,12 +8678,8 @@ class Visual {
                 th.textContent = String(column.value);
             }
         }
-        else if (this.formattingSettings.generalSettings.showMeasureName.value) {
-            // Use measure name if column is empty and showMeasureName is true
-            th.textContent = this.getMeasureDynamically();
-        }
         else {
-            th.textContent = "";
+            th.textContent = this.getMeasureDynamically();
         }
         return th;
     }
@@ -9580,7 +9472,7 @@ class Visual {
 
 /***/ }),
 
-/***/ 857:
+/***/ 8857:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -9726,236 +9618,334 @@ exports.splitByWidth = splitByWidth;
 
 /***/ }),
 
-/***/ 865:
+/***/ 9754:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   getBitCount: () => (/* binding */ getBitCount),
-/* harmony export */   hasFlag: () => (/* binding */ hasFlag),
-/* harmony export */   resetFlag: () => (/* binding */ resetFlag),
-/* harmony export */   setFlag: () => (/* binding */ setFlag),
-/* harmony export */   toString: () => (/* binding */ toString)
+/* harmony export */   Kx: () => (/* binding */ Model),
+/* harmony export */   PA: () => (/* binding */ ItemDropdown),
+/* harmony export */   St: () => (/* binding */ CompositeCard),
+/* harmony export */   Tn: () => (/* binding */ SimpleCard),
+/* harmony export */   iB: () => (/* binding */ NumUpDown),
+/* harmony export */   jF: () => (/* binding */ ToggleSwitch),
+/* harmony export */   ks: () => (/* binding */ TextInput),
+/* harmony export */   sk: () => (/* binding */ ColorPicker)
 /* harmony export */ });
-/* harmony import */ var _double__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(312);
-/*
- *  Power BI Visualizations
+/* unused harmony exports CardGroupEntity, Group, SimpleSlice, AlignmentGroup, Slider, DatePicker, AutoDropdown, DurationPicker, ErrorRangeControl, FieldPicker, ItemFlagsSelection, AutoFlagsSelection, TextArea, FontPicker, GradientBar, ImageUpload, ListEditor, ReadOnlyText, ShapeMapSelector, CompositeSlice, FontControl, MarginPadding, Container, ContainerItem */
+/* harmony import */ var _utils_FormattingSettingsUtils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(8639);
+/**
+ * Powerbi utils components classes for custom visual formatting pane objects
  *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
  */
-// NOTE: this file includes standalone utilities that should have no dependencies on external libraries, including jQuery.
 
-/**
- * Extensions for Enumerations.
- */
-/**
- * Gets a value indicating whether the value has the bit flags set.
- */
-function hasFlag(value, flag) {
-    return (value & flag) === flag;
+class NamedEntity {
 }
-/**
- * Sets a value of a flag without modifying any other flags.
- */
-function setFlag(value, flag) {
-    return value |= flag;
+class CardGroupEntity extends NamedEntity {
 }
-/**
- * Resets a value of a flag without modifying any other flags.
- */
-function resetFlag(value, flag) {
-    return value &= ~flag;
+class Model {
 }
-/**
- * According to the TypeScript Handbook, this is safe to do.
- */
-function toString(enumType, value) {
-    return enumType[value];
+/** CompositeCard is use to populate a card into the formatting pane with multiple groups */
+class CompositeCard extends NamedEntity {
 }
-/**
- * Returns the number of 1's in the specified value that is a set of binary bit flags.
- */
-function getBitCount(value) {
-    if (!(0,_double__WEBPACK_IMPORTED_MODULE_0__.isInteger)(value))
-        return 0;
-    let bitCount = 0;
-    let shiftingValue = value;
-    while (shiftingValue !== 0) {
-        if ((shiftingValue & 1) === 1) {
-            bitCount++;
-        }
-        shiftingValue = shiftingValue >>> 1;
+class Group extends CardGroupEntity {
+    constructor(object) {
+        super();
+        Object.assign(this, object);
     }
-    return bitCount;
 }
-//# sourceMappingURL=enumExtensions.js.map
+/** SimpleCard is use to populate a card into the formatting pane in a single group */
+class SimpleCard extends CardGroupEntity {
+}
+class SimpleSlice extends NamedEntity {
+    constructor(object) {
+        super();
+        Object.assign(this, object);
+    }
+    getFormattingSlice(objectName, localizationManager) {
+        const controlType = this.type;
+        const propertyName = this.name;
+        const sliceDisplayName = (localizationManager && this.displayNameKey) ? localizationManager.getDisplayName(this.displayNameKey) : this.displayName;
+        const sliceDescription = (localizationManager && this.descriptionKey) ? localizationManager.getDisplayName(this.descriptionKey) : this.description;
+        const componentDisplayName = {
+            displayName: sliceDisplayName,
+            description: sliceDescription,
+            uid: objectName + '-' + propertyName,
+        };
+        return Object.assign(Object.assign({}, componentDisplayName), { control: {
+                type: controlType,
+                properties: this.getFormattingComponent(objectName, localizationManager)
+            } });
+    }
+    // eslint-disable-next-line
+    getFormattingComponent(objectName, localizationManager) {
+        return {
+            descriptor: _utils_FormattingSettingsUtils__WEBPACK_IMPORTED_MODULE_0__/* .getDescriptor */ .y(objectName, this),
+            value: this.value,
+        };
+    }
+    getRevertToDefaultDescriptor(objectName) {
+        return [{
+                objectName: objectName,
+                propertyName: this.name
+            }];
+    }
+    setPropertiesValues(dataViewObjects, objectName) {
+        var _a;
+        const newValue = (_a = dataViewObjects === null || dataViewObjects === void 0 ? void 0 : dataViewObjects[objectName]) === null || _a === void 0 ? void 0 : _a[this.name];
+        this.value = _utils_FormattingSettingsUtils__WEBPACK_IMPORTED_MODULE_0__/* .getPropertyValue */ .D(this, newValue, this.value);
+    }
+}
+class AlignmentGroup extends SimpleSlice {
+    constructor(object) {
+        super(object);
+        this.type = "AlignmentGroup" /* visuals.FormattingComponent.AlignmentGroup */;
+    }
+    getFormattingComponent(objectName) {
+        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { mode: this.mode, supportsNoSelection: this.supportsNoSelection });
+    }
+}
+class ToggleSwitch extends SimpleSlice {
+    constructor(object) {
+        super(object);
+        this.type = "ToggleSwitch" /* visuals.FormattingComponent.ToggleSwitch */;
+    }
+}
+class ColorPicker extends SimpleSlice {
+    constructor(object) {
+        super(object);
+        this.type = "ColorPicker" /* visuals.FormattingComponent.ColorPicker */;
+    }
+    getFormattingComponent(objectName) {
+        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { defaultColor: this.defaultColor, isNoFillItemSupported: this.isNoFillItemSupported });
+    }
+}
+class NumUpDown extends SimpleSlice {
+    constructor(object) {
+        super(object);
+        this.type = "NumUpDown" /* visuals.FormattingComponent.NumUpDown */;
+    }
+    getFormattingComponent(objectName) {
+        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { options: this.options });
+    }
+}
+class Slider extends NumUpDown {
+    constructor() {
+        super(...arguments);
+        this.type = "Slider" /* visuals.FormattingComponent.Slider */;
+    }
+}
+class DatePicker extends SimpleSlice {
+    constructor(object) {
+        super(object);
+        this.type = "DatePicker" /* visuals.FormattingComponent.DatePicker */;
+    }
+    getFormattingComponent(objectName, localizationManager) {
+        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { placeholder: (localizationManager && this.placeholderKey) ? localizationManager.getDisplayName(this.placeholderKey) : this.placeholder, validators: this.validators });
+    }
+}
+class ItemDropdown extends SimpleSlice {
+    constructor(object) {
+        super(object);
+        this.type = "Dropdown" /* visuals.FormattingComponent.Dropdown */;
+    }
+    getFormattingComponent(objectName) {
+        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { items: this.items });
+    }
+}
+class AutoDropdown extends SimpleSlice {
+    constructor(object) {
+        super(object);
+        this.type = "Dropdown" /* visuals.FormattingComponent.Dropdown */;
+    }
+    getFormattingComponent(objectName) {
+        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { mergeValues: this.mergeValues, filterValues: this.filterValues });
+    }
+}
+class DurationPicker extends SimpleSlice {
+    constructor(object) {
+        super(object);
+        this.type = "DurationPicker" /* visuals.FormattingComponent.DurationPicker */;
+    }
+    getFormattingComponent(objectName) {
+        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { validators: this.validators });
+    }
+}
+class ErrorRangeControl extends SimpleSlice {
+    constructor(object) {
+        super(object);
+        this.type = "ErrorRangeControl" /* visuals.FormattingComponent.ErrorRangeControl */;
+    }
+    getFormattingComponent(objectName) {
+        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { validators: this.validators });
+    }
+}
+class FieldPicker extends SimpleSlice {
+    constructor(object) {
+        super(object);
+        this.type = "FieldPicker" /* visuals.FormattingComponent.FieldPicker */;
+    }
+    getFormattingComponent(objectName) {
+        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { validators: this.validators, allowMultipleValues: this.allowMultipleValues });
+    }
+}
+class ItemFlagsSelection extends SimpleSlice {
+    constructor(object) {
+        super(object);
+        this.type = "FlagsSelection" /* visuals.FormattingComponent.FlagsSelection */;
+    }
+    getFormattingComponent(objectName) {
+        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { items: this.items });
+    }
+}
+class AutoFlagsSelection extends SimpleSlice {
+    constructor() {
+        super(...arguments);
+        this.type = "FlagsSelection" /* visuals.FormattingComponent.FlagsSelection */;
+    }
+}
+class TextInput extends SimpleSlice {
+    constructor(object) {
+        super(object);
+        this.type = "TextInput" /* visuals.FormattingComponent.TextInput */;
+    }
+    getFormattingComponent(objectName) {
+        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { placeholder: this.placeholder });
+    }
+}
+class TextArea extends TextInput {
+    constructor() {
+        super(...arguments);
+        this.type = "TextArea" /* visuals.FormattingComponent.TextArea */;
+    }
+}
+class FontPicker extends SimpleSlice {
+    constructor() {
+        super(...arguments);
+        this.type = "FontPicker" /* visuals.FormattingComponent.FontPicker */;
+    }
+}
+class GradientBar extends SimpleSlice {
+    constructor() {
+        super(...arguments);
+        this.type = "GradientBar" /* visuals.FormattingComponent.GradientBar */;
+    }
+}
+class ImageUpload extends SimpleSlice {
+    constructor() {
+        super(...arguments);
+        this.type = "ImageUpload" /* visuals.FormattingComponent.ImageUpload */;
+    }
+}
+class ListEditor extends SimpleSlice {
+    constructor() {
+        super(...arguments);
+        this.type = "ListEditor" /* visuals.FormattingComponent.ListEditor */;
+    }
+}
+class ReadOnlyText extends SimpleSlice {
+    constructor() {
+        super(...arguments);
+        this.type = "ReadOnlyText" /* visuals.FormattingComponent.ReadOnlyText */;
+    }
+}
+class ShapeMapSelector extends SimpleSlice {
+    constructor(object) {
+        super(object);
+        this.type = "ShapeMapSelector" /* visuals.FormattingComponent.ShapeMapSelector */;
+    }
+    getFormattingComponent(objectName) {
+        return Object.assign(Object.assign({}, super.getFormattingComponent(objectName)), { isAzMapReferenceSelector: this.isAzMapReferenceSelector });
+    }
+}
+class CompositeSlice extends NamedEntity {
+    constructor(object) {
+        super();
+        Object.assign(this, object);
+    }
+    getFormattingSlice(objectName, localizationManager) {
+        const controlType = this.type;
+        const propertyName = this.name;
+        const componentDisplayName = {
+            displayName: (localizationManager && this.displayNameKey) ? localizationManager.getDisplayName(this.displayNameKey) : this.displayName,
+            description: (localizationManager && this.descriptionKey) ? localizationManager.getDisplayName(this.descriptionKey) : this.description,
+            uid: objectName + '-' + propertyName,
+        };
+        return Object.assign(Object.assign({}, componentDisplayName), { control: {
+                type: controlType,
+                properties: this.getFormattingComponent(objectName)
+            } });
+    }
+}
+class FontControl extends CompositeSlice {
+    constructor(object) {
+        super(object);
+        this.type = "FontControl" /* visuals.FormattingComponent.FontControl */;
+    }
+    getFormattingComponent(objectName) {
+        var _a, _b, _c;
+        return {
+            fontFamily: this.fontFamily.getFormattingComponent(objectName),
+            fontSize: this.fontSize.getFormattingComponent(objectName),
+            bold: (_a = this.bold) === null || _a === void 0 ? void 0 : _a.getFormattingComponent(objectName),
+            italic: (_b = this.italic) === null || _b === void 0 ? void 0 : _b.getFormattingComponent(objectName),
+            underline: (_c = this.underline) === null || _c === void 0 ? void 0 : _c.getFormattingComponent(objectName)
+        };
+    }
+    getRevertToDefaultDescriptor(objectName) {
+        return this.fontFamily.getRevertToDefaultDescriptor(objectName)
+            .concat(this.fontSize.getRevertToDefaultDescriptor(objectName))
+            .concat(this.bold ? this.bold.getRevertToDefaultDescriptor(objectName) : [])
+            .concat(this.italic ? this.italic.getRevertToDefaultDescriptor(objectName) : [])
+            .concat(this.underline ? this.underline.getRevertToDefaultDescriptor(objectName) : []);
+    }
+    setPropertiesValues(dataViewObjects, objectName) {
+        var _a, _b, _c;
+        this.fontFamily.setPropertiesValues(dataViewObjects, objectName);
+        this.fontSize.setPropertiesValues(dataViewObjects, objectName);
+        (_a = this.bold) === null || _a === void 0 ? void 0 : _a.setPropertiesValues(dataViewObjects, objectName);
+        (_b = this.italic) === null || _b === void 0 ? void 0 : _b.setPropertiesValues(dataViewObjects, objectName);
+        (_c = this.underline) === null || _c === void 0 ? void 0 : _c.setPropertiesValues(dataViewObjects, objectName);
+    }
+}
+class MarginPadding extends CompositeSlice {
+    constructor(object) {
+        super(object);
+        this.type = "MarginPadding" /* visuals.FormattingComponent.MarginPadding */;
+    }
+    getFormattingComponent(objectName) {
+        return {
+            left: this.left.getFormattingComponent(objectName),
+            right: this.right.getFormattingComponent(objectName),
+            top: this.top.getFormattingComponent(objectName),
+            bottom: this.bottom.getFormattingComponent(objectName)
+        };
+    }
+    getRevertToDefaultDescriptor(objectName) {
+        return this.left.getRevertToDefaultDescriptor(objectName)
+            .concat(this.right.getRevertToDefaultDescriptor(objectName))
+            .concat(this.top.getRevertToDefaultDescriptor(objectName))
+            .concat(this.bottom.getRevertToDefaultDescriptor(objectName));
+    }
+    setPropertiesValues(dataViewObjects, objectName) {
+        this.left.setPropertiesValues(dataViewObjects, objectName);
+        this.right.setPropertiesValues(dataViewObjects, objectName);
+        this.top.setPropertiesValues(dataViewObjects, objectName);
+        this.bottom.setPropertiesValues(dataViewObjects, objectName);
+    }
+}
+class Container extends NamedEntity {
+    constructor(object) {
+        super();
+        Object.assign(this, object);
+    }
+}
+class ContainerItem extends (/* unused pure expression or super */ null && (NamedEntity)) {
+}
+//# sourceMappingURL=FormattingSettingsComponents.js.map
 
 /***/ }),
 
-/***/ 880:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   getCategoryIndexOfRole: () => (/* binding */ getCategoryIndexOfRole),
-/* harmony export */   getMeasureIndexOfRole: () => (/* binding */ getMeasureIndexOfRole),
-/* harmony export */   hasRole: () => (/* binding */ hasRole),
-/* harmony export */   hasRoleInDataView: () => (/* binding */ hasRoleInDataView),
-/* harmony export */   hasRoleInValueColumn: () => (/* binding */ hasRoleInValueColumn)
-/* harmony export */ });
-function getMeasureIndexOfRole(grouped, roleName) {
-    if (!grouped || !grouped.length) {
-        return -1;
-    }
-    const firstGroup = grouped[0];
-    if (firstGroup.values && firstGroup.values.length > 0) {
-        for (let i = 0, len = firstGroup.values.length; i < len; ++i) {
-            const value = firstGroup.values[i];
-            if (value && value.source) {
-                if (hasRole(value.source, roleName)) {
-                    return i;
-                }
-            }
-        }
-    }
-    return -1;
-}
-function getCategoryIndexOfRole(categories, roleName) {
-    if (categories && categories.length) {
-        for (let i = 0, ilen = categories.length; i < ilen; i++) {
-            if (hasRole(categories[i].source, roleName)) {
-                return i;
-            }
-        }
-    }
-    return -1;
-}
-function hasRole(column, name) {
-    const roles = column.roles;
-    return roles && roles[name];
-}
-function hasRoleInDataView(dataView, name) {
-    return dataView != null
-        && dataView.metadata != null
-        && dataView.metadata.columns
-        && dataView.metadata.columns.some((c) => c.roles && c.roles[name] !== undefined); // any is an alias of some
-}
-function hasRoleInValueColumn(valueColumn, name) {
-    return valueColumn
-        && valueColumn.source
-        && valueColumn.source.roles
-        && (valueColumn.source.roles[name] === true);
-}
-//# sourceMappingURL=dataRoleHelper.js.map
-
-/***/ }),
-
-/***/ 901:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   getCommonValue: () => (/* binding */ getCommonValue),
-/* harmony export */   getFillColor: () => (/* binding */ getFillColor),
-/* harmony export */   getObject: () => (/* binding */ getObject),
-/* harmony export */   getValue: () => (/* binding */ getValue)
-/* harmony export */ });
-/* harmony import */ var _dataViewObject__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(182);
-
-/** Gets the value of the given object/property pair. */
-function getValue(objects, propertyId, defaultValue) {
-    if (!objects) {
-        return defaultValue;
-    }
-    return _dataViewObject__WEBPACK_IMPORTED_MODULE_0__.getValue(objects[propertyId.objectName], propertyId.propertyName, defaultValue);
-}
-/** Gets an object from objects. */
-function getObject(objects, objectName, defaultValue) {
-    if (objects && objects[objectName]) {
-        return objects[objectName];
-    }
-    return defaultValue;
-}
-/** Gets the solid color from a fill property. */
-function getFillColor(objects, propertyId, defaultColor) {
-    const value = getValue(objects, propertyId);
-    if (!value || !value.solid) {
-        return defaultColor;
-    }
-    return value.solid.color;
-}
-function getCommonValue(objects, propertyId, defaultValue) {
-    const value = getValue(objects, propertyId, defaultValue);
-    if (value && value.solid) {
-        return value.solid.color;
-    }
-    if (value === undefined
-        || value === null
-        || (typeof value === "object" && !value.solid)) {
-        return defaultValue;
-    }
-    return value;
-}
-//# sourceMappingURL=dataViewObjects.js.map
-
-/***/ }),
-
-/***/ 910:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-//# sourceMappingURL=interfaces.js.map
-
-/***/ }),
-
-/***/ 978:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-/*
- * Globalize Cultures
- *
- * http://github.com/jquery/globalize
- *
- * Copyright Software Freedom Conservancy, Inc.
- * Dual licensed under the MIT or GPL Version 2 licenses.
- * http://jquery.org/license
- *
- * This file was generated by the Globalize Culture Generator
- * Translation: bugs found in this file need to be fixed in the generator
- */
-var powerbiGlobalizeLocales_1 = __webpack_require__(774);
-function injectCultures(Globalize) {
-    Object.keys(powerbiGlobalizeLocales_1.locales).forEach(function (locale) { return Globalize.addCultureInfo.apply(Globalize, powerbiGlobalizeLocales_1.locales[locale]); });
-}
-exports["default"] = injectCultures;
-//# sourceMappingURL=globalize.cultures.js.map
-
-/***/ }),
-
-/***/ 991:
+/***/ 9991:
 /***/ ((__unused_webpack_module, exports) => {
 
 
@@ -10172,7 +10162,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (visualPlugin)
 /* harmony export */ });
-/* harmony import */ var visualPlugin_src_visual_WEBPACK_IMPORTED_MODULE_0_ = __webpack_require__(849);
+/* harmony import */ var visualPlugin_src_visual_WEBPACK_IMPORTED_MODULE_0_ = __webpack_require__(8849);
 
 var visualPlugin_powerbiKey = "powerbi";
 var visualPlugin_powerbi = window[visualPlugin_powerbiKey];

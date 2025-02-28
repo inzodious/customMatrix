@@ -15,6 +15,7 @@ export declare class Visual implements IVisual {
     private createContainerElements;
     update(options: VisualUpdateOptions): void;
     private getMeasureName;
+    private getFormatString;
     private getNodeId;
     private initializeExpandedState;
     private isExpanded;
@@ -43,6 +44,7 @@ export declare class Visual implements IVisual {
      * Create and append grand total row
      */
     private addGrandTotalRow;
+    private cachedFormatString;
     private formatNumber;
     private applyTableFormatting;
     private formatCellsByType;

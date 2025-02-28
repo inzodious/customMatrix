@@ -9,6 +9,7 @@
 
 import powerbi from "powerbi-visuals-api";
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
+import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 import "./../style/visual.less";
 
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
@@ -17,6 +18,8 @@ import IVisual = powerbi.extensibility.visual.IVisual;
 import DataView = powerbi.DataView;
 
 import { VisualFormattingSettingsModel } from "./settings";
+
+
 
 // Interfaces for matrix data
 interface MatrixNode {
@@ -102,6 +105,8 @@ export class Visual implements IVisual {
         
         try {
             const dataView = options.dataViews[0];
+            // Get and cache the format string
+            this.cachedFormatString = this.getFormatString(dataView);
             
             // Check if we have matrix data
             if (!dataView.matrix) {
@@ -137,6 +142,25 @@ export class Visual implements IVisual {
         }
         
         return "Amount"; // Default fallback
+    }
+
+    private getFormatString(dataView: DataView): string {
+        // Try to get from matrix valueSources
+        if (dataView.matrix?.valueSources?.[0]?.format) {
+            return dataView.matrix.valueSources[0].format;
+        }
+        
+        // Try to get from metadata columns with 'values' role
+        if (dataView.metadata?.columns) {
+            const valueColumn = dataView.metadata.columns.find(col => 
+                col.roles && (col.roles.values || col.roles.value || col.roles.measures || col.roles.measure));
+                
+            if (valueColumn?.format) {
+                return valueColumn.format;
+            }
+        }
+        
+        return "#,0.00"; // Default fallback format
     }
 
     // Generate unique ID for tracking expanded state
@@ -772,12 +796,19 @@ export class Visual implements IVisual {
         tfoot.appendChild(tr);
     }
     
+    private cachedFormatString: string = "#,0.00";
+
     // Format number with locale and decimal places
-    private formatNumber(value: number): string {
-        return value.toLocaleString(undefined, {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2
+    private formatNumber(value: number, formatString?: string): string {
+        if (!formatString) {
+            formatString = this.cachedFormatString;
+        }
+        
+        const formatter = valueFormatter.create({
+            format: formatString
         });
+        
+        return formatter.format(value);
     }
     
     // Apply all formatting to the table

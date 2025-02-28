@@ -11,6 +11,8 @@ export declare class Visual implements IVisual {
     private host;
     private expandedRows;
     private lastOptions;
+    private animatingNodes;
+    private animationTimeouts;
     constructor(options: VisualConstructorOptions);
     private createContainerElements;
     update(options: VisualUpdateOptions): void;
@@ -20,6 +22,7 @@ export declare class Visual implements IVisual {
     private initializeExpandedState;
     private isExpanded;
     private toggleExpanded;
+    private cleanupAnimation;
     private getAllDescendants;
     private isDescendantOf;
     private createMatrixTable;

@@ -60,6 +60,8 @@ export class Visual implements IVisual {
     private host: powerbi.extensibility.visual.IVisualHost;
     private expandedRows: Map<string, boolean>;
     private lastOptions: VisualUpdateOptions;
+    private animatingNodes: Set<string> = new Set();
+    private animationTimeouts: Map<string, number> = new Map();
 
     constructor(options: VisualConstructorOptions) {
         this.target = options.element;
@@ -195,79 +197,120 @@ export class Visual implements IVisual {
     
     // Toggle expanded state of a node
     private toggleExpanded(nodeId: string): void {
+        // Prevent rapid clicking issues
+        if (this.animatingNodes.has(nodeId)) {
+          // Clean up any pending animations for this node
+          this.cleanupAnimation(nodeId);
+        }
+        
+        // Mark this node as animating
+        this.animatingNodes.add(nodeId);
+        
         const isExpanded = this.isExpanded(nodeId);
         this.expandedRows.set(nodeId, !isExpanded);
         
+        // Get direct children for animation
+        const directChildren = Array.from(
+          this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`)
+        ) as HTMLElement[];
+        
+        // Set a timeout to ensure animation completes even if interrupted
+        const timeout = window.setTimeout(() => {
+          this.cleanupAnimation(nodeId);
+        }, 500); // 500ms safety net for animation completion
+        this.animationTimeouts.set(nodeId, timeout);
+        
         if (isExpanded) {
           // COLLAPSING
+          // Handle descendants as before...
           
-          // First, identify all descendants at all levels
-          const allDescendants = this.getAllDescendants(nodeId);
-          
-          // Group descendants by their immediate parent
-          const directChildren = allDescendants.filter(row => 
-            row.getAttribute('data-parent-id') === nodeId
-          );
-          
-          // Immediately hide all non-direct descendants without animation
-          allDescendants
-            .filter(row => !directChildren.includes(row))
-            .forEach(row => {
-              row.classList.add('collapsed');
-              const childNodeId = row.getAttribute('data-node-id');
-              if (childNodeId) this.expandedRows.set(childNodeId, false);
-            });
-          
-          // Animate only direct children
           directChildren.forEach((row: HTMLElement, index: number) => {
+            // Remove any existing animation classes first
+            row.classList.remove('expanding-wave');
+            
             const rowHeight = row.offsetHeight;
             row.style.setProperty('--row-height', `${rowHeight}px`);
             row.style.animationDelay = `${index * 40}ms`;
             
             row.classList.add('collapsing-wave');
             row.addEventListener('animationend', () => {
-              row.classList.add('collapsed');
-              row.classList.remove('collapsing-wave');
-              row.style.animationDelay = '0ms';
+              if (this.animatingNodes.has(nodeId)) {
+                row.classList.add('collapsed');
+                row.classList.remove('collapsing-wave');
+                row.style.animationDelay = '0ms';
+              }
             }, { once: true });
           });
         } else {
           // EXPANDING
+          // Hide descendants as before...
           
-          // 1. Make sure ALL descendants are initially hidden
-          const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]'));
-          allRows.forEach(row => {
-            const parentId = row.getAttribute('data-parent-id');
-            // If this row is a descendant at any level of our target node
-            if (this.isDescendantOf(parentId, nodeId)) {
-              row.classList.add('collapsed');
-            }
-          });
-          
-          // 2. Get only direct children
-          const directChildren = allRows.filter(row => 
-            row.getAttribute('data-parent-id') === nodeId
-          );
-          
-          // 3. Animate only direct children
           directChildren.forEach((row: HTMLElement, index: number) => {
-            const rowHeight = row.offsetHeight || 50; 
+            // Remove any existing animation classes first
+            row.classList.remove('collapsing-wave');
+            
+            const rowHeight = row.offsetHeight || 50;
             row.style.setProperty('--row-height', `${rowHeight}px`);
             row.style.animationDelay = `${index * 40}ms`;
             
             row.classList.add('expanding-wave');
             
-            // Brief delay to set up animation properly
             setTimeout(() => {
-              row.classList.remove('collapsed');
+              if (this.animatingNodes.has(nodeId)) {
+                row.classList.remove('collapsed');
+              }
             }, 10);
             
             row.addEventListener('animationend', () => {
-              row.classList.remove('expanding-wave');
-              row.style.animationDelay = '0ms';
+              if (this.animatingNodes.has(nodeId)) {
+                row.classList.remove('expanding-wave');
+                row.style.animationDelay = '0ms';
+              }
             }, { once: true });
           });
         }
+        
+        // Add event listener for the last child to complete animation
+        if (directChildren.length > 0) {
+          const lastChild = directChildren[directChildren.length - 1];
+          lastChild.addEventListener('animationend', () => {
+            this.cleanupAnimation(nodeId);
+          }, { once: true });
+        } else {
+          // No children to animate, so clean up immediately
+          this.cleanupAnimation(nodeId);
+        }
+      }
+
+      private cleanupAnimation(nodeId: string): void {
+        // Clear any pending timeouts
+        const timeout = this.animationTimeouts.get(nodeId);
+        if (timeout) {
+          window.clearTimeout(timeout);
+          this.animationTimeouts.delete(nodeId);
+        }
+        
+        // Remove from animating set
+        this.animatingNodes.delete(nodeId);
+        
+        // Do final state cleanup for all child rows
+        const directChildren = Array.from(
+          this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`)
+        ) as HTMLElement[];
+        
+        const isExpanded = this.isExpanded(nodeId);
+        directChildren.forEach(row => {
+          // Clean up animation classes
+          row.classList.remove('expanding-wave', 'collapsing-wave');
+          row.style.animationDelay = '0ms';
+          
+          // Set final state
+          if (isExpanded) {
+            row.classList.remove('collapsed');
+          } else {
+            row.classList.add('collapsed');
+          }
+        });
       }
 
     // Helper to get all descendants of a node at all levels

@@ -8571,7 +8571,36 @@ class Visual {
     }
     // Toggle expanded state of a node
     toggleExpanded(nodeId) {
-        this.expandedRows.set(nodeId, !this.isExpanded(nodeId));
+        const isExpanded = this.isExpanded(nodeId);
+        this.expandedRows.set(nodeId, !isExpanded);
+        // Get all child rows associated with this node
+        const childRows = Array.from(this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`));
+        // Apply animations with staggered delays for wave effect
+        childRows.forEach((row, index) => {
+            const rowHeight = row.offsetHeight;
+            row.style.setProperty('--row-height', `${rowHeight}px`);
+            // Calculate a staggered delay based on the row index (creates wave effect)
+            const delay = index * 40; // 40ms delay between each row
+            row.style.animationDelay = `${delay}ms`;
+            if (isExpanded) {
+                // Collapsing
+                row.classList.add('collapsing-wave');
+                row.addEventListener('animationend', () => {
+                    row.classList.add('collapsed');
+                    row.classList.remove('collapsing-wave');
+                    row.style.animationDelay = '0ms';
+                }, { once: true });
+            }
+            else {
+                // Expanding
+                row.classList.remove('collapsed');
+                row.classList.add('expanding-wave');
+                row.addEventListener('animationend', () => {
+                    row.classList.remove('expanding-wave');
+                    row.style.animationDelay = '0ms';
+                }, { once: true });
+            }
+        });
     }
     // Main table creation method
     createMatrixTable(matrix, measureName) {
@@ -8730,7 +8759,6 @@ class Visual {
             return;
         const tbody = table.querySelector('tbody');
         const columnWidth = this.formattingSettings.generalSettings.columnWidth.value;
-        // Always apply subtotal formatting to level0
         const applySubtotalToLevel0 = true;
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
@@ -8741,6 +8769,18 @@ class Visual {
             const tr = document.createElement("tr");
             tr.setAttribute("data-node-id", nodeId);
             tr.setAttribute("data-level", String(level));
+            // Important: Set parent-id attribute for animation targeting
+            if (parentId) {
+                tr.setAttribute("data-parent-id", parentId);
+            }
+            // Add expandable-row class if this is a child row
+            if (level > 0) {
+                tr.classList.add("expandable-row");
+                // Apply collapsed class based on parent's expanded state
+                if (!isExpanded) {
+                    tr.classList.add("collapsed");
+                }
+            }
             if (isLevel0) {
                 tr.classList.add(CSS_CLASSES.LEVEL_0_ROW);
             }
@@ -8819,10 +8859,26 @@ class Visual {
         toggleButton.className = "toggle-button";
         toggleButton.textContent = isExpanded ? "▼" : "►";
         toggleButton.style.flexShrink = "0";
+        toggleButton.style.transition = "transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55)";
+        toggleButton.style.display = "inline-block";
+        if (isExpanded) {
+            toggleButton.style.transform = "rotate(0deg)";
+        }
+        else {
+            toggleButton.style.transform = "rotate(-90deg)";
+        }
         toggleButton.onclick = (event) => {
             event.stopPropagation();
+            // Animate the toggle button with a bouncy effect
+            if (this.isExpanded(nodeId)) {
+                toggleButton.style.transform = "rotate(-90deg)";
+                setTimeout(() => toggleButton.textContent = "►", 150);
+            }
+            else {
+                toggleButton.style.transform = "rotate(0deg)";
+                setTimeout(() => toggleButton.textContent = "▼", 150);
+            }
             this.toggleExpanded(nodeId);
-            this.renderVisualWithCurrentState();
         };
         return toggleButton;
     }

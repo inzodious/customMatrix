@@ -148,3 +148,92 @@ matrix-table tfoot {
 .matrix-table tfoot td {
     padding: 10px;
 }
+
+.matrix-table tr {
+    transition: all 0.3s ease-out;
+  }
+  
+.matrix-table .expandable-row {
+overflow: hidden;
+}
+
+.matrix-table .collapsed {
+height: 0;
+opacity: 0;
+display: none;
+}
+
+.matrix-table .expanding {
+animation: expand 0.3s ease-out forwards;
+}
+
+.matrix-table .collapsing {
+animation: collapse 0.3s ease-out forwards;
+}
+
+@keyframes expand {
+from { 
+    height: 0;
+    opacity: 0;
+}
+to { 
+    height: var(--row-height);
+    opacity: 1;
+}
+}
+
+@keyframes collapse {
+from { 
+    height: var(--row-height);
+    opacity: 1;
+}
+to { 
+    height: 0;
+    opacity: 0;
+    display: none;
+}
+}
+@keyframes expandWave {
+    0% { 
+      height: 0;
+      opacity: 0;
+      transform: scaleY(0.3) translateY(-20px);
+    }
+    50% {
+      transform: scaleY(1.05) translateY(2px);
+    }
+    70% {
+      transform: scaleY(0.98) translateY(-1px);
+    }
+    100% { 
+      height: var(--row-height);
+      opacity: 1;
+      transform: scaleY(1) translateY(0);
+    }
+  }
+  
+  @keyframes collapseWave {
+    0% { 
+      height: var(--row-height);
+      opacity: 1;
+      transform: scaleY(1) translateY(0);
+    }
+    30% {
+      transform: scaleY(1.02) translateY(1px);
+    }
+    100% { 
+      height: 0;
+      opacity: 0;
+      transform: scaleY(0.3) translateY(-20px);
+    }
+  }
+  
+  .matrix-table .expanding-wave {
+    animation: expandWave 0.5s ease-out forwards;
+    transform-origin: top;
+  }
+  
+  .matrix-table .collapsing-wave {
+    animation: collapseWave 0.4s ease-in forwards;
+    transform-origin: top;
+  }

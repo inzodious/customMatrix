@@ -34,6 +34,7 @@ export declare class Visual implements IVisual {
     private addSubtotalCells;
     private addDataCells;
     private addBlankRowIfNeeded;
+    private addBlankRowBeforeTotal;
     private formatCellValue;
     private calculateSubtotalForColumn;
     /**

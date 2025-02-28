@@ -9026,6 +9026,32 @@ class Visual {
             tbody.appendChild(blankRow);
         }
     }
+    addBlankRowBeforeTotal(tfoot, columns) {
+        const blankRowSettings = this.formattingSettings.blankRowSettings;
+        // Only add blank row if the setting is enabled
+        if (!blankRowSettings.enableBlankRows.value) {
+            return;
+        }
+        // Create blank row
+        const blankRow = document.createElement("tr");
+        blankRow.className = CSS_CLASSES.BLANK_ROW;
+        // Set the height if specified
+        const rowHeight = blankRowSettings.height.value;
+        if (rowHeight > 0) {
+            blankRow.style.height = `${rowHeight}px`;
+        }
+        // Create a cell that spans all columns
+        const blankCell = document.createElement("td");
+        blankCell.colSpan = columns.length + 1; // +1 for row header column
+        // Apply background color from settings
+        const bgColor = blankRowSettings.backgroundColor.value.value;
+        if (bgColor) {
+            blankCell.style.backgroundColor = bgColor;
+        }
+        // Add the cell to the row and the row to the table footer
+        blankRow.appendChild(blankCell);
+        tfoot.appendChild(blankRow);
+    }
     // Format cell value based on type
     formatCellValue(value) {
         if (value === null || value === undefined) {
@@ -9133,6 +9159,7 @@ class Visual {
             // Clear existing content
             tfoot.innerHTML = '';
         }
+        this.addBlankRowBeforeTotal(tfoot, columns);
         // Create the grand total row
         const tr = document.createElement('tr');
         tr.className = CSS_CLASSES.GRAND_TOTAL_ROW;
@@ -9468,6 +9495,23 @@ class Visual {
         table.style.setProperty('--border-color', borderColor);
         table.style.setProperty('--border-width', `${borderWidth}px`);
         table.style.setProperty('--border-style', 'solid');
+        // Add this block to enforce consistent borders on sticky headers
+        if (borderSettings.show.value) {
+            // Force consistent border width on sticky headers
+            const rowHeaders = table.querySelectorAll('th.row-header');
+            rowHeaders.forEach(header => {
+                if (showVertical) {
+                    header.style.borderRightWidth = `${borderWidth}px`;
+                    header.style.borderLeftWidth = `${borderWidth}px`;
+                }
+                if (showHorizontal) {
+                    header.style.borderTopWidth = `${borderWidth}px`;
+                    header.style.borderBottomWidth = `${borderWidth}px`;
+                }
+                header.style.borderColor = borderColor;
+                header.style.borderStyle = 'solid';
+            });
+        }
     }
     // Helper method to adjust color brightness
     adjustColor(color, amount) {

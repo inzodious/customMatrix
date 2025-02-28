@@ -198,37 +198,113 @@ export class Visual implements IVisual {
         const isExpanded = this.isExpanded(nodeId);
         this.expandedRows.set(nodeId, !isExpanded);
         
-        // Get all child rows associated with this node
-        const childRows = Array.from(this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`));
-        
-        // Apply animations with staggered delays for wave effect
-        childRows.forEach((row: HTMLElement, index: number) => {
+        if (isExpanded) {
+          // COLLAPSING
+          
+          // First, identify all descendants at all levels
+          const allDescendants = this.getAllDescendants(nodeId);
+          
+          // Group descendants by their immediate parent
+          const directChildren = allDescendants.filter(row => 
+            row.getAttribute('data-parent-id') === nodeId
+          );
+          
+          // Immediately hide all non-direct descendants without animation
+          allDescendants
+            .filter(row => !directChildren.includes(row))
+            .forEach(row => {
+              row.classList.add('collapsed');
+              const childNodeId = row.getAttribute('data-node-id');
+              if (childNodeId) this.expandedRows.set(childNodeId, false);
+            });
+          
+          // Animate only direct children
+          directChildren.forEach((row: HTMLElement, index: number) => {
             const rowHeight = row.offsetHeight;
             row.style.setProperty('--row-height', `${rowHeight}px`);
+            row.style.animationDelay = `${index * 40}ms`;
             
-            // Calculate a staggered delay based on the row index (creates wave effect)
-            const delay = index * 40; // 40ms delay between each row
-            row.style.animationDelay = `${delay}ms`;
-            
-            if (isExpanded) {
-                // Collapsing
-                row.classList.add('collapsing-wave');
-                row.addEventListener('animationend', () => {
-                    row.classList.add('collapsed');
-                    row.classList.remove('collapsing-wave');
-                    row.style.animationDelay = '0ms';
-                }, { once: true });
-            } else {
-                // Expanding
-                row.classList.remove('collapsed');
-                row.classList.add('expanding-wave');
-                row.addEventListener('animationend', () => {
-                    row.classList.remove('expanding-wave');
-                    row.style.animationDelay = '0ms';
-                }, { once: true });
+            row.classList.add('collapsing-wave');
+            row.addEventListener('animationend', () => {
+              row.classList.add('collapsed');
+              row.classList.remove('collapsing-wave');
+              row.style.animationDelay = '0ms';
+            }, { once: true });
+          });
+        } else {
+          // EXPANDING
+          
+          // 1. Make sure ALL descendants are initially hidden
+          const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]'));
+          allRows.forEach(row => {
+            const parentId = row.getAttribute('data-parent-id');
+            // If this row is a descendant at any level of our target node
+            if (this.isDescendantOf(parentId, nodeId)) {
+              row.classList.add('collapsed');
             }
+          });
+          
+          // 2. Get only direct children
+          const directChildren = allRows.filter(row => 
+            row.getAttribute('data-parent-id') === nodeId
+          );
+          
+          // 3. Animate only direct children
+          directChildren.forEach((row: HTMLElement, index: number) => {
+            const rowHeight = row.offsetHeight || 50; 
+            row.style.setProperty('--row-height', `${rowHeight}px`);
+            row.style.animationDelay = `${index * 40}ms`;
+            
+            row.classList.add('expanding-wave');
+            
+            // Brief delay to set up animation properly
+            setTimeout(() => {
+              row.classList.remove('collapsed');
+            }, 10);
+            
+            row.addEventListener('animationend', () => {
+              row.classList.remove('expanding-wave');
+              row.style.animationDelay = '0ms';
+            }, { once: true });
+          });
+        }
+      }
+
+    // Helper to get all descendants of a node at all levels
+    private getAllDescendants(nodeId: string): HTMLElement[] {
+        const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]')) as HTMLElement[];
+        const descendants: HTMLElement[] = [];
+        
+        // First get direct children
+        const directChildren = allRows.filter(row => 
+        row.getAttribute('data-parent-id') === nodeId
+        );
+        
+        // Add direct children to results
+        descendants.push(...directChildren);
+        
+        // Recursively add their descendants
+        directChildren.forEach(child => {
+        const childId = child.getAttribute('data-node-id');
+        if (childId) {
+            descendants.push(...this.getAllDescendants(childId));
+        }
         });
+        
+        return descendants;
     }
+    
+    // Helper to check if a row is a descendant of a specific node
+private isDescendantOf(rowParentId: string | null, ancestorId: string): boolean {
+    if (!rowParentId) return false;
+    if (rowParentId === ancestorId) return true;
+    
+    const parentElement = this.tableDiv.querySelector(`tr[data-node-id="${rowParentId}"]`);
+    if (!parentElement) return false;
+    
+    const grandparentId = parentElement.getAttribute('data-parent-id');
+    return this.isDescendantOf(grandparentId, ancestorId);
+  }
     
     // Main table creation method
     private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): void {
@@ -278,6 +354,38 @@ export class Visual implements IVisual {
         this.applyTableFormatting(table);
     }
     
+    // Add this helper method to recursively handle descendants
+    private recursivelyToggleDescendants(parentNodeId: string, expand: boolean): void {
+        // Get all rows
+        const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]'));
+        
+        // Process direct children first
+        const directChildren = allRows.filter(row => 
+        row.getAttribute('data-parent-id') === parentNodeId
+        );
+        
+        // For each direct child
+        directChildren.forEach(childRow => {
+        const childNodeId = childRow.getAttribute('data-node-id');
+        if (!childNodeId) return;
+        
+        // Update expanded state for this child
+        this.expandedRows.set(childNodeId, expand);
+        
+        // If we're collapsing, recursively collapse all descendants
+        if (!expand) {
+            this.recursivelyToggleDescendants(childNodeId, expand);
+        }
+        
+        // Apply visibility classes
+        if (!expand) {
+            childRow.classList.add('collapsed');
+        } else {
+            childRow.classList.remove('collapsed');
+        }
+        });
+    }
+
     // Process columns data
     private processColumns(matrix: powerbi.DataViewMatrix, measureName: string): { columns: any[], columnFormats: string[] } {
         let columns: any[] = [];

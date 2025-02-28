@@ -20,7 +20,10 @@ export declare class Visual implements IVisual {
     private initializeExpandedState;
     private isExpanded;
     private toggleExpanded;
+    private getAllDescendants;
+    private isDescendantOf;
     private createMatrixTable;
+    private recursivelyToggleDescendants;
     private processColumns;
     private createTableHeader;
     private createCornerCell;

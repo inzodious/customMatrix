@@ -158,9 +158,10 @@ overflow: hidden;
 }
 
 .matrix-table .collapsed {
-height: 0;
-opacity: 0;
-display: none;
+  display: none !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 .matrix-table .expanding {
@@ -194,46 +195,43 @@ to {
 }
 }
 @keyframes expandWave {
-    0% { 
-      height: 0;
-      opacity: 0;
-      transform: scaleY(0.3) translateY(-20px);
-    }
-    50% {
-      transform: scaleY(1.05) translateY(2px);
-    }
-    70% {
-      transform: scaleY(0.98) translateY(-1px);
-    }
-    100% { 
-      height: var(--row-height);
-      opacity: 1;
-      transform: scaleY(1) translateY(0);
-    }
+  0% { 
+    height: 0;
+    opacity: 0;
+    transform: scaleY(0.3);
   }
-  
-  @keyframes collapseWave {
-    0% { 
-      height: var(--row-height);
-      opacity: 1;
-      transform: scaleY(1) translateY(0);
-    }
-    30% {
-      transform: scaleY(1.02) translateY(1px);
-    }
-    100% { 
-      height: 0;
-      opacity: 0;
-      transform: scaleY(0.3) translateY(-20px);
-    }
+  100% { 
+    height: var(--row-height);
+    opacity: 1;
+    transform: scaleY(1);
   }
-  
-  .matrix-table .expanding-wave {
-    animation: expandWave 0.25s ease-out forwards;
-    transform-origin: top;
+}
+
+@keyframes collapseWave {
+  0% { 
+    height: var(--row-height);
+    opacity: 1;
+    transform: scaleY(1);
   }
-  
-  .matrix-table .collapsing-wave {
-    animation: collapseWave 0.25s ease-in forwards;
-    transform-origin: top;
+  100% { 
+    height: 0;
+    opacity: 0;
+    transform: scaleY(0.3);
   }
+}
+
+.matrix-table .expanding-wave {
+  animation: expandWave 0.25s ease-out forwards;
+  transform-origin: top;
+  overflow: hidden;
+  will-change: height, opacity, transform;
+  pointer-events: none; /* Prevent clicks during animation */
+}
+
+.matrix-table .collapsing-wave {
+  animation: collapseWave 0.25s ease-in forwards;
+  transform-origin: top;
+  overflow: hidden;
+  will-change: height, opacity, transform;
+  pointer-events: none; /* Prevent clicks during animation */
+}

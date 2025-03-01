@@ -8469,11 +8469,22 @@ class Visual {
     lastOptions;
     animatingNodes = new Set();
     animationTimeouts = new Map();
+    stateKey = "expandedState";
+    static StatePropertyId = "expandedState";
+    static StateObjectName = "general";
+    loadedStateFromProperties = false;
+    static savedExpandedState = new Map();
     constructor(options) {
         this.target = options.element;
         this.host = options.host;
         this.formattingSettingsService = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .FormattingSettingsService */ .O();
-        this.expandedRows = new Map();
+        // Initialize expandedRows from static property if it has values
+        if (Visual.savedExpandedState.size > 0) {
+            this.expandedRows = new Map(Visual.savedExpandedState);
+        }
+        else {
+            this.expandedRows = new Map();
+        }
         // Create container elements
         this.createContainerElements();
     }
@@ -8493,6 +8504,10 @@ class Visual {
     update(options) {
         // Store options for later re-renders
         this.lastOptions = options;
+        // Save current state to static property before clearing content
+        if (this.expandedRows && this.expandedRows.size > 0) {
+            Visual.savedExpandedState = new Map(this.expandedRows);
+        }
         // Clear previous content
         this.tableDiv.innerHTML = "";
         // Get formatting settings
@@ -8548,7 +8563,25 @@ class Visual {
     }
     // Generate unique ID for tracking expanded state
     getNodeId(node, level) {
-        const value = node.value !== null && node.value !== undefined ? String(node.value) : "null";
+        let value;
+        // Ensure we have a consistent string representation
+        if (node.value !== null && node.value !== undefined) {
+            // For date values, get a consistent string representation
+            if (node.value instanceof Date ||
+                (typeof node.value === 'object' && node.value.epochTimeStamp)) {
+                // Convert date to consistent string format
+                const dateValue = node.value instanceof Date ?
+                    node.value : new Date(node.value.epochTimeStamp);
+                value = dateValue.toISOString();
+            }
+            else {
+                value = String(node.value);
+            }
+        }
+        else {
+            value = "null";
+        }
+        // Create a consistent node ID
         return `level_${level}_${value}`;
     }
     // Initialize expanded state for all rows
@@ -8557,11 +8590,11 @@ class Visual {
             return;
         for (const row of rows) {
             const nodeId = parentId + this.getNodeId(row, level);
-            // Set to expanded if not already set (default to expanded)
+            // Only set default state if not already in the map
             if (!this.expandedRows.has(nodeId)) {
-                this.expandedRows.set(nodeId, true);
+                this.expandedRows.set(nodeId, true); // default to expanded
             }
-            // Initialize children recursively
+            // Recursively initialize children
             if (row.children?.length > 0) {
                 this.initializeExpandedState(row.children, level + 1, nodeId);
             }
@@ -8571,77 +8604,39 @@ class Visual {
     isExpanded(nodeId) {
         return this.expandedRows.get(nodeId) === true;
     }
-    // Toggle expanded state of a node
-    toggleExpanded(nodeId) {
-        // Prevent rapid clicking issues
-        if (this.animatingNodes.has(nodeId)) {
-            // Clean up any pending animations for this node
+    animateCollapse(rows, nodeId) {
+        if (rows.length === 0) {
             this.cleanupAnimation(nodeId);
+            return;
         }
-        // Mark this node as animating
-        this.animatingNodes.add(nodeId);
-        const isExpanded = this.isExpanded(nodeId);
-        this.expandedRows.set(nodeId, !isExpanded);
-        // Get direct children for animation
-        const directChildren = Array.from(this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`));
-        // Set a timeout to ensure animation completes even if interrupted
-        const timeout = window.setTimeout(() => {
-            this.cleanupAnimation(nodeId);
-        }, 500); // 500ms safety net for animation completion
-        this.animationTimeouts.set(nodeId, timeout);
-        if (isExpanded) {
-            // COLLAPSING
-            // Handle descendants as before...
-            directChildren.forEach((row, index) => {
-                // Remove any existing animation classes first
-                row.classList.remove('expanding-wave');
-                const rowHeight = row.offsetHeight;
-                row.style.setProperty('--row-height', `${rowHeight}px`);
-                row.style.animationDelay = `${index * 40}ms`;
-                row.classList.add('collapsing-wave');
-                row.addEventListener('animationend', () => {
-                    if (this.animatingNodes.has(nodeId)) {
-                        row.classList.add('collapsed');
-                        row.classList.remove('collapsing-wave');
-                        row.style.animationDelay = '0ms';
-                    }
-                }, { once: true });
-            });
-        }
-        else {
-            // EXPANDING
-            // Hide descendants as before...
-            directChildren.forEach((row, index) => {
-                // Remove any existing animation classes first
+        // Prepare rows for animation
+        rows.forEach(row => {
+            // Remove any previous animation classes
+            row.classList.remove('expanding-wave', 'collapsed');
+            // Set initial state before animation
+            const rowHeight = row.offsetHeight;
+            row.style.setProperty('--row-height', `${rowHeight}px`);
+            row.style.overflow = 'hidden';
+            // Force browser reflow to ensure height is set
+            void row.offsetHeight;
+        });
+        // Apply animation with staggered delay
+        rows.forEach((row, index) => {
+            row.style.animationDelay = `${index * 20}ms`;
+            row.classList.add('collapsing-wave');
+        });
+        // Listen for animation end on the last row
+        const lastRow = rows[rows.length - 1];
+        lastRow.addEventListener('animationend', () => {
+            // After animation completes, add 'collapsed' class to actually hide rows
+            rows.forEach(row => {
                 row.classList.remove('collapsing-wave');
-                const rowHeight = row.offsetHeight || 50;
-                row.style.setProperty('--row-height', `${rowHeight}px`);
-                row.style.animationDelay = `${index * 40}ms`;
-                row.classList.add('expanding-wave');
-                setTimeout(() => {
-                    if (this.animatingNodes.has(nodeId)) {
-                        row.classList.remove('collapsed');
-                    }
-                }, 10);
-                row.addEventListener('animationend', () => {
-                    if (this.animatingNodes.has(nodeId)) {
-                        row.classList.remove('expanding-wave');
-                        row.style.animationDelay = '0ms';
-                    }
-                }, { once: true });
+                row.classList.add('collapsed');
+                row.style.animationDelay = '';
             });
-        }
-        // Add event listener for the last child to complete animation
-        if (directChildren.length > 0) {
-            const lastChild = directChildren[directChildren.length - 1];
-            lastChild.addEventListener('animationend', () => {
-                this.cleanupAnimation(nodeId);
-            }, { once: true });
-        }
-        else {
-            // No children to animate, so clean up immediately
+            // Clean up animation state
             this.cleanupAnimation(nodeId);
-        }
+        }, { once: true });
     }
     cleanupAnimation(nodeId) {
         // Clear any pending timeouts
@@ -8652,21 +8647,184 @@ class Visual {
         }
         // Remove from animating set
         this.animatingNodes.delete(nodeId);
-        // Do final state cleanup for all child rows
-        const directChildren = Array.from(this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`));
+        // Re-enable all toggle buttons
+        const allButtons = this.tableDiv.querySelectorAll('.toggle-button');
+        allButtons.forEach((btn) => {
+            // Cast to HTMLElement to access style property
+            const htmlBtn = btn;
+            htmlBtn.style.cursor = "pointer";
+            htmlBtn.style.opacity = "1";
+            htmlBtn.removeAttribute('data-animating');
+        });
+        // Apply final state to all descendants if this was a collapse operation
         const isExpanded = this.isExpanded(nodeId);
-        directChildren.forEach(row => {
-            // Clean up animation classes
-            row.classList.remove('expanding-wave', 'collapsing-wave');
-            row.style.animationDelay = '0ms';
-            // Set final state
-            if (isExpanded) {
-                row.classList.remove('collapsed');
-            }
-            else {
+        if (!isExpanded) {
+            // If we collapsed, make sure all descendants are properly hidden and their toggle buttons show collapsed state
+            const allDescendants = this.findAllDescendants(nodeId);
+            allDescendants.forEach(row => {
+                // Hide row
                 row.classList.add('collapsed');
+                row.classList.remove('collapsing-wave', 'expanding-wave');
+                // Update toggle button of any children to show collapsed state
+                const childToggle = row.querySelector('.toggle-button');
+                if (childToggle) {
+                    // Cast to HTMLElement
+                    const htmlToggle = childToggle;
+                    htmlToggle.textContent = "►"; // Collapsed icon
+                    htmlToggle.style.transform = "rotate(-90deg)";
+                }
+                // Update internal expanded state
+                const rowId = row.getAttribute('data-node-id');
+                if (rowId) {
+                    this.expandedRows.set(rowId, false);
+                }
+            });
+            if (this.expandedRows) {
+                Visual.savedExpandedState = new Map(this.expandedRows);
+            }
+        }
+    }
+    // New helper method for expand animation
+    animateExpand(rows, nodeId) {
+        if (rows.length === 0) {
+            this.cleanupAnimation(nodeId);
+            return;
+        }
+        // Prepare rows for animation
+        rows.forEach(row => {
+            // Remove collapsed class but keep row hidden initially
+            row.classList.remove('collapsed', 'collapsing-wave');
+            // Set initial zero height state
+            row.style.height = '0';
+            row.style.opacity = '0';
+            row.style.overflow = 'hidden';
+            // Set target height for animation
+            const naturalHeight = row.scrollHeight;
+            row.style.setProperty('--row-height', `${naturalHeight}px`);
+        });
+        // Force a reflow to ensure initial state is applied
+        void rows[0].offsetHeight;
+        // Apply animation with staggered delay
+        rows.forEach((row, index) => {
+            row.style.animationDelay = `${index * 20}ms`;
+            row.classList.add('expanding-wave');
+        });
+        // Listen for animation end on the last row
+        const lastRow = rows[rows.length - 1];
+        lastRow.addEventListener('animationend', () => {
+            // After animation completes, clean up all styling
+            rows.forEach(row => {
+                row.classList.remove('expanding-wave');
+                row.style.animationDelay = '';
+                row.style.height = '';
+                row.style.opacity = '';
+                row.style.overflow = '';
+            });
+            // Clean up animation state
+            this.cleanupAnimation(nodeId);
+        }, { once: true });
+    }
+    // New helper method to prepare descendants for collapse
+    prepareDescendantsForCollapse(parentNodeId) {
+        // Find all descendants at all levels
+        const allDescendants = this.findAllDescendants(parentNodeId);
+        // Update expanded state and toggle buttons for all descendants
+        allDescendants.forEach(row => {
+            const rowId = row.getAttribute('data-node-id');
+            if (rowId) {
+                this.expandedRows.set(rowId, false);
+                // Update toggle button icon
+                const toggleButton = row.querySelector('.toggle-button');
+                if (toggleButton) {
+                    toggleButton.textContent = "►";
+                    toggleButton.style.transform = "rotate(-90deg)";
+                }
             }
         });
+    }
+    // Add this method to preserve the expanded state during updates
+    preserveExpandedState() {
+        // Create a copy of the current expanded state
+        return new Map(this.expandedRows);
+    }
+    // New helper method to find all descendants
+    findAllDescendants(nodeId) {
+        const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]'));
+        const allDescendants = [];
+        // Helper function to recursively find descendants
+        const findDescendants = (id) => {
+            const children = allRows.filter(row => row.getAttribute('data-parent-id') === id);
+            children.forEach(child => {
+                allDescendants.push(child);
+                const childId = child.getAttribute('data-node-id');
+                if (childId) {
+                    findDescendants(childId);
+                }
+            });
+        };
+        // Find all descendants of the node
+        findDescendants(nodeId);
+        return allDescendants;
+    }
+    // Toggle expanded state of a node
+    toggleExpanded(nodeId) {
+        // Prevent any action if this node or any node is currently animating
+        if (this.animatingNodes.has(nodeId) || this.animatingNodes.size > 0) {
+            return; // Exit early to prevent animation conflicts
+        }
+        // Mark this node as animating
+        this.animatingNodes.add(nodeId);
+        // Get current expanded state and update it
+        const isExpanded = this.isExpanded(nodeId);
+        this.expandedRows.set(nodeId, !isExpanded);
+        // Get direct children for animation
+        const directChildren = Array.from(this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`));
+        // Find and disable toggle button
+        const toggleButton = this.tableDiv.querySelector(`tr[data-node-id="${nodeId}"] .toggle-button`);
+        if (toggleButton) {
+            // Add a disabled attribute and visual cue
+            toggleButton.style.cursor = "not-allowed";
+            toggleButton.style.opacity = "0.5";
+            // Prevent clicks on the button and set a 'data-animating' attribute
+            toggleButton.setAttribute('data-animating', 'true');
+            // Start button animation
+            if (isExpanded) {
+                toggleButton.style.transform = "rotate(-90deg)";
+                setTimeout(() => toggleButton.textContent = "►", 150);
+            }
+            else {
+                toggleButton.style.transform = "rotate(0deg)";
+                setTimeout(() => toggleButton.textContent = "▼", 150);
+            }
+        }
+        // After toggle completes, update static property
+        if (this.expandedRows) {
+            Visual.savedExpandedState = new Map(this.expandedRows);
+        }
+        // Find all toggle buttons and disable them during animation
+        const allButtons = this.tableDiv.querySelectorAll('.toggle-button');
+        allButtons.forEach((btn) => {
+            btn.style.cursor = "not-allowed";
+            btn.style.opacity = "0.5";
+            btn.setAttribute('data-animating', 'true');
+        });
+        // Set a timeout to ensure animation completes even if interrupted
+        const timeout = window.setTimeout(() => {
+            this.cleanupAnimation(nodeId);
+        }, 500); // Safety net for animation completion
+        this.animationTimeouts.set(nodeId, timeout);
+        if (isExpanded) {
+            // COLLAPSING
+            // First, prepare all descendants and update their toggle buttons
+            this.prepareDescendantsForCollapse(nodeId);
+            // Animate direct children
+            this.animateCollapse(directChildren, nodeId);
+        }
+        else {
+            // EXPANDING
+            // Animate direct children
+            this.animateExpand(directChildren, nodeId);
+        }
     }
     // Helper to get all descendants of a node at all levels
     getAllDescendants(nodeId) {
@@ -8698,6 +8856,7 @@ class Visual {
         return this.isDescendantOf(grandparentId, ancestorId);
     }
     // Main table creation method
+    // Update this method to store expanded state before render
     createMatrixTable(matrix, measureName) {
         // Create table
         const table = document.createElement("table");
@@ -8718,9 +8877,14 @@ class Visual {
         // Create table body
         const tbody = document.createElement("tbody");
         table.appendChild(tbody);
-        // Initialize all new rows to expanded state
+        // Clone current expanded state for reference during initialization
+        const previousExpandedState = new Map(this.expandedRows);
+        // Initialize all new rows, but preserve existing expanded states
         if (matrix.rows.root.children) {
-            this.initializeExpandedState(matrix.rows.root.children, 0, "");
+            // Reset expandedRows to start fresh (we'll restore existing states)
+            this.expandedRows = new Map();
+            // Initialize with preserving previous state
+            this.initializeExpandedStateWithPreservation(matrix.rows.root.children, 0, "", previousExpandedState);
         }
         // Render rows recursively with subtotals
         if (matrix.rows.root.children) {
@@ -8734,30 +8898,25 @@ class Visual {
         this.applyTableFormatting(table);
     }
     // Add this helper method to recursively handle descendants
-    recursivelyToggleDescendants(parentNodeId, expand) {
-        // Get all rows
-        const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]'));
-        // Process direct children first
-        const directChildren = allRows.filter(row => row.getAttribute('data-parent-id') === parentNodeId);
-        // For each direct child
-        directChildren.forEach(childRow => {
-            const childNodeId = childRow.getAttribute('data-node-id');
-            if (!childNodeId)
-                return;
-            // Update expanded state for this child
-            this.expandedRows.set(childNodeId, expand);
-            // If we're collapsing, recursively collapse all descendants
-            if (!expand) {
-                this.recursivelyToggleDescendants(childNodeId, expand);
-            }
-            // Apply visibility classes
-            if (!expand) {
-                childRow.classList.add('collapsed');
+    initializeExpandedStateWithPreservation(rows, level, parentId, previousState) {
+        if (!rows)
+            return;
+        for (const row of rows) {
+            const nodeId = parentId + this.getNodeId(row, level);
+            // If this node existed in previous state, use that value
+            if (previousState.has(nodeId)) {
+                const wasExpanded = previousState.get(nodeId);
+                this.expandedRows.set(nodeId, wasExpanded);
             }
             else {
-                childRow.classList.remove('collapsed');
+                // Otherwise default to expanded
+                this.expandedRows.set(nodeId, true);
             }
-        });
+            // Initialize children recursively
+            if (row.children?.length > 0) {
+                this.initializeExpandedStateWithPreservation(row.children, level + 1, nodeId, previousState);
+            }
+        }
     }
     // Process columns data
     processColumns(matrix, measureName) {
@@ -8884,17 +9043,16 @@ class Visual {
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const nodeId = parentId + this.getNodeId(row, level);
+            // Important: Get expanded state from our map
             const isExpanded = this.isExpanded(nodeId);
             const isLevel0 = level === 0;
-            // Create row
+            // Create the table row
             const tr = document.createElement("tr");
             tr.setAttribute("data-node-id", nodeId);
             tr.setAttribute("data-level", String(level));
-            // Important: Set parent-id attribute for animation targeting
             if (parentId) {
                 tr.setAttribute("data-parent-id", parentId);
             }
-            // Add expandable-row class if this is a child row
             if (level > 0) {
                 tr.classList.add("expandable-row");
                 // Apply collapsed class based on parent's expanded state
@@ -8908,16 +9066,14 @@ class Visual {
             if (row.children?.length > 0) {
                 tr.classList.add(CSS_CLASSES.SUBTOTAL_ROW);
             }
-            // Add row header - always apply subtotal formatting to level0
+            // Add row header
             const rowHeader = this.createRowHeader(row, level, nodeId, isExpanded, isLevel0, true);
             tr.appendChild(rowHeader);
             // Add data cells
             if (row.children?.length > 0) {
-                // Create subtotal cells
                 this.addSubtotalCells(tr, row, columns, isLevel0, columnWidth);
             }
             else if (row.values) {
-                // Create regular data cells
                 this.addDataCells(tr, row, columns, columnWidth);
             }
             tbody.appendChild(tr);
@@ -8980,7 +9136,7 @@ class Visual {
         toggleButton.className = "toggle-button";
         toggleButton.textContent = isExpanded ? "▼" : "►";
         toggleButton.style.flexShrink = "0";
-        toggleButton.style.transition = "transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55)";
+        toggleButton.style.transition = "transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.2s ease";
         toggleButton.style.display = "inline-block";
         if (isExpanded) {
             toggleButton.style.transform = "rotate(0deg)";
@@ -8990,16 +9146,10 @@ class Visual {
         }
         toggleButton.onclick = (event) => {
             event.stopPropagation();
-            // Animate the toggle button with a bouncy effect
-            if (this.isExpanded(nodeId)) {
-                toggleButton.style.transform = "rotate(-90deg)";
-                setTimeout(() => toggleButton.textContent = "►", 150);
+            // Only process click if not currently animating
+            if (!toggleButton.hasAttribute('data-animating')) {
+                this.toggleExpanded(nodeId);
             }
-            else {
-                toggleButton.style.transform = "rotate(0deg)";
-                setTimeout(() => toggleButton.textContent = "▼", 150);
-            }
-            this.toggleExpanded(nodeId);
         };
         return toggleButton;
     }
@@ -9613,6 +9763,29 @@ class Visual {
             console.error("Error adjusting color:", error);
             return amount < 0 ? '#e0e0e0' : '#f5f5f5';
         }
+    }
+    updateDescendantToggleButtons(parentNodeId, isExpanded) {
+        // Find all descendants
+        const descendants = this.findAllDescendants(parentNodeId);
+        // Update toggle button for each descendant
+        descendants.forEach(row => {
+            const toggleButton = row.querySelector('.toggle-button');
+            if (toggleButton) {
+                // Update button appearance
+                if (!isExpanded) {
+                    toggleButton.textContent = "►"; // Collapsed icon
+                    toggleButton.style.transform = "rotate(-90deg)";
+                }
+                else {
+                    // Keep current state when expanding parent
+                    const rowId = row.getAttribute('data-node-id');
+                    if (rowId && this.isExpanded(rowId)) {
+                        toggleButton.textContent = "▼"; // Expanded icon
+                        toggleButton.style.transform = "rotate(0deg)";
+                    }
+                }
+            }
+        });
     }
     // Optimized re-rendering when toggling rows
     renderVisualWithCurrentState() {

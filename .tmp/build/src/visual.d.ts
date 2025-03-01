@@ -13,6 +13,11 @@ export declare class Visual implements IVisual {
     private lastOptions;
     private animatingNodes;
     private animationTimeouts;
+    private stateKey;
+    private static readonly StatePropertyId;
+    private static readonly StateObjectName;
+    private loadedStateFromProperties;
+    private static savedExpandedState;
     constructor(options: VisualConstructorOptions);
     private createContainerElements;
     update(options: VisualUpdateOptions): void;
@@ -21,12 +26,17 @@ export declare class Visual implements IVisual {
     private getNodeId;
     private initializeExpandedState;
     private isExpanded;
-    private toggleExpanded;
+    private animateCollapse;
     private cleanupAnimation;
+    private animateExpand;
+    private prepareDescendantsForCollapse;
+    private preserveExpandedState;
+    private findAllDescendants;
+    private toggleExpanded;
     private getAllDescendants;
     private isDescendantOf;
     private createMatrixTable;
-    private recursivelyToggleDescendants;
+    private initializeExpandedStateWithPreservation;
     private processColumns;
     private createTableHeader;
     private createCornerCell;
@@ -58,6 +68,7 @@ export declare class Visual implements IVisual {
     private applyFormatting;
     private applyGlobalBorders;
     private adjustColor;
+    private updateDescendantToggleButtons;
     private renderVisualWithCurrentState;
     getFormattingModel(): powerbi.visuals.FormattingModel;
 }

@@ -19,15 +19,14 @@ import DataView = powerbi.DataView;
 
 import { VisualFormattingSettingsModel } from "./settings";
 
-
-
 // Interfaces for matrix data
 interface MatrixNode {
-    value?: any; // Make value optional to match DataViewMatrixNode
+    value?: any; 
     children?: MatrixNode[];
-    values?: any | { [id: number]: any }; // Support both array and indexed object format
+    values?: any | { [id: number]: any }; 
     isDate?: boolean;
 }
+
 // CSS class constants
 const CSS_CLASSES = {
     VISUAL_CONTAINER: "visual-container",
@@ -62,25 +61,23 @@ export class Visual implements IVisual {
     private lastOptions: VisualUpdateOptions;
     private animatingNodes: Set<string> = new Set();
     private animationTimeouts: Map<string, number> = new Map();
-    private stateKey: string = "expandedState";
-    private static readonly StatePropertyId = "expandedState";
-    private static readonly StateObjectName = "general";
-    private loadedStateFromProperties: boolean = false;
+    private cachedFormatString: string = "#,0.00";
     private static savedExpandedState: Map<string, boolean> = new Map<string, boolean>();
 
+    //=========================================================================
+    // INITIALIZATION
+    //=========================================================================
+    
     constructor(options: VisualConstructorOptions) {
         this.target = options.element;
         this.host = options.host;
         this.formattingSettingsService = new FormattingSettingsService();
         
         // Initialize expandedRows from static property if it has values
-        if (Visual.savedExpandedState.size > 0) {
-            this.expandedRows = new Map<string, boolean>(Visual.savedExpandedState);
-        } else {
-            this.expandedRows = new Map<string, boolean>();
-        }
+        this.expandedRows = Visual.savedExpandedState.size > 0 
+            ? new Map<string, boolean>(Visual.savedExpandedState) 
+            : new Map<string, boolean>();
     
-        // Create container elements
         this.createContainerElements();
     }
 
@@ -99,23 +96,25 @@ export class Visual implements IVisual {
         container.appendChild(this.tableDiv);
     }
 
+    //=========================================================================
+    // CORE VISUAL METHODS
+    //=========================================================================
+
     public update(options: VisualUpdateOptions): void {
-        // Store options for later re-renders
         this.lastOptions = options;
         
-        // Save current state to static property before clearing content
-        if (this.expandedRows && this.expandedRows.size > 0) {
+        // Save current state before clearing content
+        if (this.expandedRows?.size > 0) {
             Visual.savedExpandedState = new Map<string, boolean>(this.expandedRows);
         }
         
         // Clear previous content
         this.tableDiv.innerHTML = "";
         
-        // Get formatting settings
-        if (!options?.dataViews?.[0]) {
-            return; // No data to display
-        }
+        // Validate data
+        if (!options?.dataViews?.[0]) return;
         
+        // Get formatting settings
         this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(
             VisualFormattingSettingsModel,
             options.dataViews[0]
@@ -123,13 +122,11 @@ export class Visual implements IVisual {
         
         try {
             const dataView = options.dataViews[0];
-            // Get and cache the format string
+            // Cache the format string
             this.cachedFormatString = this.getFormatString(dataView);
             
             // Check if we have matrix data
-            if (!dataView.matrix) {
-                return;
-            }
+            if (!dataView.matrix) return;
             
             const matrix = dataView.matrix;
             const measureName = this.getMeasureName(dataView);
@@ -141,10 +138,15 @@ export class Visual implements IVisual {
             console.error("Error in update:", error);
         }
     }
-    
-    
 
-    // Helper methods for data extraction
+    public getFormattingModel(): powerbi.visuals.FormattingModel {
+        return this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
+    }
+
+    //=========================================================================
+    // DATA PROCESSING
+    //=========================================================================
+
     private getMeasureName(dataView: DataView): string {
         // Try to get from matrix valueSources
         if (dataView.matrix?.valueSources?.[0]?.displayName) {
@@ -162,6 +164,11 @@ export class Visual implements IVisual {
         }
         
         return "Amount"; // Default fallback
+    }
+
+    private getMeasureDynamically(): string {
+        if (!this.lastOptions?.dataViews?.[0]) return "Amount";
+        return this.getMeasureName(this.lastOptions.dataViews[0]);
     }
 
     private getFormatString(dataView: DataView): string {
@@ -183,541 +190,6 @@ export class Visual implements IVisual {
         return "#,0.00"; // Default fallback format
     }
 
-    // Generate unique ID for tracking expanded state
-    private getNodeId(node: any, level: number): string {
-        let value;
-        
-        // Ensure we have a consistent string representation
-        if (node.value !== null && node.value !== undefined) {
-            // For date values, get a consistent string representation
-            if (node.value instanceof Date || 
-                (typeof node.value === 'object' && node.value.epochTimeStamp)) {
-                // Convert date to consistent string format
-                const dateValue = node.value instanceof Date ? 
-                    node.value : new Date(node.value.epochTimeStamp);
-                    
-                value = dateValue.toISOString();
-            } else {
-                value = String(node.value);
-            }
-        } else {
-            value = "null";
-        }
-        
-        // Create a consistent node ID
-        return `level_${level}_${value}`;
-    }
-    
-    // Initialize expanded state for all rows
-    private initializeExpandedState(rows: any[], level: number, parentId: string): void {
-        if (!rows) return;
-        
-        for (const row of rows) {
-            const nodeId = parentId + this.getNodeId(row, level);
-            
-            // Only set default state if not already in the map
-            if (!this.expandedRows.has(nodeId)) {
-                this.expandedRows.set(nodeId, true); // default to expanded
-            }
-            
-            // Recursively initialize children
-            if (row.children?.length > 0) {
-                this.initializeExpandedState(row.children, level + 1, nodeId);
-            }
-        }
-    }
-    
-    // Check if a node is expanded
-    private isExpanded(nodeId: string): boolean {
-        return this.expandedRows.get(nodeId) === true;
-    }
-
-    private animateCollapse(rows: HTMLElement[], nodeId: string): void {
-        if (rows.length === 0) {
-          this.cleanupAnimation(nodeId);
-          return;
-        }
-        
-        // Prepare rows for animation
-        rows.forEach(row => {
-          // Remove any previous animation classes
-          row.classList.remove('expanding-wave', 'collapsed');
-          
-          // Set initial state before animation
-          const rowHeight = row.offsetHeight;
-          row.style.setProperty('--row-height', `${rowHeight}px`);
-          row.style.overflow = 'hidden';
-          
-          // Force browser reflow to ensure height is set
-          void row.offsetHeight;
-        });
-        
-        // Apply animation with staggered delay
-        rows.forEach((row, index) => {
-          row.style.animationDelay = `${index * 20}ms`;
-          row.classList.add('collapsing-wave');
-        });
-        
-        // Listen for animation end on the last row
-        const lastRow = rows[rows.length - 1];
-        lastRow.addEventListener('animationend', () => {
-          // After animation completes, add 'collapsed' class to actually hide rows
-          rows.forEach(row => {
-            row.classList.remove('collapsing-wave');
-            row.classList.add('collapsed');
-            row.style.animationDelay = '';
-          });
-          
-          // Clean up animation state
-          this.cleanupAnimation(nodeId);
-        }, { once: true });
-      }
-      
-      private cleanupAnimation(nodeId: string): void {
-        // Clear any pending timeouts
-        const timeout = this.animationTimeouts.get(nodeId);
-        if (timeout) {
-          window.clearTimeout(timeout);
-          this.animationTimeouts.delete(nodeId);
-        }
-        
-        // Remove from animating set
-        this.animatingNodes.delete(nodeId);
-        
-        // Re-enable all toggle buttons
-        const allButtons = this.tableDiv.querySelectorAll('.toggle-button');
-        allButtons.forEach((btn) => {
-          // Cast to HTMLElement to access style property
-          const htmlBtn = btn as HTMLElement;
-          htmlBtn.style.cursor = "pointer";
-          htmlBtn.style.opacity = "1";
-          htmlBtn.removeAttribute('data-animating');
-        });
-        
-        // Apply final state to all descendants if this was a collapse operation
-        const isExpanded = this.isExpanded(nodeId);
-        if (!isExpanded) {
-          // If we collapsed, make sure all descendants are properly hidden and their toggle buttons show collapsed state
-          const allDescendants = this.findAllDescendants(nodeId);
-          allDescendants.forEach(row => {
-            // Hide row
-            row.classList.add('collapsed');
-            row.classList.remove('collapsing-wave', 'expanding-wave');
-            
-            // Update toggle button of any children to show collapsed state
-            const childToggle = row.querySelector('.toggle-button');
-            if (childToggle) {
-              // Cast to HTMLElement
-              const htmlToggle = childToggle as HTMLElement;
-              htmlToggle.textContent = "►"; // Collapsed icon
-              htmlToggle.style.transform = "rotate(-90deg)";
-            }
-            
-            // Update internal expanded state
-            const rowId = row.getAttribute('data-node-id');
-            if (rowId) {
-              this.expandedRows.set(rowId, false);
-            }
-          });
-
-        if (this.expandedRows) {
-        Visual.savedExpandedState = new Map<string, boolean>(this.expandedRows);
-    }
-        }
-      }
-      
-
-
-      // New helper method for expand animation
-      private animateExpand(rows: HTMLElement[], nodeId: string): void {
-        if (rows.length === 0) {
-          this.cleanupAnimation(nodeId);
-          return;
-        }
-        
-        // Prepare rows for animation
-        rows.forEach(row => {
-          // Remove collapsed class but keep row hidden initially
-          row.classList.remove('collapsed', 'collapsing-wave');
-          
-          // Set initial zero height state
-          row.style.height = '0';
-          row.style.opacity = '0';
-          row.style.overflow = 'hidden';
-          
-          // Set target height for animation
-          const naturalHeight = row.scrollHeight;
-          row.style.setProperty('--row-height', `${naturalHeight}px`);
-        });
-        
-        // Force a reflow to ensure initial state is applied
-        void rows[0].offsetHeight;
-        
-        // Apply animation with staggered delay
-        rows.forEach((row, index) => {
-          row.style.animationDelay = `${index * 20}ms`;
-          row.classList.add('expanding-wave');
-        });
-        
-        // Listen for animation end on the last row
-        const lastRow = rows[rows.length - 1];
-        lastRow.addEventListener('animationend', () => {
-          // After animation completes, clean up all styling
-          rows.forEach(row => {
-            row.classList.remove('expanding-wave');
-            row.style.animationDelay = '';
-            row.style.height = '';
-            row.style.opacity = '';
-            row.style.overflow = '';
-          });
-          
-          // Clean up animation state
-          this.cleanupAnimation(nodeId);
-        }, { once: true });
-      }
-      
-      // New helper method to prepare descendants for collapse
-      private prepareDescendantsForCollapse(parentNodeId: string): void {
-        // Find all descendants at all levels
-        const allDescendants = this.findAllDescendants(parentNodeId);
-        
-        // Update expanded state and toggle buttons for all descendants
-        allDescendants.forEach(row => {
-          const rowId = row.getAttribute('data-node-id');
-          if (rowId) {
-            this.expandedRows.set(rowId, false);
-            
-            // Update toggle button icon
-            const toggleButton = row.querySelector('.toggle-button') as HTMLElement;
-            if (toggleButton) {
-              toggleButton.textContent = "►";
-              toggleButton.style.transform = "rotate(-90deg)";
-            }
-          }
-        });
-      }
-      
-      // Add this method to preserve the expanded state during updates
-      private preserveExpandedState(): Map<string, boolean> {
-        // Create a copy of the current expanded state
-        return new Map(this.expandedRows);
-      }
-      
-      // New helper method to find all descendants
-      private findAllDescendants(nodeId: string): HTMLElement[] {
-        const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]')) as HTMLElement[];
-        const allDescendants: HTMLElement[] = [];
-        
-        // Helper function to recursively find descendants
-        const findDescendants = (id: string): void => {
-          const children = allRows.filter(row => row.getAttribute('data-parent-id') === id);
-          
-          children.forEach(child => {
-            allDescendants.push(child);
-            const childId = child.getAttribute('data-node-id');
-            if (childId) {
-              findDescendants(childId);
-            }
-          });
-        };
-        
-        // Find all descendants of the node
-        findDescendants(nodeId);
-        return allDescendants;
-      }
-      
-    
-    // Toggle expanded state of a node
-    private toggleExpanded(nodeId: string): void {
-        // Prevent any action if this node or any node is currently animating
-        if (this.animatingNodes.has(nodeId) || this.animatingNodes.size > 0) {
-          return; // Exit early to prevent animation conflicts
-        }
-        
-        // Mark this node as animating
-        this.animatingNodes.add(nodeId);
-        
-        // Get current expanded state and update it
-        const isExpanded = this.isExpanded(nodeId);
-        this.expandedRows.set(nodeId, !isExpanded);
-        
-        // Get direct children for animation
-        const directChildren = Array.from(
-          this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`)
-        ) as HTMLElement[];
-        
-        // Find and disable toggle button
-        const toggleButton = this.tableDiv.querySelector(`tr[data-node-id="${nodeId}"] .toggle-button`) as HTMLElement;
-        if (toggleButton) {
-          // Add a disabled attribute and visual cue
-          toggleButton.style.cursor = "not-allowed";
-          toggleButton.style.opacity = "0.5";
-          
-          // Prevent clicks on the button and set a 'data-animating' attribute
-          toggleButton.setAttribute('data-animating', 'true');
-          
-          // Start button animation
-          if (isExpanded) {
-            toggleButton.style.transform = "rotate(-90deg)";
-            setTimeout(() => toggleButton.textContent = "►", 150);
-          } else {
-            toggleButton.style.transform = "rotate(0deg)";
-            setTimeout(() => toggleButton.textContent = "▼", 150);
-          }
-        }
-
-        // After toggle completes, update static property
-        if (this.expandedRows) {
-            Visual.savedExpandedState = new Map<string, boolean>(this.expandedRows);
-        }
-        
-        // Find all toggle buttons and disable them during animation
-        const allButtons = this.tableDiv.querySelectorAll('.toggle-button');
-        allButtons.forEach((btn: HTMLElement) => {
-          btn.style.cursor = "not-allowed";
-          btn.style.opacity = "0.5";
-          btn.setAttribute('data-animating', 'true');
-        });
-        
-        // Set a timeout to ensure animation completes even if interrupted
-        const timeout = window.setTimeout(() => {
-          this.cleanupAnimation(nodeId);
-        }, 500); // Safety net for animation completion
-        this.animationTimeouts.set(nodeId, timeout);
-        
-        if (isExpanded) {
-          // COLLAPSING
-          // First, prepare all descendants and update their toggle buttons
-          this.prepareDescendantsForCollapse(nodeId);
-          
-          // Animate direct children
-          this.animateCollapse(directChildren, nodeId);
-        } else {
-          // EXPANDING
-          // Animate direct children
-          this.animateExpand(directChildren, nodeId);
-        }
-      }
-
-    // Helper to get all descendants of a node at all levels
-    private getAllDescendants(nodeId: string): HTMLElement[] {
-        const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]')) as HTMLElement[];
-        const descendants: HTMLElement[] = [];
-        
-        // First get direct children
-        const directChildren = allRows.filter(row => 
-        row.getAttribute('data-parent-id') === nodeId
-        );
-        
-        // Add direct children to results
-        descendants.push(...directChildren);
-        
-        // Recursively add their descendants
-        directChildren.forEach(child => {
-        const childId = child.getAttribute('data-node-id');
-        if (childId) {
-            descendants.push(...this.getAllDescendants(childId));
-        }
-        });
-        
-        return descendants;
-    }
-    
-    // Helper to check if a row is a descendant of a specific node
-private isDescendantOf(rowParentId: string | null, ancestorId: string): boolean {
-    if (!rowParentId) return false;
-    if (rowParentId === ancestorId) return true;
-    
-    const parentElement = this.tableDiv.querySelector(`tr[data-node-id="${rowParentId}"]`);
-    if (!parentElement) return false;
-    
-    const grandparentId = parentElement.getAttribute('data-parent-id');
-    return this.isDescendantOf(grandparentId, ancestorId);
-  }
-
-  
-    
-    // Main table creation method
-    // Update this method to store expanded state before render
-private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): void {
-    // Create table
-    const table = document.createElement("table");
-    table.className = CSS_CLASSES.MATRIX_TABLE;
-    
-    // Set hover effects based on settings
-    if (this.formattingSettings.generalSettings.enableHover.value) {
-        table.classList.add(CSS_CLASSES.HOVER_ENABLED);
-    }
-    
-    this.tableDiv.appendChild(table);
-    
-    // Check if we have rows
-    if (!matrix.rows?.root) {
-        return;
-    }
-    
-    // Process columns
-    const { columns, columnFormats } = this.processColumns(matrix, measureName);
-    
-    // Create table header
-    this.createTableHeader(table, columns, columnFormats);
-    
-    // Create table body
-    const tbody = document.createElement("tbody");
-    table.appendChild(tbody);
-    
-    // Clone current expanded state for reference during initialization
-    const previousExpandedState = new Map(this.expandedRows);
-    
-    // Initialize all new rows, but preserve existing expanded states
-    if (matrix.rows.root.children) {
-        // Reset expandedRows to start fresh (we'll restore existing states)
-        this.expandedRows = new Map();
-        
-        // Initialize with preserving previous state
-        this.initializeExpandedStateWithPreservation(matrix.rows.root.children, 0, "", previousExpandedState);
-    }
-    
-    // Render rows recursively with subtotals
-    if (matrix.rows.root.children) {
-        this.renderRowsWithSubtotals(table, matrix.rows.root.children, columns, 0, "");
-    }
-    
-    // Calculate grand totals
-    const grandTotals = this.calculateGrandTotals(matrix, columns);
-
-    // Add grand total row
-    this.addGrandTotalRow(table, columns, grandTotals);
-
-    // Apply all formatting
-    this.applyTableFormatting(table);
-}
-    
-    // Add this helper method to recursively handle descendants
-    private initializeExpandedStateWithPreservation(
-        rows: any[], 
-        level: number, 
-        parentId: string,
-        previousState: Map<string, boolean>
-    ): void {
-        if (!rows) return;
-        
-        for (const row of rows) {
-            const nodeId = parentId + this.getNodeId(row, level);
-            
-            // If this node existed in previous state, use that value
-            if (previousState.has(nodeId)) {
-                const wasExpanded = previousState.get(nodeId);
-                this.expandedRows.set(nodeId, wasExpanded);
-            } else {
-                // Otherwise default to expanded
-                this.expandedRows.set(nodeId, true);
-            }
-            
-            // Initialize children recursively
-            if (row.children?.length > 0) {
-                this.initializeExpandedStateWithPreservation(row.children, level + 1, nodeId, previousState);
-            }
-        }
-    }
-
-    // Process columns data
-    private processColumns(matrix: powerbi.DataViewMatrix, measureName: string): { columns: any[], columnFormats: string[] } {
-        let columns: any[] = [];
-        let columnFormats: string[] = [];
-        
-        if (matrix.columns?.root?.children) {
-            columns = matrix.columns.root.children;
-            
-            // Extract column formats if columns are dates
-            if (matrix.columns.levels?.[0]?.sources?.[0]?.format) {
-                const columnSource = matrix.columns.levels[0].sources[0];
-                // Use the same format for all columns if they come from the same source
-                columnFormats = columns.map(() => columnSource.format);
-            }
-        } else {
-            // If no columns, create a single column for the measure
-            columns = [{ value: null }]; // Empty column header
-            columnFormats = [""];
-        }
-        
-        return { columns, columnFormats };
-    }
-    
-    // Create table header
-    private createTableHeader(table: HTMLTableElement, columns: any[], columnFormats: string[]): void {
-        const thead = document.createElement("thead");
-        const headerRow = document.createElement("tr");
-        
-        // Add corner cell
-        const cornerCell = this.createCornerCell();
-        headerRow.appendChild(cornerCell);
-        
-        // Add column headers
-        for (let i = 0; i < columns.length; i++) {
-            const columnHeader = this.createColumnHeader(columns[i], columnFormats[i]);
-            headerRow.appendChild(columnHeader);
-        }
-        
-        thead.appendChild(headerRow);
-        table.appendChild(thead);
-    }
-    
-    // Create corner cell (top-left)
-    private createCornerCell(): HTMLTableHeaderCellElement {
-        const cornerCell = document.createElement("th");
-        cornerCell.className = `${CSS_CLASSES.ROW_HEADER} ${CSS_CLASSES.COLUMN_HEADER}`;
-        cornerCell.setAttribute("style", 
-            "position: sticky !important; " + 
-            "top: 0 !important; " + 
-            "left: 0 !important; " + 
-            "z-index: 1000 !important; " + 
-            "background-color: #e0e0e0;"
-        );
-
-        this.applyFormatting(cornerCell, 'columnHeader');
-        return cornerCell;
-    }
-    
-    // Create column header cell
-    private createColumnHeader(column: any, format: string): HTMLTableHeaderCellElement {
-        const th = document.createElement("th");
-        th.className = CSS_CLASSES.COLUMN_HEADER;
-        
-        // Apply column width
-        const columnWidth = this.formattingSettings.generalSettings.columnWidth.value;
-        if (columnWidth) {
-            th.style.minWidth = `${columnWidth}px`;
-            th.style.width = `${columnWidth}px`;
-        }
-        
-        // Apply formatting
-        this.applyFormatting(th, 'columnHeader');
-        
-        // Set header text
-        if (column.value !== null && column.value !== undefined) {
-            // Format date headers properly
-            if (column.isDate || (typeof column.value === 'object' && column.value.epochTimeStamp)) {
-                th.textContent = this.formatDateValue(column.value, format || "d");
-            } else {
-                th.textContent = String(column.value);
-            }
-        } else {
-            th.textContent = this.getMeasureDynamically();
-        }
-        
-        return th;
-    }
-    
-    // Helper method to get measure dynamically
-    private getMeasureDynamically(): string {
-        if (!this.lastOptions?.dataViews?.[0]) return "Amount";
-        return this.getMeasureName(this.lastOptions.dataViews[0]);
-    }
-
-    
-    
-    // Format a date value
     private formatDateValue(value: any, format: string = "M/d/yyyy"): string {
         if (!value) return "";
         
@@ -757,8 +229,202 @@ private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): 
             return String(value);
         }
     }
+
+    private formatCellValue(value: any): string {
+        if (value === null || value === undefined) {
+            return "";
+        }
+        
+        if (typeof value === 'number') {
+            return this.formatNumber(value);
+        }
+        
+        if (typeof value === 'object') {
+            // Extract value from object
+            if ('value' in value) {
+                const cellValue = value.value;
+                if (typeof cellValue === 'number') {
+                    return this.formatNumber(cellValue);
+                } else if (cellValue === null || cellValue === undefined || 
+                        (typeof cellValue === 'object' && Object.keys(cellValue).length === 0)) {
+                    return "";
+                } else {
+                    return String(cellValue);
+                }
+            } else if (Object.keys(value).length === 0) {
+                return "";
+            } else {
+                return JSON.stringify(value);
+            }
+        }
+        
+        return String(value);
+    }
     
-    // Recursive function to render rows with subtotals
+    private formatNumber(value: number, formatString?: string): string {
+        formatString = formatString || this.cachedFormatString;
+        const formatter = valueFormatter.create({ format: formatString });
+        return formatter.format(value);
+    }
+
+    // Calculate subtotal for a parent node and column
+    private calculateSubtotalForColumn(parentNode: any, columnIndex: number): number {
+        if (!parentNode?.children?.length) {
+            return 0;
+        }
+        
+        let total = 0;
+        
+        for (const child of parentNode.children) {
+            if (child.children?.length > 0) {
+                // Recursively get subtotals from children
+                total += this.calculateSubtotalForColumn(child, columnIndex);
+            } else {
+                // Leaf node with values
+                if (child.values?.[columnIndex]?.value !== null && 
+                    child.values[columnIndex]?.value !== undefined &&
+                    typeof child.values[columnIndex].value === 'number') {
+                    total += child.values[columnIndex].value;
+                }
+            }
+        }
+        
+        return total;
+    }
+    
+    private calculateGrandTotals(matrix: powerbi.DataViewMatrix, columns: any[]): number[] {
+        const totals: number[] = new Array(columns.length).fill(0);
+        
+        // If no rows, return zeros
+        if (!matrix.rows?.root?.children) {
+            return totals;
+        }
+        
+        // Function to recursively process all leaf nodes
+        const processNode = (node: any) => {
+            if (node.children && node.children.length > 0) {
+                // Process children recursively
+                for (const child of node.children) {
+                    processNode(child);
+                }
+            } else if (node.values) {
+                // This is a leaf node with values
+                for (let i = 0; i < columns.length; i++) {
+                    if (node.values[i]?.value !== null && 
+                        node.values[i]?.value !== undefined &&
+                        typeof node.values[i].value === 'number') {
+                        totals[i] += node.values[i].value;
+                    }
+                }
+            }
+        };
+        
+        // Process all rows starting from the root
+        for (const row of matrix.rows.root.children) {
+            processNode(row);
+        }
+        
+        return totals;
+    }
+
+    //=========================================================================
+    // TABLE CREATION AND RENDERING
+    //=========================================================================
+
+    private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): void {
+        // Create table
+        const table = document.createElement("table");
+        table.className = CSS_CLASSES.MATRIX_TABLE;
+        
+        // Set hover effects based on settings
+        if (this.formattingSettings.generalSettings.enableHover.value) {
+            table.classList.add(CSS_CLASSES.HOVER_ENABLED);
+        }
+        
+        this.tableDiv.appendChild(table);
+        
+        // Check if we have rows
+        if (!matrix.rows?.root) {
+            return;
+        }
+        
+        // Process columns
+        const { columns, columnFormats } = this.processColumns(matrix, measureName);
+        
+        // Create table header
+        this.createTableHeader(table, columns, columnFormats);
+        
+        // Create table body
+        const tbody = document.createElement("tbody");
+        table.appendChild(tbody);
+        
+        // Clone current expanded state for reference during initialization
+        const previousExpandedState = new Map(this.expandedRows);
+        
+        // Initialize all new rows, but preserve existing expanded states
+        if (matrix.rows.root.children) {
+            // Reset expandedRows to start fresh (we'll restore existing states)
+            this.expandedRows = new Map();
+            
+            // Initialize with preserving previous state
+            this.initializeExpandedStateWithPreservation(matrix.rows.root.children, 0, "", previousExpandedState);
+        }
+        
+        // Render rows recursively with subtotals
+        if (matrix.rows.root.children) {
+            this.renderRowsWithSubtotals(table, matrix.rows.root.children, columns, 0, "");
+        }
+        
+        // Calculate grand totals
+        const grandTotals = this.calculateGrandTotals(matrix, columns);
+
+        // Add grand total row
+        this.addGrandTotalRow(table, columns, grandTotals);
+
+        // Apply all formatting
+        this.applyTableFormatting(table);
+    }
+
+    private processColumns(matrix: powerbi.DataViewMatrix, measureName: string): { columns: any[], columnFormats: string[] } {
+        let columns: any[] = [];
+        let columnFormats: string[] = [];
+        
+        if (matrix.columns?.root?.children) {
+            columns = matrix.columns.root.children;
+            
+            // Extract column formats if columns are dates
+            if (matrix.columns.levels?.[0]?.sources?.[0]?.format) {
+                const columnSource = matrix.columns.levels[0].sources[0];
+                // Use the same format for all columns if they come from the same source
+                columnFormats = columns.map(() => columnSource.format);
+            }
+        } else {
+            // If no columns, create a single column for the measure
+            columns = [{ value: null }]; // Empty column header
+            columnFormats = [""];
+        }
+        
+        return { columns, columnFormats };
+    }
+    
+    private createTableHeader(table: HTMLTableElement, columns: any[], columnFormats: string[]): void {
+        const thead = document.createElement("thead");
+        const headerRow = document.createElement("tr");
+        
+        // Add corner cell
+        const cornerCell = this.createCornerCell();
+        headerRow.appendChild(cornerCell);
+        
+        // Add column headers
+        columns.forEach((column, index) => {
+            const columnHeader = this.createColumnHeader(column, columnFormats[index]);
+            headerRow.appendChild(columnHeader);
+        });
+        
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+    }
+
     private renderRowsWithSubtotals(
         table: HTMLTableElement, 
         rows: any[], 
@@ -772,11 +438,10 @@ private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): 
         const columnWidth = this.formattingSettings.generalSettings.columnWidth.value;
         const applySubtotalToLevel0 = true;
         
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
+        rows.forEach((row, rowIndex) => {
             const nodeId = parentId + this.getNodeId(row, level);
             
-            // Important: Get expanded state from our map
+            // Get expanded state from our map
             const isExpanded = this.isExpanded(nodeId);
             const isLevel0 = level === 0;
             
@@ -814,7 +479,7 @@ private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): 
             if (row.children?.length > 0) {
                 this.addSubtotalCells(tr, row, columns, isLevel0, columnWidth);
             } else if (row.values) {
-                this.addDataCells(tr, row as any, columns, columnWidth);
+                this.addDataCells(tr, row, columns, columnWidth);
             }
             
             tbody.appendChild(tr);
@@ -825,13 +490,58 @@ private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): 
             }
             
             // Add blank row if needed
-            this.addBlankRowIfNeeded(tbody, columns, i, rows.length, row, level);
-        }
+            this.addBlankRowIfNeeded(tbody, columns, rowIndex, rows.length, row, level);
+        });
+    }
+
+    //=========================================================================
+    // CELL AND ELEMENT CREATION
+    //=========================================================================
+
+    private createCornerCell(): HTMLTableHeaderCellElement {
+        const cornerCell = document.createElement("th");
+        cornerCell.className = `${CSS_CLASSES.ROW_HEADER} ${CSS_CLASSES.COLUMN_HEADER}`;
+        cornerCell.setAttribute("style", 
+            "position: sticky !important; " + 
+            "top: 0 !important; " + 
+            "left: 0 !important; " + 
+            "z-index: 1000 !important; " + 
+            "background-color: #e0e0e0;"
+        );
+
+        this.applyFormatting(cornerCell, 'columnHeader');
+        return cornerCell;
     }
     
-    
+    private createColumnHeader(column: any, format: string): HTMLTableHeaderCellElement {
+        const th = document.createElement("th");
+        th.className = CSS_CLASSES.COLUMN_HEADER;
+        
+        // Apply column width
+        const columnWidth = this.formattingSettings.generalSettings.columnWidth.value;
+        if (columnWidth) {
+            th.style.minWidth = `${columnWidth}px`;
+            th.style.width = `${columnWidth}px`;
+        }
+        
+        // Apply formatting
+        this.applyFormatting(th, 'columnHeader');
+        
+        // Set header text
+        if (column.value !== null && column.value !== undefined) {
+            // Format date headers properly
+            if (column.isDate || (typeof column.value === 'object' && column.value.epochTimeStamp)) {
+                th.textContent = this.formatDateValue(column.value, format || "d");
+            } else {
+                th.textContent = String(column.value);
+            }
+        } else {
+            th.textContent = this.getMeasureDynamically();
+        }
+        
+        return th;
+    }
 
-    // Create a row header
     private createRowHeader(
         row: MatrixNode, 
         level: number, 
@@ -888,35 +598,7 @@ private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): 
         
         return rowHeader;
     }
-    
-    // Create toggle button for expanding/collapsing rows
-    private createToggleButton(nodeId: string, isExpanded: boolean): HTMLSpanElement {
-        const toggleButton = document.createElement("span");
-        toggleButton.className = "toggle-button";
-        toggleButton.textContent = isExpanded ? "▼" : "►";
-        toggleButton.style.flexShrink = "0";
-        toggleButton.style.transition = "transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.2s ease";
-        toggleButton.style.display = "inline-block";
-        
-        if (isExpanded) {
-          toggleButton.style.transform = "rotate(0deg)";
-        } else {
-          toggleButton.style.transform = "rotate(-90deg)";
-        }
-        
-        toggleButton.onclick = (event) => {
-          event.stopPropagation();
-          
-          // Only process click if not currently animating
-          if (!toggleButton.hasAttribute('data-animating')) {
-            this.toggleExpanded(nodeId);
-          }
-        };
-        
-        return toggleButton;
-      }
-    
-    // Create row label element
+
     private createRowLabel(row: MatrixNode): HTMLSpanElement {
         const label = document.createElement("span");
         label.className = "row-label";
@@ -938,8 +620,52 @@ private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): 
 
         return label;
     }
-    
-    // Add subtotal cells to a row
+
+    private createToggleButton(nodeId: string, isExpanded: boolean): HTMLSpanElement {
+        const toggleButton = document.createElement("span");
+        toggleButton.className = "toggle-button";
+        toggleButton.textContent = isExpanded ? "▼" : "►";
+        toggleButton.style.flexShrink = "0";
+        toggleButton.style.transition = "transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.2s ease";
+        toggleButton.style.display = "inline-block";
+        toggleButton.style.transform = isExpanded ? "rotate(0deg)" : "rotate(-90deg)";
+        
+        toggleButton.onclick = (event) => {
+            event.stopPropagation();
+            
+            // Only process click if not currently animating
+            if (!toggleButton.hasAttribute('data-animating')) {
+                this.toggleExpanded(nodeId);
+            }
+        };
+        
+        return toggleButton;
+    }
+
+    private addDataCells(
+        tr: HTMLTableRowElement, 
+        row: any,
+        columns: any[], 
+        columnWidth: number
+    ): void {
+        columns.forEach((_, j) => {
+            const td = document.createElement("td");
+            td.className = CSS_CLASSES.DATA_CELL;
+            
+            // Apply column width
+            if (columnWidth) {
+                td.style.minWidth = `${columnWidth}px`;
+                td.style.width = `${columnWidth}px`;
+            }
+            
+            // Get cell value and format it
+            const value = row.values[j];
+            td.textContent = this.formatCellValue(value);
+            
+            tr.appendChild(td);
+        });
+    }
+
     private addSubtotalCells(
         tr: HTMLTableRowElement, 
         row: MatrixNode, 
@@ -947,7 +673,7 @@ private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): 
         isLevel0: boolean,
         columnWidth: number
     ): void {
-        for (let j = 0; j < columns.length; j++) {
+        columns.forEach((_, j) => {
             const td = document.createElement("td");
             td.className = `${CSS_CLASSES.DATA_CELL} ${CSS_CLASSES.SUBTOTAL_CELL}`;
             
@@ -974,208 +700,9 @@ private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): 
             }
             
             tr.appendChild(td);
-        }
-    }
-    
-    // Add regular data cells to a row
-    private addDataCells(
-        tr: HTMLTableRowElement, 
-        row: any, // Use any to handle both types
-        columns: any[], 
-        columnWidth: number
-    ): void {
-        for (let j = 0; j < columns.length; j++) {
-            const td = document.createElement("td");
-            td.className = CSS_CLASSES.DATA_CELL;
-            
-            // Apply column width
-            if (columnWidth) {
-                td.style.minWidth = `${columnWidth}px`;
-                td.style.width = `${columnWidth}px`;
-            }
-            
-            // Get cell value and format it
-            const value = row.values[j];
-            td.textContent = this.formatCellValue(value);
-            
-            tr.appendChild(td);
-        }
-    }
-    
-    // Add blank row if settings indicate one is needed
-    private addBlankRowIfNeeded(
-        tbody: HTMLTableSectionElement, 
-        columns: any[], 
-        currentIndex: number, 
-        totalRows: number, 
-        currentRow: MatrixNode,
-        level: number
-    ): void {
-        const blankRowSettings = this.formattingSettings.blankRowSettings;
-        
-        // Only add blank rows if the setting is enabled
-        if (!blankRowSettings.enableBlankRows.value) {
-            return;
-        }
-        
-        // Add blank row after each top-level item (level 0) except the last one
-        if (level === 0 && currentIndex < totalRows - 1) {
-            // Create blank row
-            const blankRow = document.createElement("tr");
-            blankRow.className = CSS_CLASSES.BLANK_ROW;
-            
-            // Set the height if specified
-            const rowHeight = blankRowSettings.height.value;
-            if (rowHeight > 0) {
-                blankRow.style.height = `${rowHeight}px`;
-            }
-            
-            // Create a cell that spans all columns
-            const blankCell = document.createElement("td");
-            blankCell.colSpan = columns.length + 1; // +1 for row header column
-            
-            // Apply background color from settings
-            const bgColor = blankRowSettings.backgroundColor.value.value;
-            if (bgColor) {
-                blankCell.style.backgroundColor = bgColor;
-            }
-            
-            // Add the cell to the row and the row to the table
-            blankRow.appendChild(blankCell);
-            tbody.appendChild(blankRow);
-        }
-    }
-    
-    private addBlankRowBeforeTotal(tfoot: HTMLTableSectionElement, columns: any[]): void {
-        const blankRowSettings = this.formattingSettings.blankRowSettings;
-        
-        // Only add blank row if the setting is enabled
-        if (!blankRowSettings.enableBlankRows.value) {
-            return;
-        }
-        
-        // Create blank row
-        const blankRow = document.createElement("tr");
-        blankRow.className = CSS_CLASSES.BLANK_ROW;
-        
-        // Set the height if specified
-        const rowHeight = blankRowSettings.height.value;
-        if (rowHeight > 0) {
-            blankRow.style.height = `${rowHeight}px`;
-        }
-        
-        // Create a cell that spans all columns
-        const blankCell = document.createElement("td");
-        blankCell.colSpan = columns.length + 1; // +1 for row header column
-        
-        // Apply background color from settings
-        const bgColor = blankRowSettings.backgroundColor.value.value;
-        if (bgColor) {
-            blankCell.style.backgroundColor = bgColor;
-        }
-        
-        // Add the cell to the row and the row to the table footer
-        blankRow.appendChild(blankCell);
-        tfoot.appendChild(blankRow);
+        });
     }
 
-    // Format cell value based on type
-    private formatCellValue(value: any): string {
-        if (value === null || value === undefined) {
-            return "";
-        }
-        
-        if (typeof value === 'number') {
-            return this.formatNumber(value);
-        }
-        
-        if (typeof value === 'object') {
-            // Extract value from object
-            if ('value' in value) {
-                const cellValue = value.value;
-                if (typeof cellValue === 'number') {
-                    return this.formatNumber(cellValue);
-                } else if (cellValue === null || cellValue === undefined || 
-                        (typeof cellValue === 'object' && Object.keys(cellValue).length === 0)) {
-                    return "";
-                } else {
-                    return String(cellValue);
-                }
-            } else if (Object.keys(value).length === 0) {
-                return "";
-            } else {
-                return JSON.stringify(value);
-            }
-        }
-        
-        return String(value);
-    }
-    
-    // Calculate subtotal for a parent node and column
-    private calculateSubtotalForColumn(parentNode: any, columnIndex: number): number {
-        if (!parentNode?.children?.length) {
-            return 0;
-        }
-        
-        let total = 0;
-        
-        for (const child of parentNode.children) {
-            if (child.children?.length > 0) {
-                // Recursively get subtotals from children
-                total += this.calculateSubtotalForColumn(child, columnIndex);
-            } else {
-                // Leaf node with values
-                if (child.values?.[columnIndex]?.value !== null && 
-                    child.values[columnIndex]?.value !== undefined &&
-                    typeof child.values[columnIndex].value === 'number') {
-                    total += child.values[columnIndex].value;
-                }
-            }
-        }
-        
-        return total;
-    }
-        /**
-     * Calculate grand totals for all columns
-     */
-    private calculateGrandTotals(matrix: powerbi.DataViewMatrix, columns: any[]): number[] {
-        const totals: number[] = new Array(columns.length).fill(0);
-        
-        // If no rows, return zeros
-        if (!matrix.rows?.root?.children) {
-            return totals;
-        }
-        
-        // Function to recursively process all leaf nodes
-        const processNode = (node: any, level: number) => {
-            if (node.children && node.children.length > 0) {
-                // Process children recursively
-                for (const child of node.children) {
-                    processNode(child, level + 1);
-                }
-            } else if (node.values) {
-                // This is a leaf node with values
-                for (let i = 0; i < columns.length; i++) {
-                    if (node.values[i]?.value !== null && 
-                        node.values[i]?.value !== undefined &&
-                        typeof node.values[i].value === 'number') {
-                        totals[i] += node.values[i].value;
-                    }
-                }
-            }
-        };
-        
-        // Process all rows starting from the root
-        for (const row of matrix.rows.root.children) {
-            processNode(row, 0);
-        }
-        
-        return totals;
-    }
-
-    /**
-     * Create and append grand total row
-     */
     private addGrandTotalRow(table: HTMLTableElement, columns: any[], totals: number[]): void {
         const settings = this.formattingSettings;
         
@@ -1214,11 +741,11 @@ private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): 
         tr.appendChild(labelCell);
         
         // Create the total cells
-        for (let i = 0; i < columns.length; i++) {
+        totals.forEach((total, i) => {
             const td = document.createElement('td');
-            td.textContent = this.formatNumber(totals[i]);
+            td.textContent = this.formatNumber(total);
             tr.appendChild(td);
-        }
+        });
         
         // Apply formatting to each cell in the grand total row
         const cells = tr.querySelectorAll('th, td');
@@ -1229,23 +756,84 @@ private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): 
         // Add the row to the footer
         tfoot.appendChild(tr);
     }
-    
-    private cachedFormatString: string = "#,0.00";
 
-    // Format number with locale and decimal places
-    private formatNumber(value: number, formatString?: string): string {
-        if (!formatString) {
-            formatString = this.cachedFormatString;
+    private addBlankRowIfNeeded(
+        tbody: HTMLTableSectionElement, 
+        columns: any[], 
+        currentIndex: number, 
+        totalRows: number, 
+        currentRow: MatrixNode,
+        level: number
+    ): void {
+        const blankRowSettings = this.formattingSettings.blankRowSettings;
+        
+        // Only add blank rows if the setting is enabled and this is a level 0 row (not the last one)
+        if (!blankRowSettings.enableBlankRows.value || level !== 0 || currentIndex >= totalRows - 1) {
+            return;
         }
         
-        const formatter = valueFormatter.create({
-            format: formatString
-        });
+        // Create blank row
+        const blankRow = document.createElement("tr");
+        blankRow.className = CSS_CLASSES.BLANK_ROW;
         
-        return formatter.format(value);
+        // Set the height if specified
+        const rowHeight = blankRowSettings.height.value;
+        if (rowHeight > 0) {
+            blankRow.style.height = `${rowHeight}px`;
+        }
+        
+        // Create a cell that spans all columns
+        const blankCell = document.createElement("td");
+        blankCell.colSpan = columns.length + 1; // +1 for row header column
+        
+        // Apply background color from settings
+        const bgColor = blankRowSettings.backgroundColor.value.value;
+        if (bgColor) {
+            blankCell.style.backgroundColor = bgColor;
+        }
+        
+        // Add the cell to the row and the row to the table
+        blankRow.appendChild(blankCell);
+        tbody.appendChild(blankRow);
     }
     
-    // Apply all formatting to the table
+    private addBlankRowBeforeTotal(tfoot: HTMLTableSectionElement, columns: any[]): void {
+        const blankRowSettings = this.formattingSettings.blankRowSettings;
+        
+        // Only add blank row if the setting is enabled
+        if (!blankRowSettings.enableBlankRows.value) {
+            return;
+        }
+        
+        // Create blank row
+        const blankRow = document.createElement("tr");
+        blankRow.className = CSS_CLASSES.BLANK_ROW;
+        
+        // Set the height if specified
+        const rowHeight = blankRowSettings.height.value;
+        if (rowHeight > 0) {
+            blankRow.style.height = `${rowHeight}px`;
+        }
+        
+        // Create a cell that spans all columns
+        const blankCell = document.createElement("td");
+        blankCell.colSpan = columns.length + 1; // +1 for row header column
+        
+        // Apply background color from settings
+        const bgColor = blankRowSettings.backgroundColor.value.value;
+        if (bgColor) {
+            blankCell.style.backgroundColor = bgColor;
+        }
+        
+        // Add the cell to the row and the row to the table footer
+        blankRow.appendChild(blankCell);
+        tfoot.appendChild(blankRow);
+    }
+
+    //=========================================================================
+    // FORMATTING AND STYLING
+    //=========================================================================
+
     private applyTableFormatting(table: HTMLTableElement): void {
         if (!this.formattingSettings) {
             return;
@@ -1272,10 +860,9 @@ private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): 
             console.error("Error applying formatting:", error);
         }
     }
-    
-    // Format cells by type (data, subtotal, etc.)
+
     private formatCellsByType(table: HTMLTableElement): void {
-        // Format by cell type using CSS selectors
+        // Use CSS selectors to get different cell types
         const regularCells = table.querySelectorAll('td.data-cell:not(.subtotal-cell):not(.level-0-subtotal)');
         const subtotalCells = table.querySelectorAll('td.subtotal-cell, td.level-0-subtotal');
         const regularRowHeaders = table.querySelectorAll('tr:not(.subtotal-row) > th.row-header');
@@ -1284,280 +871,93 @@ private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): 
         const cornerCell = table.querySelector('th.row-header.column-header');
     
         // Apply formatting to each cell type
-        regularCells.forEach((cell: HTMLTableCellElement) => {
-            this.applyFormatting(cell, 'data');
-        });
-        
-        subtotalCells.forEach((cell: HTMLTableCellElement) => {
-            this.applyFormatting(cell, 'subtotal');
-        });
-        
-        regularRowHeaders.forEach((cell: HTMLTableCellElement) => {
-            this.applyFormatting(cell, 'rowHeader');
-        });
-        
-        subtotalRowHeaders.forEach((cell: HTMLTableCellElement) => {
-            this.applyFormatting(cell, 'subtotal');
-        });
-        
-        columnHeaderCells.forEach((cell: HTMLTableCellElement) => {
-            this.applyFormatting(cell, 'columnHeader');
-        });
+        regularCells.forEach(cell => this.applyFormatting(cell as HTMLElement, 'data'));
+        subtotalCells.forEach(cell => this.applyFormatting(cell as HTMLElement, 'subtotal'));
+        regularRowHeaders.forEach(cell => this.applyFormatting(cell as HTMLElement, 'rowHeader'));
+        subtotalRowHeaders.forEach(cell => this.applyFormatting(cell as HTMLElement, 'subtotal'));
+        columnHeaderCells.forEach(cell => this.applyFormatting(cell as HTMLElement, 'columnHeader'));
         
         if (cornerCell) {
-            this.applyFormatting(cornerCell as HTMLTableCellElement, 'columnHeader');
+            this.applyFormatting(cornerCell as HTMLElement, 'columnHeader');
         }
     }
-    
-    // Apply formatting to a specific element based on its type
+
     private applyFormatting(
         element: HTMLElement, 
-        type: 'data' | 'rowHeader' | 'columnHeader' | 'subtotal' | 'grandTotal',
-        isSubtotal: boolean = false
+        type: 'data' | 'rowHeader' | 'columnHeader' | 'subtotal' | 'grandTotal'
     ): void {
         const settings = this.formattingSettings;
         if (!settings) return;
         
-        // Apply global font family from general settings
+        // Common properties to format
+        const props = [
+            'color', 
+            'fontSize', 
+            'backgroundColor', 
+            'bold', 
+            'italic', 
+            'underline', 
+            'alignment'
+        ];
+        
+        // Get the appropriate formatting settings based on type
+        let formatSettings;
+        switch (type) {
+            case 'data': formatSettings = settings.fontFormatSettings; break;
+            case 'rowHeader': formatSettings = settings.rowHeaderFormatSettings; break;
+            case 'columnHeader': formatSettings = settings.columnHeaderFormatSettings; break;
+            case 'subtotal': formatSettings = settings.subtotalFormatSettings; break;
+            case 'grandTotal': formatSettings = settings.grandTotalSettings; break;
+        }
+        
+        // Apply global font family
         const globalFontFamily = settings.generalSettings.fontFamily.value;
         if (globalFontFamily) {
             element.style.fontFamily = globalFontFamily;
         }
         
-        // If this is a subtotal, override the type
-        if (isSubtotal) {
-            type = 'subtotal';
-        }
-        
-        switch (type) {
-            case 'data':
-                const font = settings.fontFormatSettings;
-                
-                // Font color
-                if (font.color?.value?.value) {
-                    element.style.color = font.color.value.value;
-                }
-                
-                // Font size
-                if (font.fontSize?.value) {
-                    element.style.fontSize = `${font.fontSize.value}pt`;
-                }
-                
-                // Font styling
-                if (font.bold?.value) {
-                    element.style.fontWeight = 'bold';
-                } else {
-                    element.style.fontWeight = 'normal';
-                }
-                
-                if (font.italic?.value) {
-                    element.style.fontStyle = 'italic';
-                } else {
-                    element.style.fontStyle = 'normal';
-                }
-                
-                if (font.underline?.value) {
-                    element.style.textDecoration = 'underline';
-                } else {
-                    element.style.textDecoration = 'none';
-                }
-                
-                // Background color
-                if (font.backgroundColor?.value?.value) {
-                    element.style.backgroundColor = font.backgroundColor.value.value;
-                }
-
-                // Alignment
-                if (font.alignment?.value?.value !== undefined) {
-                    element.style.textAlign = font.alignment.value.value.toString();
-                }
-                break;
-                
-            case 'rowHeader':
-                const rowFormat = settings.rowHeaderFormatSettings;
-                
-                // Font color
-                if (rowFormat.color?.value?.value) {
-                    element.style.color = rowFormat.color.value.value;
-                }
-                
-                // Font size
-                if (rowFormat.fontSize?.value) {
-                    element.style.fontSize = `${rowFormat.fontSize.value}pt`;
-                }
-                
-                // Background color
-                if (rowFormat.backgroundColor?.value?.value) {
-                    element.style.backgroundColor = rowFormat.backgroundColor.value.value;
-                }
-                
-                // Font styling
-                if (rowFormat.bold?.value) {
-                    element.style.fontWeight = 'bold';
-                } else {
-                    element.style.fontWeight = 'normal';
-                }
-                
-                if (rowFormat.italic?.value) {
-                    element.style.fontStyle = 'italic';
-                } else {
-                    element.style.fontStyle = 'normal';
-                }
-                
-                if (rowFormat.underline?.value) {
-                    element.style.textDecoration = 'underline';
-                } else {
-                    element.style.textDecoration = 'none';
-                }
-
-                // Alignment
-                if (rowFormat.alignment?.value?.value !== undefined) {
-                    element.style.textAlign = rowFormat.alignment.value.value.toString();
-                }
-                break;
-                
-            case 'columnHeader':
-                const headerFormat = settings.columnHeaderFormatSettings;
-                
-                // Font color
-                if (headerFormat.color?.value?.value) {
-                    element.style.color = headerFormat.color.value.value;
-                }
-                
-                // Font size
-                if (headerFormat.fontSize?.value) {
-                    element.style.fontSize = `${headerFormat.fontSize.value}pt`;
-                }
-                
-                // Background color
-                if (headerFormat.backgroundColor?.value?.value) {
-                    element.style.backgroundColor = headerFormat.backgroundColor.value.value;
-                }
-                
-                // Font styling
-                if (headerFormat.bold?.value) {
-                    element.style.fontWeight = 'bold';
-                } else {
-                    element.style.fontWeight = 'normal';
-                }
-                
-                if (headerFormat.italic?.value) {
-                    element.style.fontStyle = 'italic';
-                } else {
-                    element.style.fontStyle = 'normal';
-                }
-                
-                if (headerFormat.underline?.value) {
-                    element.style.textDecoration = 'underline';
-                } else {
-                    element.style.textDecoration = 'none';
-                }
-
-                // Alignment
-                if (headerFormat.alignment?.value?.value !== undefined) {
-                    element.style.textAlign = headerFormat.alignment.value.value.toString();
-                }
-                break;
-                
-            case 'subtotal':
-                const subtotalFormat = settings.subtotalFormatSettings;
-                
-                // Font color
-                if (subtotalFormat.color?.value?.value) {
-                    element.style.color = subtotalFormat.color.value.value;
-                }
-                
-                // Font size
-                if (subtotalFormat.fontSize?.value) {
-                    element.style.fontSize = `${subtotalFormat.fontSize.value}pt`;
-                }
-                
-                // Background color
-                if (subtotalFormat.backgroundColor?.value?.value) {
-                    element.style.backgroundColor = subtotalFormat.backgroundColor.value.value;
-                }
-                
-                // Font styling
-                if (subtotalFormat.bold?.value) {
-                    element.style.fontWeight = 'bold';
-                } else {
-                    element.style.fontWeight = 'normal';
-                }
-                
-                if (subtotalFormat.italic?.value) {
-                    element.style.fontStyle = 'italic';
-                } else {
-                    element.style.fontStyle = 'normal';
-                }
-                
-                if (subtotalFormat.underline?.value) {
-                    element.style.textDecoration = 'underline';
-                } else {
-                    element.style.textDecoration = 'none';
-                }
-                
-                // Alignment
-                if (subtotalFormat.alignment?.value?.value !== undefined) {
-                    element.style.textAlign = subtotalFormat.alignment.value.value.toString();
-                }
-                break;
-            case 'grandTotal':
-                const grandTotalFormat = settings.grandTotalSettings;
-                
-                // Font color
-                if (grandTotalFormat.color?.value?.value) {
-                    element.style.color = grandTotalFormat.color.value.value;
-                }
-                
-                // Font size
-                if (grandTotalFormat.fontSize?.value) {
-                    element.style.fontSize = `${grandTotalFormat.fontSize.value}pt`;
-                }
-                
-                // Background color
-                if (grandTotalFormat.backgroundColor?.value?.value) {
-                    element.style.backgroundColor = grandTotalFormat.backgroundColor.value.value;
-                }
-                
-                // Font styling
-                if (grandTotalFormat.bold?.value) {
-                    element.style.fontWeight = 'bold';
-                } else {
-                    element.style.fontWeight = 'normal';
-                }
-                
-                if (grandTotalFormat.italic?.value) {
-                    element.style.fontStyle = 'italic';
-                } else {
-                    element.style.fontStyle = 'normal';
-                }
-                
-                if (grandTotalFormat.underline?.value) {
-                    element.style.textDecoration = 'underline';
-                } else {
-                    element.style.textDecoration = 'none';
-                }
-                
-                // Apply alignment to the data cells, but not the label
-                if (element.tagName === 'TD' && grandTotalFormat.alignment?.value?.value !== undefined) {
-                    element.style.textAlign = grandTotalFormat.alignment.value.value.toString();
-                } else if (element.tagName === 'TH') {
-                    // The label cell should align left
+        // Apply each property if it exists
+        if (formatSettings) {
+            // Color
+            if (formatSettings.color?.value?.value) {
+                element.style.color = formatSettings.color.value.value;
+            }
+            
+            // Font size
+            if (formatSettings.fontSize?.value) {
+                element.style.fontSize = `${formatSettings.fontSize.value}pt`;
+            }
+            
+            // Background color
+            if (formatSettings.backgroundColor?.value?.value) {
+                element.style.backgroundColor = formatSettings.backgroundColor.value.value;
+            }
+            
+            // Font styling
+            element.style.fontWeight = formatSettings.bold?.value ? 'bold' : 'normal';
+            element.style.fontStyle = formatSettings.italic?.value ? 'italic' : 'normal';
+            element.style.textDecoration = formatSettings.underline?.value ? 'underline' : 'none';
+            
+            // Alignment - special handling for grand total labels
+            if (formatSettings.alignment?.value?.value !== undefined) {
+                // Special handling for grand total label cell
+                if (type === 'grandTotal' && element.tagName === 'TH') {
                     element.style.textAlign = 'left';
+                } else {
+                    element.style.textAlign = formatSettings.alignment.value.value.toString();
                 }
-                break;
+            }
         }
     }
-    
-    // Apply border settings to the table
+
     private applyGlobalBorders(table: HTMLTableElement): void {
         const borderSettings = this.formattingSettings.borderSettings;
         
         if (!borderSettings?.show?.value) {
             // If borders are turned off, remove all border classes
-            table.classList.remove(CSS_CLASSES.WITH_BORDERS);
-            table.classList.remove(CSS_CLASSES.WITH_HORIZONTAL_BORDERS);
-            table.classList.remove(CSS_CLASSES.WITH_VERTICAL_BORDERS);
+            table.classList.remove(CSS_CLASSES.WITH_BORDERS, 
+                CSS_CLASSES.WITH_HORIZONTAL_BORDERS, 
+                CSS_CLASSES.WITH_VERTICAL_BORDERS);
             return;
         }
         
@@ -1587,26 +987,26 @@ private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): 
         table.style.setProperty('--border-width', `${borderWidth}px`);
         table.style.setProperty('--border-style', 'solid');
         
-        // Add this block to enforce consistent borders on sticky headers
+        // Fix consistent borders on sticky headers
         if (borderSettings.show.value) {
-            // Force consistent border width on sticky headers
             const rowHeaders = table.querySelectorAll('th.row-header');
             rowHeaders.forEach(header => {
+                const headerEl = header as HTMLElement;
+                
                 if (showVertical) {
-                    (header as HTMLElement).style.borderRightWidth = `${borderWidth}px`;
-                    (header as HTMLElement).style.borderLeftWidth = `${borderWidth}px`;
+                    headerEl.style.borderRightWidth = `${borderWidth}px`;
+                    headerEl.style.borderLeftWidth = `${borderWidth}px`;
                 }
                 if (showHorizontal) {
-                    (header as HTMLElement).style.borderTopWidth = `${borderWidth}px`;
-                    (header as HTMLElement).style.borderBottomWidth = `${borderWidth}px`;
+                    headerEl.style.borderTopWidth = `${borderWidth}px`;
+                    headerEl.style.borderBottomWidth = `${borderWidth}px`;
                 }
-                (header as HTMLElement).style.borderColor = borderColor;
-                (header as HTMLElement).style.borderStyle = 'solid';
+                headerEl.style.borderColor = borderColor;
+                headerEl.style.borderStyle = 'solid';
             });
         }
     }
-    
-    // Helper method to adjust color brightness
+
     private adjustColor(color: string, amount: number): string {
         // Handle empty or invalid colors
         if (!color || color === 'transparent' || color === 'inherit' || color === 'initial') {
@@ -1643,30 +1043,401 @@ private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): 
         }
     }
 
+    //=========================================================================
+    // EXPAND/COLLAPSE FUNCTIONALITY
+    //=========================================================================
+
+    private getNodeId(node: any, level: number): string {
+        let value;
+        
+        // Ensure we have a consistent string representation
+        if (node.value !== null && node.value !== undefined) {
+            // For date values, get a consistent string representation
+            if (node.value instanceof Date || 
+                (typeof node.value === 'object' && node.value.epochTimeStamp)) {
+                // Convert date to consistent string format
+                const dateValue = node.value instanceof Date ? 
+                    node.value : new Date(node.value.epochTimeStamp);
+                    
+                value = dateValue.toISOString();
+            } else {
+                value = String(node.value);
+            }
+        } else {
+            value = "null";
+        }
+        
+        // Create a consistent node ID
+        return `level_${level}_${value}`;
+    }
+
+    private isExpanded(nodeId: string): boolean {
+        return this.expandedRows.get(nodeId) === true;
+    }
+
+    private initializeExpandedState(rows: any[], level: number, parentId: string): void {
+        if (!rows) return;
+        
+        for (const row of rows) {
+            const nodeId = parentId + this.getNodeId(row, level);
+            
+            // Only set default state if not already in the map
+            if (!this.expandedRows.has(nodeId)) {
+                this.expandedRows.set(nodeId, true); // default to expanded
+            }
+            
+            // Recursively initialize children
+            if (row.children?.length > 0) {
+                this.initializeExpandedState(row.children, level + 1, nodeId);
+            }
+        }
+    }
+
+    private initializeExpandedStateWithPreservation(
+        rows: any[], 
+        level: number, 
+        parentId: string,
+        previousState: Map<string, boolean>
+    ): void {
+        if (!rows) return;
+        
+        for (const row of rows) {
+            const nodeId = parentId + this.getNodeId(row, level);
+            
+            // If this node existed in previous state, use that value
+            if (previousState.has(nodeId)) {
+                const wasExpanded = previousState.get(nodeId);
+                this.expandedRows.set(nodeId, wasExpanded);
+            } else {
+                // Otherwise default to expanded
+                this.expandedRows.set(nodeId, true);
+            }
+            
+            // Initialize children recursively
+            if (row.children?.length > 0) {
+                this.initializeExpandedStateWithPreservation(row.children, level + 1, nodeId, previousState);
+            }
+        }
+    }
+
+    // Toggle expanded state of a node
+    private toggleExpanded(nodeId: string): void {
+        // Prevent action if this node or any node is currently animating
+        if (this.animatingNodes.has(nodeId) || this.animatingNodes.size > 0) {
+            return;
+        }
+        
+        // Mark this node as animating
+        this.animatingNodes.add(nodeId);
+        
+        // Get current expanded state and update it
+        const isExpanded = this.isExpanded(nodeId);
+        this.expandedRows.set(nodeId, !isExpanded);
+        
+        // Get direct children for animation
+        const directChildren = Array.from(
+            this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`)
+        ) as HTMLElement[];
+        
+        // Update toggle button
+        const toggleButton = this.tableDiv.querySelector(`tr[data-node-id="${nodeId}"] .toggle-button`) as HTMLElement;
+        if (toggleButton) {
+            this.updateToggleButton(toggleButton, !isExpanded);
+        }
+
+        // After toggle completes, update static property
+        if (this.expandedRows) {
+            Visual.savedExpandedState = new Map<string, boolean>(this.expandedRows);
+        }
+        
+        // Disable all toggle buttons during animation
+        this.disableAllToggleButtons();
+        
+        // Set safety timeout
+        const timeout = window.setTimeout(() => {
+            this.cleanupAnimation(nodeId);
+        }, 500);
+        
+        this.animationTimeouts.set(nodeId, timeout);
+        
+        if (isExpanded) {
+            // COLLAPSING - First prepare all descendants
+            this.prepareDescendantsForCollapse(nodeId);
+            this.animateCollapse(directChildren, nodeId);
+        } else {
+            // EXPANDING
+            this.animateExpand(directChildren, nodeId);
+        }
+    }
+
+    //=========================================================================
+    // ANIMATION METHODS
+    //=========================================================================
+
+    private updateToggleButton(button: HTMLElement, expanded: boolean): void {
+        button.style.cursor = "not-allowed";
+        button.style.opacity = "0.5";
+        button.setAttribute('data-animating', 'true');
+        
+        // Animate the button
+        if (expanded) {
+            button.style.transform = "rotate(0deg)";
+            setTimeout(() => button.textContent = "▼", 150);
+        } else {
+            button.style.transform = "rotate(-90deg)";
+            setTimeout(() => button.textContent = "►", 150);
+        }
+    }
+
+    private disableAllToggleButtons(): void {
+        const allButtons = this.tableDiv.querySelectorAll('.toggle-button');
+        allButtons.forEach((btn: HTMLElement) => {
+            btn.style.cursor = "not-allowed";
+            btn.style.opacity = "0.5";
+            btn.setAttribute('data-animating', 'true');
+        });
+    }
+
+    private animateExpand(rows: HTMLElement[], nodeId: string): void {
+        if (rows.length === 0) {
+            this.cleanupAnimation(nodeId);
+            return;
+        }
+        
+        // Prepare rows for animation
+        rows.forEach(row => {
+            // Setup for animation
+            row.classList.remove('collapsed', 'collapsing-wave');
+            row.style.height = '0';
+            row.style.opacity = '0';
+            row.style.overflow = 'hidden';
+            
+            // Set target height
+            const naturalHeight = row.scrollHeight;
+            row.style.setProperty('--row-height', `${naturalHeight}px`);
+        });
+        
+        // Force a reflow
+        void rows[0].offsetHeight;
+        
+        // Apply animation with staggered delay
+        rows.forEach((row, index) => {
+            row.style.animationDelay = `${index * 20}ms`;
+            row.classList.add('expanding-wave');
+        });
+        
+        // Listen for animation end on the last row
+        const lastRow = rows[rows.length - 1];
+        lastRow.addEventListener('animationend', () => {
+            // Cleanup all styling
+            rows.forEach(row => {
+                row.classList.remove('expanding-wave');
+                row.style.animationDelay = '';
+                row.style.height = '';
+                row.style.opacity = '';
+                row.style.overflow = '';
+            });
+            
+            this.cleanupAnimation(nodeId);
+        }, { once: true });
+    }
+
+    private animateCollapse(rows: HTMLElement[], nodeId: string): void {
+        if (rows.length === 0) {
+            this.cleanupAnimation(nodeId);
+            return;
+        }
+        
+        // Prepare rows for animation
+        rows.forEach(row => {
+            row.classList.remove('expanding-wave', 'collapsed');
+            
+            // Set initial state
+            const rowHeight = row.offsetHeight;
+            row.style.setProperty('--row-height', `${rowHeight}px`);
+            row.style.overflow = 'hidden';
+            
+            // Force reflow
+            void row.offsetHeight;
+        });
+        
+        // Apply animation with staggered delay
+        rows.forEach((row, index) => {
+            row.style.animationDelay = `${index * 20}ms`;
+            row.classList.add('collapsing-wave');
+        });
+        
+        // Listen for animation end
+        const lastRow = rows[rows.length - 1];
+        lastRow.addEventListener('animationend', () => {
+            // Hide rows after animation
+            rows.forEach(row => {
+                row.classList.remove('collapsing-wave');
+                row.classList.add('collapsed');
+                row.style.animationDelay = '';
+            });
+            
+            this.cleanupAnimation(nodeId);
+        }, { once: true });
+    }
+
+    private cleanupAnimation(nodeId: string): void {
+        // Clear timeout
+        const timeout = this.animationTimeouts.get(nodeId);
+        if (timeout) {
+            window.clearTimeout(timeout);
+            this.animationTimeouts.delete(nodeId);
+        }
+        
+        // Remove from animating set
+        this.animatingNodes.delete(nodeId);
+        
+        // Re-enable all toggle buttons
+        const allButtons = this.tableDiv.querySelectorAll('.toggle-button');
+        allButtons.forEach((btn) => {
+            const htmlBtn = btn as HTMLElement;
+            htmlBtn.style.cursor = "pointer";
+            htmlBtn.style.opacity = "1";
+            htmlBtn.removeAttribute('data-animating');
+        });
+        
+        // Apply final state to all descendants if this was a collapse operation
+        const isExpanded = this.isExpanded(nodeId);
+        if (!isExpanded) {
+            // Properly hide all descendants
+            const allDescendants = this.findAllDescendants(nodeId);
+            allDescendants.forEach(row => {
+                // Hide row
+                row.classList.add('collapsed');
+                row.classList.remove('collapsing-wave', 'expanding-wave');
+                
+                // Update toggle button
+                const childToggle = row.querySelector('.toggle-button') as HTMLElement;
+                if (childToggle) {
+                    childToggle.textContent = "►"; // Collapsed icon
+                    childToggle.style.transform = "rotate(-90deg)";
+                }
+                
+                // Update internal state
+                const rowId = row.getAttribute('data-node-id');
+                if (rowId) {
+                    this.expandedRows.set(rowId, false);
+                }
+            });
+
+            if (this.expandedRows) {
+                Visual.savedExpandedState = new Map<string, boolean>(this.expandedRows);
+            }
+        }
+    }
+
+    private prepareDescendantsForCollapse(parentNodeId: string): void {
+        // Find all descendants at all levels
+        const allDescendants = this.findAllDescendants(parentNodeId);
+        
+        // Update state and UI for all descendants
+        allDescendants.forEach(row => {
+            const rowId = row.getAttribute('data-node-id');
+            if (rowId) {
+                this.expandedRows.set(rowId, false);
+                
+                // Update toggle button icon
+                const toggleButton = row.querySelector('.toggle-button') as HTMLElement;
+                if (toggleButton) {
+                    toggleButton.textContent = "►";
+                    toggleButton.style.transform = "rotate(-90deg)";
+                }
+            }
+        });
+    }
+
+    //=========================================================================
+    // HELPER METHODS
+    //=========================================================================
+
+    private findAllDescendants(nodeId: string): HTMLElement[] {
+        const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]')) as HTMLElement[];
+        const allDescendants: HTMLElement[] = [];
+        
+        // Helper function to recursively find descendants
+        const findDescendants = (id: string): void => {
+            const children = allRows.filter(row => row.getAttribute('data-parent-id') === id);
+            
+            children.forEach(child => {
+                allDescendants.push(child);
+                const childId = child.getAttribute('data-node-id');
+                if (childId) {
+                    findDescendants(childId);
+                }
+            });
+        };
+        
+        findDescendants(nodeId);
+        return allDescendants;
+    }
+
+    private getAllDescendants(nodeId: string): HTMLElement[] {
+        const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]')) as HTMLElement[];
+        const descendants: HTMLElement[] = [];
+        
+        // Get direct children
+        const directChildren = allRows.filter(row => 
+            row.getAttribute('data-parent-id') === nodeId
+        );
+        
+        descendants.push(...directChildren);
+        
+        // Recursively add their descendants
+        directChildren.forEach(child => {
+            const childId = child.getAttribute('data-node-id');
+            if (childId) {
+                descendants.push(...this.getAllDescendants(childId));
+            }
+        });
+        
+        return descendants;
+    }
+    
+    private isDescendantOf(rowParentId: string | null, ancestorId: string): boolean {
+        if (!rowParentId) return false;
+        if (rowParentId === ancestorId) return true;
+        
+        const parentElement = this.tableDiv.querySelector(`tr[data-node-id="${rowParentId}"]`);
+        if (!parentElement) return false;
+        
+        const grandparentId = parentElement.getAttribute('data-parent-id');
+        return this.isDescendantOf(grandparentId, ancestorId);
+    }
+
     private updateDescendantToggleButtons(parentNodeId: string, isExpanded: boolean): void {
         // Find all descendants
         const descendants = this.findAllDescendants(parentNodeId);
         
         // Update toggle button for each descendant
         descendants.forEach(row => {
-          const toggleButton = row.querySelector('.toggle-button') as HTMLElement;
-          if (toggleButton) {
-            // Update button appearance
-            if (!isExpanded) {
-              toggleButton.textContent = "►"; // Collapsed icon
-              toggleButton.style.transform = "rotate(-90deg)";
-            } else {
-              // Keep current state when expanding parent
-              const rowId = row.getAttribute('data-node-id');
-              if (rowId && this.isExpanded(rowId)) {
-                toggleButton.textContent = "▼"; // Expanded icon
-                toggleButton.style.transform = "rotate(0deg)";
-              }
+            const toggleButton = row.querySelector('.toggle-button') as HTMLElement;
+            if (toggleButton) {
+                // Update button appearance
+                if (!isExpanded) {
+                    toggleButton.textContent = "►"; // Collapsed icon
+                    toggleButton.style.transform = "rotate(-90deg)";
+                } else {
+                    // Keep current state when expanding parent
+                    const rowId = row.getAttribute('data-node-id');
+                    if (rowId && this.isExpanded(rowId)) {
+                        toggleButton.textContent = "▼"; // Expanded icon
+                        toggleButton.style.transform = "rotate(0deg)";
+                    }
+                }
             }
-          }
         });
-      }
-    // Optimized re-rendering when toggling rows
+    }
+
+    private preserveExpandedState(): Map<string, boolean> {
+        // Create a copy of the current expanded state
+        return new Map(this.expandedRows);
+    }
+
     private renderVisualWithCurrentState(): void {
         // Use a small timeout to ensure DOM updates
         setTimeout(() => {
@@ -1695,9 +1466,5 @@ private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): 
                 }
             }
         }, 10);
-    }
-    
-    public getFormattingModel(): powerbi.visuals.FormattingModel {
-        return this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
     }
 }

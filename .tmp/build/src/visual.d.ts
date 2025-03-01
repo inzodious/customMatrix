@@ -45,22 +45,15 @@ export declare class Visual implements IVisual {
     private formatCellsByType;
     private applyFormatting;
     private applyGlobalBorders;
-    private adjustColor;
     private getNodeId;
     private isExpanded;
-    private initializeExpandedState;
-    private initializeExpandedStateWithPreservation;
+    private initializeDefaultExpandedState;
     private toggleExpanded;
-    private updateToggleButton;
     private disableAllToggleButtons;
     private animateExpand;
     private animateCollapse;
     private cleanupAnimation;
-    private prepareDescendantsForCollapse;
     private findAllDescendants;
     private getAllDescendants;
-    private isDescendantOf;
-    private updateDescendantToggleButtons;
-    private preserveExpandedState;
-    private renderVisualWithCurrentState;
+    private setChildrenCollapsed;
 }

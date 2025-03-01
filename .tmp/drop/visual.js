@@ -8478,10 +8478,7 @@ class Visual {
         this.target = options.element;
         this.host = options.host;
         this.formattingSettingsService = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .FormattingSettingsService */ .O();
-        // Initialize expandedRows from static property if it has values
-        this.expandedRows = Visual.savedExpandedState.size > 0
-            ? new Map(Visual.savedExpandedState)
-            : new Map();
+        this.expandedRows = new Map();
         this.createContainerElements();
     }
     createContainerElements() {
@@ -8502,7 +8499,10 @@ class Visual {
     //=========================================================================
     update(options) {
         this.lastOptions = options;
-        // Save current state before clearing content
+        // Save scroll position
+        const scrollTop = this.tableDiv?.scrollTop || 0;
+        const scrollLeft = this.tableDiv?.scrollLeft || 0;
+        // Save current expanded state before clearing
         if (this.expandedRows?.size > 0) {
             Visual.savedExpandedState = new Map(this.expandedRows);
         }
@@ -8520,10 +8520,17 @@ class Visual {
             // Check if we have matrix data
             if (!dataView.matrix)
                 return;
+            // Restore the expanded state from the static property
+            if (Visual.savedExpandedState.size > 0) {
+                this.expandedRows = new Map(Visual.savedExpandedState);
+            }
             const matrix = dataView.matrix;
             const measureName = this.getMeasureName(dataView);
             // Create matrix table
             this.createMatrixTable(matrix, measureName);
+            // Restore scroll position
+            this.tableDiv.scrollTop = scrollTop;
+            this.tableDiv.scrollLeft = scrollLeft;
         }
         catch (error) {
             console.error("Error in update:", error);
@@ -8714,16 +8721,20 @@ class Visual {
         // Create table body
         const tbody = document.createElement("tbody");
         table.appendChild(tbody);
-        // Clone current expanded state for reference during initialization
-        const previousExpandedState = new Map(this.expandedRows);
-        // Initialize all new rows, but preserve existing expanded states
-        if (matrix.rows.root.children) {
-            // Reset expandedRows to start fresh (we'll restore existing states)
-            this.expandedRows = new Map();
-            // Initialize with preserving previous state
-            this.initializeExpandedStateWithPreservation(matrix.rows.root.children, 0, "", previousExpandedState);
+        // Use saved expanded state if we have it
+        if (Visual.savedExpandedState.size > 0) {
+            this.expandedRows = new Map(Visual.savedExpandedState);
         }
-        // Render rows recursively with subtotals
+        // Initialize level 0 items as expanded if not already set
+        if (matrix.rows.root.children) {
+            matrix.rows.root.children.forEach((row, idx) => {
+                const nodeId = this.getNodeId(row, 0);
+                if (!this.expandedRows.has(nodeId)) {
+                    this.expandedRows.set(nodeId, true); // Level 0 default to expanded
+                }
+            });
+        }
+        // Render rows with current expanded state
         if (matrix.rows.root.children) {
             this.renderRowsWithSubtotals(table, matrix.rows.root.children, columns, 0, "");
         }
@@ -8733,6 +8744,8 @@ class Visual {
         this.addGrandTotalRow(table, columns, grandTotals);
         // Apply all formatting
         this.applyTableFormatting(table);
+        // Save expanded state after table creation
+        Visual.savedExpandedState = new Map(this.expandedRows);
     }
     processColumns(matrix, measureName) {
         let columns = [];
@@ -8775,8 +8788,12 @@ class Visual {
         const applySubtotalToLevel0 = true;
         rows.forEach((row, rowIndex) => {
             const nodeId = parentId + this.getNodeId(row, level);
-            // Get expanded state from our map
-            const isExpanded = this.isExpanded(nodeId);
+            // Default to expanded for level 0 if not explicitly set
+            if (level === 0 && !this.expandedRows.has(nodeId)) {
+                this.expandedRows.set(nodeId, true);
+            }
+            // Get expanded state from our map, default to false for non-level-0
+            const isExpanded = this.expandedRows.get(nodeId) ?? false;
             const isLevel0 = level === 0;
             // Create the table row
             const tr = document.createElement("tr");
@@ -8787,8 +8804,10 @@ class Visual {
             }
             if (level > 0) {
                 tr.classList.add("expandable-row");
-                // Apply collapsed class based on parent's expanded state
-                if (!isExpanded) {
+                // Check if parent is expanded
+                const parentExpanded = this.expandedRows.get(parentId) ?? false;
+                // Hide this row if parent is collapsed OR this level is not expanded by default
+                if (!parentExpanded) {
                     tr.classList.add("collapsed");
                 }
             }
@@ -8809,8 +8828,12 @@ class Visual {
                 this.addDataCells(tr, row, columns, columnWidth);
             }
             tbody.appendChild(tr);
-            // If this node has children and is expanded, render its children
-            if (row.children?.length > 0 && isExpanded) {
+            // If this node has children, always render them
+            if (row.children?.length > 0) {
+                // Set initial collapsed state for children based on parent
+                if (!isExpanded) {
+                    this.setChildrenCollapsed(nodeId, row.children, level + 1);
+                }
                 this.renderRowsWithSubtotals(table, row.children, columns, level + 1, nodeId);
             }
             // Add blank row if needed
@@ -8877,7 +8900,9 @@ class Visual {
         headerContent.style.alignItems = "center";
         // Add toggle button or spacer
         if (row.children?.length > 0) {
-            const toggleButton = this.createToggleButton(nodeId, isExpanded);
+            // Use the actual expanded state from the map, not the parameter
+            const actualIsExpanded = this.expandedRows.get(nodeId) === true;
+            const toggleButton = this.createToggleButton(nodeId, actualIsExpanded);
             headerContent.appendChild(toggleButton);
         }
         else {
@@ -9232,37 +9257,6 @@ class Visual {
             });
         }
     }
-    adjustColor(color, amount) {
-        // Handle empty or invalid colors
-        if (!color || color === 'transparent' || color === 'inherit' || color === 'initial') {
-            return color;
-        }
-        try {
-            // Convert hex to RGB
-            let hex = color;
-            if (hex.startsWith('#')) {
-                hex = hex.slice(1);
-            }
-            // If not a proper hex color, return a default color
-            if (!/^[0-9A-Fa-f]{3}$|^[0-9A-Fa-f]{6}$/.test(hex)) {
-                return amount < 0 ? '#e0e0e0' : '#f5f5f5';
-            }
-            // Parse hex to RGB
-            let r = parseInt(hex.length === 3 ? hex.slice(0, 1).repeat(2) : hex.slice(0, 2), 16);
-            let g = parseInt(hex.length === 3 ? hex.slice(1, 2).repeat(2) : hex.slice(2, 4), 16);
-            let b = parseInt(hex.length === 3 ? hex.slice(2, 3).repeat(2) : hex.slice(4, 6), 16);
-            // Adjust color
-            r = Math.max(0, Math.min(255, r + amount));
-            g = Math.max(0, Math.min(255, g + amount));
-            b = Math.max(0, Math.min(255, b + amount));
-            // Convert back to hex
-            return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-        }
-        catch (error) {
-            console.error("Error adjusting color:", error);
-            return amount < 0 ? '#e0e0e0' : '#f5f5f5';
-        }
-    }
     //=========================================================================
     // EXPAND/COLLAPSE FUNCTIONALITY
     //=========================================================================
@@ -9291,63 +9285,43 @@ class Visual {
     isExpanded(nodeId) {
         return this.expandedRows.get(nodeId) === true;
     }
-    initializeExpandedState(rows, level, parentId) {
+    initializeDefaultExpandedState(rows, level, parentId) {
         if (!rows)
             return;
         for (const row of rows) {
             const nodeId = parentId + this.getNodeId(row, level);
-            // Only set default state if not already in the map
-            if (!this.expandedRows.has(nodeId)) {
-                this.expandedRows.set(nodeId, true); // default to expanded
-            }
-            // Recursively initialize children
+            // Default: expand level 0, collapse others
+            const defaultExpanded = level === 0;
+            this.expandedRows.set(nodeId, defaultExpanded);
+            // Always recursively process children
             if (row.children?.length > 0) {
-                this.initializeExpandedState(row.children, level + 1, nodeId);
+                this.initializeDefaultExpandedState(row.children, level + 1, nodeId);
             }
         }
-    }
-    initializeExpandedStateWithPreservation(rows, level, parentId, previousState) {
-        if (!rows)
-            return;
-        for (const row of rows) {
-            const nodeId = parentId + this.getNodeId(row, level);
-            // If this node existed in previous state, use that value
-            if (previousState.has(nodeId)) {
-                const wasExpanded = previousState.get(nodeId);
-                this.expandedRows.set(nodeId, wasExpanded);
-            }
-            else {
-                // Otherwise default to expanded
-                this.expandedRows.set(nodeId, true);
-            }
-            // Initialize children recursively
-            if (row.children?.length > 0) {
-                this.initializeExpandedStateWithPreservation(row.children, level + 1, nodeId, previousState);
-            }
-        }
+        // Save to static property
+        Visual.savedExpandedState = new Map(this.expandedRows);
     }
     // Toggle expanded state of a node
     toggleExpanded(nodeId) {
-        // Prevent action if this node or any node is currently animating
+        // Prevent action if this node is currently animating
         if (this.animatingNodes.has(nodeId) || this.animatingNodes.size > 0) {
             return;
         }
         // Mark this node as animating
         this.animatingNodes.add(nodeId);
         // Get current expanded state and update it
-        const isExpanded = this.isExpanded(nodeId);
+        const isExpanded = this.expandedRows.get(nodeId) ?? false;
         this.expandedRows.set(nodeId, !isExpanded);
         // Get direct children for animation
         const directChildren = Array.from(this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`));
-        // Update toggle button
+        // Update toggle button appearance immediately
         const toggleButton = this.tableDiv.querySelector(`tr[data-node-id="${nodeId}"] .toggle-button`);
         if (toggleButton) {
-            this.updateToggleButton(toggleButton, !isExpanded);
+            toggleButton.textContent = !isExpanded ? "▼" : "►";
+            toggleButton.style.transform = !isExpanded ? "rotate(0deg)" : "rotate(-90deg)";
         }
-        // After toggle completes, update static property
-        if (this.expandedRows) {
-            Visual.savedExpandedState = new Map(this.expandedRows);
-        }
+        // Save state to static property for persistence
+        Visual.savedExpandedState = new Map(this.expandedRows);
         // Disable all toggle buttons during animation
         this.disableAllToggleButtons();
         // Set safety timeout
@@ -9356,8 +9330,7 @@ class Visual {
         }, 500);
         this.animationTimeouts.set(nodeId, timeout);
         if (isExpanded) {
-            // COLLAPSING - First prepare all descendants
-            this.prepareDescendantsForCollapse(nodeId);
+            // COLLAPSING
             this.animateCollapse(directChildren, nodeId);
         }
         else {
@@ -9368,20 +9341,6 @@ class Visual {
     //=========================================================================
     // ANIMATION METHODS
     //=========================================================================
-    updateToggleButton(button, expanded) {
-        button.style.cursor = "not-allowed";
-        button.style.opacity = "0.5";
-        button.setAttribute('data-animating', 'true');
-        // Animate the button
-        if (expanded) {
-            button.style.transform = "rotate(0deg)";
-            setTimeout(() => button.textContent = "▼", 150);
-        }
-        else {
-            button.style.transform = "rotate(-90deg)";
-            setTimeout(() => button.textContent = "►", 150);
-        }
-    }
     disableAllToggleButtons() {
         const allButtons = this.tableDiv.querySelectorAll('.toggle-button');
         allButtons.forEach((btn) => {
@@ -9476,48 +9435,40 @@ class Visual {
             htmlBtn.style.opacity = "1";
             htmlBtn.removeAttribute('data-animating');
         });
-        // Apply final state to all descendants if this was a collapse operation
-        const isExpanded = this.isExpanded(nodeId);
+        // Get current expanded state
+        const isExpanded = this.expandedRows.get(nodeId) ?? false;
+        // Make sure all direct children have the correct visibility
+        const directChildren = Array.from(this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`));
+        directChildren.forEach(child => {
+            if (isExpanded) {
+                child.classList.remove('collapsed');
+            }
+            else {
+                child.classList.add('collapsed');
+            }
+        });
+        // If this was a collapse, also collapse all descendants
         if (!isExpanded) {
-            // Properly hide all descendants
+            // Mark all descendants as collapsed in the state
             const allDescendants = this.findAllDescendants(nodeId);
             allDescendants.forEach(row => {
-                // Hide row
-                row.classList.add('collapsed');
-                row.classList.remove('collapsing-wave', 'expanding-wave');
-                // Update toggle button
-                const childToggle = row.querySelector('.toggle-button');
-                if (childToggle) {
-                    childToggle.textContent = "►"; // Collapsed icon
-                    childToggle.style.transform = "rotate(-90deg)";
-                }
-                // Update internal state
                 const rowId = row.getAttribute('data-node-id');
                 if (rowId) {
+                    // Update the UI
+                    row.classList.add('collapsed');
+                    // Update toggle button
+                    const childToggle = row.querySelector('.toggle-button');
+                    if (childToggle) {
+                        childToggle.textContent = "►";
+                        childToggle.style.transform = "rotate(-90deg)";
+                    }
+                    // Update state
                     this.expandedRows.set(rowId, false);
                 }
             });
-            if (this.expandedRows) {
-                Visual.savedExpandedState = new Map(this.expandedRows);
-            }
         }
-    }
-    prepareDescendantsForCollapse(parentNodeId) {
-        // Find all descendants at all levels
-        const allDescendants = this.findAllDescendants(parentNodeId);
-        // Update state and UI for all descendants
-        allDescendants.forEach(row => {
-            const rowId = row.getAttribute('data-node-id');
-            if (rowId) {
-                this.expandedRows.set(rowId, false);
-                // Update toggle button icon
-                const toggleButton = row.querySelector('.toggle-button');
-                if (toggleButton) {
-                    toggleButton.textContent = "►";
-                    toggleButton.style.transform = "rotate(-90deg)";
-                }
-            }
-        });
+        // Save final state
+        Visual.savedExpandedState = new Map(this.expandedRows);
     }
     //=========================================================================
     // HELPER METHODS
@@ -9554,69 +9505,16 @@ class Visual {
         });
         return descendants;
     }
-    isDescendantOf(rowParentId, ancestorId) {
-        if (!rowParentId)
-            return false;
-        if (rowParentId === ancestorId)
-            return true;
-        const parentElement = this.tableDiv.querySelector(`tr[data-node-id="${rowParentId}"]`);
-        if (!parentElement)
-            return false;
-        const grandparentId = parentElement.getAttribute('data-parent-id');
-        return this.isDescendantOf(grandparentId, ancestorId);
-    }
-    updateDescendantToggleButtons(parentNodeId, isExpanded) {
-        // Find all descendants
-        const descendants = this.findAllDescendants(parentNodeId);
-        // Update toggle button for each descendant
-        descendants.forEach(row => {
-            const toggleButton = row.querySelector('.toggle-button');
-            if (toggleButton) {
-                // Update button appearance
-                if (!isExpanded) {
-                    toggleButton.textContent = "►"; // Collapsed icon
-                    toggleButton.style.transform = "rotate(-90deg)";
-                }
-                else {
-                    // Keep current state when expanding parent
-                    const rowId = row.getAttribute('data-node-id');
-                    if (rowId && this.isExpanded(rowId)) {
-                        toggleButton.textContent = "▼"; // Expanded icon
-                        toggleButton.style.transform = "rotate(0deg)";
-                    }
-                }
+    setChildrenCollapsed(parentId, children, level) {
+        if (!children)
+            return;
+        for (const child of children) {
+            const childId = parentId + this.getNodeId(child, level);
+            this.expandedRows.set(childId, false);
+            if (child.children?.length > 0) {
+                this.setChildrenCollapsed(childId, child.children, level + 1);
             }
-        });
-    }
-    preserveExpandedState() {
-        // Create a copy of the current expanded state
-        return new Map(this.expandedRows);
-    }
-    renderVisualWithCurrentState() {
-        // Use a small timeout to ensure DOM updates
-        setTimeout(() => {
-            if (this.lastOptions) {
-                try {
-                    // Store current scroll position
-                    const scrollTop = this.tableDiv.scrollTop;
-                    const scrollLeft = this.tableDiv.scrollLeft;
-                    // Clear and rebuild the table
-                    this.tableDiv.innerHTML = "";
-                    const dataView = this.lastOptions?.dataViews?.[0];
-                    if (!dataView?.matrix)
-                        return;
-                    // Get measure name and rebuild the table
-                    const measureName = this.getMeasureName(dataView);
-                    this.createMatrixTable(dataView.matrix, measureName);
-                    // Restore scroll position
-                    this.tableDiv.scrollTop = scrollTop;
-                    this.tableDiv.scrollLeft = scrollLeft;
-                }
-                catch (error) {
-                    console.error("Error in visual re-render:", error);
-                }
-            }
-        }, 10);
+        }
     }
 }
 

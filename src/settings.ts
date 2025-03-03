@@ -19,12 +19,6 @@ import FormattingSettingsModel = formattingSettings.Model;
  * General Settings Card
  */
 class GeneralSettings extends FormattingSettingsCard {
-    fontSize = new formattingSettings.NumUpDown({
-        name: "fontSize",
-        displayName: "Font Size",
-        value: 10
-    });
-
     fontFamily = new formattingSettings.TextInput({
         name: "fontFamily",
         displayName: "Font Family",
@@ -34,13 +28,7 @@ class GeneralSettings extends FormattingSettingsCard {
     columnWidth = new formattingSettings.NumUpDown({
         name: "columnWidth",
         displayName: "Column Width",
-        value: 100
-    });
-    
-    enableHover = new formattingSettings.ToggleSwitch({
-        name: "enableHover",
-        displayName: "Enable Hover Effects",
-        value: true
+        value: 0
     });
 
     rowHeaderWidth = new formattingSettings.NumUpDown({
@@ -53,10 +41,8 @@ class GeneralSettings extends FormattingSettingsCard {
     displayName: string = "General";
     slices: Array<FormattingSettingsSlice> = [
         this.fontFamily,
-        this.fontSize, 
         this.columnWidth, 
-        this.rowHeaderWidth,
-        this.enableHover
+        this.rowHeaderWidth
     ];
 }
 

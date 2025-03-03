@@ -21,13 +21,6 @@
             "displayName": "General",
             "description": "General settings",
             "properties": {
-                "fontSize": {
-                    "displayName": "Font Size",
-                    "description": "Default font size",
-                    "type": {
-                        "numeric": true
-                    }
-                },
                 "fontFamily": {
                     "displayName": "Font Family",
                     "description": "Default font family for all text",
@@ -35,25 +28,11 @@
                         "text": true
                     }
                 },
-                "showMeasureName": {
-                    "displayName": "Show Measure Name",
-                    "description": "Show measure name when no columns",
-                    "type": {
-                        "bool": true
-                    }
-                },
                 "columnWidth": {
                     "displayName": "Column Width",
                     "description": "Width of table columns (pixels)",
                     "type": {
                         "numeric": true
-                    }
-                },
-                "enableHover": {
-                    "displayName": "Enable Hover Effects",
-                    "description": "Highlight rows on hover",
-                    "type": {
-                        "bool": true
                     }
                 },
                 "rowHeaderWidth": {

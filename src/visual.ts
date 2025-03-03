@@ -346,11 +346,6 @@ export class Visual implements IVisual {
         const table = document.createElement("table");
         table.className = CSS_CLASSES.MATRIX_TABLE;
         
-        // Set hover effects based on settings
-        if (this.formattingSettings.generalSettings.enableHover.value) {
-            table.classList.add(CSS_CLASSES.HOVER_ENABLED);
-        }
-        
         this.tableDiv.appendChild(table);
         
         // Check if we have rows
@@ -870,9 +865,6 @@ export class Visual implements IVisual {
         }
         
         try {
-            // Apply general font size to table
-            const fontSize = this.formattingSettings.generalSettings.fontSize.value;
-            table.style.fontSize = `${fontSize}pt`;
             
             // Apply font family
             const fontFamily = this.formattingSettings.generalSettings.fontFamily.value;

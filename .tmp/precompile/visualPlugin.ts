@@ -9,7 +9,7 @@ var customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG: IVisualPlugin = {
     name: 'customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG',
     displayName: 'CustomMatrix',
     class: 'Visual',
-    apiVersion: '5.3.0',
+    apiVersion: '5.11.0',
     create: (options?: VisualConstructorOptions) => {
         if (Visual) {
             return new Visual(options);

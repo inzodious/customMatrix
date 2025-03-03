@@ -9039,8 +9039,8 @@ class Visual {
     createToggleButton(nodeId, isExpanded) {
         const toggleButton = document.createElement("span");
         toggleButton.className = "toggle-button";
-        // Add the specific icon class
-        toggleButton.classList.add(isExpanded ? 'matrix-expanded-icon' : 'matrix-collapsed-icon');
+        // Use Unicode characters instead of icon classes
+        toggleButton.textContent = isExpanded ? '▲' : '▼';
         toggleButton.style.cursor = "pointer";
         toggleButton.onclick = (event) => {
             event.stopPropagation();
@@ -9402,16 +9402,9 @@ class Visual {
         // Update toggle button appearance immediately
         const toggleButton = this.tableDiv.querySelector(`tr[data-node-id="${nodeId}"] .toggle-button`);
         if (toggleButton) {
-            // Toggle the CSS classes based on the NEW state
+            // Toggle the text content based on the NEW state
             const newExpandedState = !isExpanded;
-            if (newExpandedState) {
-                toggleButton.classList.remove('matrix-collapsed-icon');
-                toggleButton.classList.add('matrix-expanded-icon');
-            }
-            else {
-                toggleButton.classList.remove('matrix-expanded-icon');
-                toggleButton.classList.add('matrix-collapsed-icon');
-            }
+            toggleButton.textContent = newExpandedState ? '▲' : '▼';
         }
         // Save state to static property for persistence
         Visual.savedExpandedState = new Map(this.expandedRows);
@@ -9437,7 +9430,7 @@ class Visual {
     disableAllToggleButtons() {
         const allButtons = this.tableDiv.querySelectorAll('.toggle-button');
         allButtons.forEach((btn) => {
-            btn.style.cursor = "not-allowed";
+            btn.style.cursor = "copy";
             btn.style.opacity = "0.5";
             btn.setAttribute('data-animating', 'true');
         });
@@ -9552,8 +9545,7 @@ class Visual {
                     // Update toggle button
                     const childToggle = row.querySelector('.toggle-button');
                     if (childToggle) {
-                        childToggle.textContent = "►";
-                        childToggle.style.transform = "rotate(0deg)";
+                        childToggle.textContent = "▲"; // Collapsed state
                     }
                     // Update state
                     this.expandedRows.set(rowId, false);

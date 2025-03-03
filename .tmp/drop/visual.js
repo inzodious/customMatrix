@@ -1032,6 +1032,11 @@ class GeneralSettings extends FormattingSettingsCard {
         value: "Segoe UI, sans-serif",
         placeholder: "Enter font family"
     });
+    fontSize = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
+        name: "fontSize",
+        displayName: "Font Size",
+        value: 10
+    });
     columnWidth = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .formattingSettings.NumUpDown */ .z.iB({
         name: "columnWidth",
         displayName: "Column Width",
@@ -1047,6 +1052,7 @@ class GeneralSettings extends FormattingSettingsCard {
     slices = [
         this.fontFamily,
         this.columnWidth,
+        this.fontSize,
         this.rowHeaderWidth
     ];
 }
@@ -9264,14 +9270,19 @@ class Visual {
         if (globalFontFamily) {
             element.style.fontFamily = globalFontFamily;
         }
+        // Apply global font size (new code)
+        const globalFontSize = settings.generalSettings.fontSize.value;
+        if (globalFontSize) {
+            element.style.fontSize = `${globalFontSize}pt`;
+        }
         // Apply each property if it exists
         if (formatSettings) {
             // Color
             if (formatSettings.color?.value?.value) {
                 element.style.color = formatSettings.color.value.value;
             }
-            // Font size
-            if (formatSettings.fontSize?.value) {
+            // Font size - only apply if global size is not set
+            if (!globalFontSize && formatSettings.fontSize?.value) {
                 element.style.fontSize = `${formatSettings.fontSize.value}pt`;
             }
             // Background color

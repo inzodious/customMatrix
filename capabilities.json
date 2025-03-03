@@ -28,6 +28,13 @@
                         "text": true
                     }
                 },
+                "fontSize": {
+                    "displayName": "Font Size",
+                    "description": "Global font size for all text in the matrix",
+                    "type": {
+                        "numeric": true
+                    }
+                },
                 "columnWidth": {
                     "displayName": "Column Width",
                     "description": "Width of table columns (pixels)",

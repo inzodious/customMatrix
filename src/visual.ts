@@ -938,6 +938,12 @@ export class Visual implements IVisual {
             element.style.fontFamily = globalFontFamily;
         }
         
+        // Apply global font size (new code)
+        const globalFontSize = settings.generalSettings.fontSize.value;
+        if (globalFontSize) {
+            element.style.fontSize = `${globalFontSize}pt`;
+        }
+        
         // Apply each property if it exists
         if (formatSettings) {
             // Color
@@ -945,8 +951,8 @@ export class Visual implements IVisual {
                 element.style.color = formatSettings.color.value.value;
             }
             
-            // Font size
-            if (formatSettings.fontSize?.value) {
+            // Font size - only apply if global size is not set
+            if (!globalFontSize && formatSettings.fontSize?.value) {
                 element.style.fontSize = `${formatSettings.fontSize.value}pt`;
             }
             

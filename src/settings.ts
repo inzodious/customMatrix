@@ -25,6 +25,13 @@ class GeneralSettings extends FormattingSettingsCard {
         value: "Segoe UI, sans-serif",
         placeholder: "Enter font family"
     });
+
+    fontSize = new formattingSettings.NumUpDown({
+        name: "fontSize",
+        displayName: "Font Size",
+        value: 10
+    });
+
     columnWidth = new formattingSettings.NumUpDown({
         name: "columnWidth",
         displayName: "Column Width",
@@ -42,6 +49,7 @@ class GeneralSettings extends FormattingSettingsCard {
     slices: Array<FormattingSettingsSlice> = [
         this.fontFamily,
         this.columnWidth, 
+        this.fontSize,
         this.rowHeaderWidth
     ];
 }

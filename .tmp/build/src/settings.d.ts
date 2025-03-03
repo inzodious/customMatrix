@@ -7,6 +7,7 @@ import FormattingSettingsModel = formattingSettings.Model;
  */
 declare class GeneralSettings extends FormattingSettingsCard {
     fontFamily: formattingSettings.TextInput;
+    fontSize: formattingSettings.NumUpDown;
     columnWidth: formattingSettings.NumUpDown;
     rowHeaderWidth: formattingSettings.NumUpDown;
     name: string;

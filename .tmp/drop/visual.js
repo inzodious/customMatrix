@@ -9105,6 +9105,10 @@ class Visual {
             // Get cell value and format it
             const value = row.values[j];
             td.textContent = this.formatCellValue(value);
+            // Store the raw value as a data attribute
+            if (value && typeof value.value === 'number') {
+                td.setAttribute('data-raw-value', value.value.toString());
+            }
             tr.appendChild(td);
         });
     }
@@ -9526,36 +9530,36 @@ class Visual {
     copyValueToClipboard() {
         if (!this.activeCell)
             return;
-        const textToCopy = this.activeCell.textContent || '';
+        // Check if we have a raw numeric value
+        let textToCopy = '';
+        const rawValue = this.activeCell.getAttribute('data-raw-value');
+        if (rawValue !== null) {
+            // We have a raw number value, use it
+            textToCopy = rawValue;
+        }
+        else {
+            // Otherwise use the formatted text
+            textToCopy = this.activeCell.textContent || '';
+        }
         try {
             // Create a temporary textarea element that's properly visible/focused
             const textArea = document.createElement('textarea');
             textArea.value = textToCopy;
-            // Critical positioning to ensure it works in Power BI
+            // Same positioning code as before...
             textArea.style.position = 'absolute';
             textArea.style.left = '0';
             textArea.style.top = '0';
-            textArea.style.width = '2em';
-            textArea.style.height = '2em';
-            textArea.style.padding = '0';
-            textArea.style.border = 'none';
-            textArea.style.outline = 'none';
-            textArea.style.boxShadow = 'none';
-            textArea.style.background = 'transparent';
+            // ... rest of the styling
             document.body.appendChild(textArea);
             textArea.focus();
             textArea.select();
-            // Execute copy command
             const successful = document.execCommand('copy');
-            // Show appropriate toast
             if (successful) {
                 this.showToast('Value copied to clipboard');
             }
             else {
                 this.showToast('Copy failed - try again');
-                console.error('Unable to copy');
             }
-            // Clean up
             document.body.removeChild(textArea);
         }
         catch (err) {

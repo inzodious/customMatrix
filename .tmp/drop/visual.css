@@ -161,7 +161,6 @@ matrix-table tfoot {
     display: none;
   }
 }
-/* Add these to your visual.less file */
 @keyframes expandWave {
   0% {
     height: 0;

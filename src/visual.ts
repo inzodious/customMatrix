@@ -1281,10 +1281,10 @@ export class Visual implements IVisual {
             const successful = document.execCommand('copy');
             
             if (successful) {
-                this.showToast('Value copied to clipboard');
+                this.showToast('Clipboard secured! Mission accomplished.');
             } else {
-                this.showToast('Copy failed - try again');
-            }
+                this.showToast('Copy failed—clipboard said "not today." Try again!');
+            }            
             
             document.body.removeChild(textArea);
         } catch (err) {
@@ -1346,6 +1346,8 @@ export class Visual implements IVisual {
             row.style.height = '0';
             row.style.opacity = '0';
             row.style.overflow = 'hidden';
+            row.style.transformOrigin = 'top';
+            row.style.transform = 'scaleY(0.3)'; // Starting transform
             
             // Set target height
             const naturalHeight = row.scrollHeight;
@@ -1355,9 +1357,10 @@ export class Visual implements IVisual {
         // Force a reflow
         void rows[0].offsetHeight;
         
-        // Apply animation with staggered delay
+        // Apply animation with more pronounced staggered delay
         rows.forEach((row, index) => {
-            row.style.animationDelay = `${index * 20}ms`;
+            // Increase delay between rows (from 20ms to 50ms)
+            row.style.animationDelay = `${index * 50}ms`;
             row.classList.add('expanding-wave');
         });
         
@@ -1371,6 +1374,7 @@ export class Visual implements IVisual {
                 row.style.height = '';
                 row.style.opacity = '';
                 row.style.overflow = '';
+                row.style.transform = '';
             });
             
             this.cleanupAnimation(nodeId);
@@ -1386,6 +1390,7 @@ export class Visual implements IVisual {
         // Prepare rows for animation
         rows.forEach(row => {
             row.classList.remove('expanding-wave', 'collapsed');
+            row.style.transformOrigin = 'top';
             
             // Set initial state
             const rowHeight = row.offsetHeight;
@@ -1396,20 +1401,22 @@ export class Visual implements IVisual {
             void row.offsetHeight;
         });
         
-        // Apply animation with staggered delay
-        rows.forEach((row, index) => {
-            row.style.animationDelay = `${index * 20}ms`;
+        // Apply animation with more pronounced staggered delay
+        // Reverse the order for collapse, so items collapse from bottom to top
+        rows.slice().reverse().forEach((row, index) => {
+            row.style.animationDelay = `${index * 50}ms`;
             row.classList.add('collapsing-wave');
         });
         
         // Listen for animation end
-        const lastRow = rows[rows.length - 1];
+        const lastRow = rows[0]; // First row will be the last to collapse with our reversed order
         lastRow.addEventListener('animationend', () => {
             // Hide rows after animation
             rows.forEach(row => {
                 row.classList.remove('collapsing-wave');
                 row.classList.add('collapsed');
                 row.style.animationDelay = '';
+                row.style.transform = '';
             });
             
             this.cleanupAnimation(nodeId);
@@ -1541,6 +1548,9 @@ export class Visual implements IVisual {
     private handleContextMenuAction(action: string, nodeId: string, level: number): void {
         if (!nodeId) return;
         
+        // Prevent multiple animations running at once
+        if (this.animatingNodes.size > 0) return;
+        
         switch (action) {
             case 'expandThis':
                 // Expand just this item if it's collapsed
@@ -1558,81 +1568,279 @@ export class Visual implements IVisual {
                 
             case 'expandLevel':
                 // Expand all nodes at this level
-                this.expandCollapseLevel(level, true);
+                this.animateExpandCollapseLevel(level, true);
                 break;
                 
             case 'collapseLevel':
                 // Collapse all nodes at this level
-                this.expandCollapseLevel(level, false);
+                this.animateExpandCollapseLevel(level, false);
                 break;
                 
             case 'expandAll':
                 // Expand all nodes
-                this.expandCollapseAll(true);
+                this.animateExpandCollapseAll(true);
                 break;
                 
             case 'collapseAll':
                 // Collapse all nodes
-                this.expandCollapseAll(false);
+                this.animateExpandCollapseAll(false);
                 break;
         }
-        
-        // Update the UI to reflect changes
-        this.updateExpandedState();
     }
 
-    private expandCollapseLevel(level: number, expand: boolean): void {
-        // Find all rows at the specified level
+    private animateExpandCollapseLevel(level: number, expand: boolean): void {
+        // Find all rows at the specified level that have children (i.e., toggle buttons)
         const levelRows = Array.from(
-            this.tableDiv.querySelectorAll(`tr[data-level="${level}"]`)
-        ) as HTMLElement[];
+            this.tableDiv.querySelectorAll(`tr[data-level="${level}"] .toggle-button`)
+        ).map(btn => (btn as HTMLElement).closest('tr')) as HTMLElement[];
         
-        // Update their expanded state
-        levelRows.forEach(row => {
+        // Filter to only rows that need to change state (not already in desired state)
+        const rowsToChange = levelRows.filter(row => {
+            if (!row) return false;
             const nodeId = row.getAttribute('data-node-id');
-            if (nodeId) {
-                // Only update if the current state doesn't match desired state
-                if (this.expandedRows.get(nodeId) !== expand) {
-                    this.expandedRows.set(nodeId, expand);
-                    
-                    // Update toggle button appearance
-                    const toggleButton = row.querySelector('.toggle-button') as HTMLElement;
-                    if (toggleButton) {
-                        toggleButton.textContent = expand ? '▲' : '▼';
+            return nodeId && this.expandedRows.get(nodeId) !== expand;
+        });
+        
+        if (rowsToChange.length === 0) return;
+        
+        // Disable all toggle buttons during animation
+        this.disableAllToggleButtons();
+        
+        // Track animation state
+        const batchId = `level_${level}_${expand ? 'expand' : 'collapse'}_batch`;
+        this.animatingNodes.add(batchId);
+        
+        // Set a safety timeout
+        const timeout = window.setTimeout(() => {
+            this.cleanupBatchAnimation(batchId, rowsToChange, expand);
+        }, 1000);
+        this.animationTimeouts.set(batchId, timeout);
+        
+        // Process each row with small delays between them to create wave effect
+        rowsToChange.forEach((row, index) => {
+            const nodeId = row.getAttribute('data-node-id');
+            if (!nodeId) return;
+            
+            // Update toggle button appearance immediately
+            const toggleButton = row.querySelector('.toggle-button') as HTMLElement;
+            if (toggleButton) {
+                toggleButton.textContent = expand ? '▲' : '▼';
+            }
+            
+            // Update the state in our map
+            this.expandedRows.set(nodeId, expand);
+            
+            // Wait a small amount of time before processing each row
+            setTimeout(() => {
+                const directChildren = Array.from(
+                    this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`)
+                ) as HTMLElement[];
+                
+                if (expand) {
+                    // Animate expansion
+                    this.animateRowsWithoutCleanup(directChildren, expand);
+                } else {
+                    // Animate collapse
+                    this.animateRowsWithoutCleanup(directChildren, expand);
+                }
+                
+                // If this is the last row, set up cleanup
+                if (index === rowsToChange.length - 1) {
+                    const lastChildren = directChildren[directChildren.length - 1];
+                    if (lastChildren) {
+                        lastChildren.addEventListener('animationend', () => {
+                            this.cleanupBatchAnimation(batchId, rowsToChange, expand);
+                        }, { once: true });
                     }
                 }
-            }
+            }, index * 60); // Slightly longer delay between parent rows
         });
         
         // Save expanded state
         Visual.savedExpandedState = new Map(this.expandedRows);
     }
     
-    private expandCollapseAll(expand: boolean): void {
-        // Get all rows with toggle buttons
-        const allRows = Array.from(
-            this.tableDiv.querySelectorAll('tr[data-node-id]')
-        ) as HTMLElement[];
+    // New method for animated expand/collapse all
+    private animateExpandCollapseAll(expand: boolean): void {
+        // Get all rows with toggle buttons (rows that can be expanded/collapsed)
+        const allToggleRows = Array.from(
+            this.tableDiv.querySelectorAll('tr .toggle-button')
+        ).map(btn => (btn as HTMLElement).closest('tr')) as HTMLElement[];
         
-        // Update their expanded state
-        allRows.forEach(row => {
+        // Filter to only rows that need to change state
+        const rowsToChange = allToggleRows.filter(row => {
+            if (!row) return false;
             const nodeId = row.getAttribute('data-node-id');
-            if (nodeId) {
-                // Only toggle rows that have children
-                const hasChildren = row.querySelector('.toggle-button');
-                if (hasChildren) {
-                    this.expandedRows.set(nodeId, expand);
-                    
-                    // Update toggle button appearance
-                    const toggleButton = row.querySelector('.toggle-button') as HTMLElement;
-                    if (toggleButton) {
-                        toggleButton.textContent = expand ? '▲' : '▼';
+            return nodeId && this.expandedRows.get(nodeId) !== expand;
+        });
+        
+        if (rowsToChange.length === 0) return;
+        
+        // Disable all toggle buttons during animation
+        this.disableAllToggleButtons();
+        
+        // Track animation state
+        const batchId = `all_${expand ? 'expand' : 'collapse'}_batch`;
+        this.animatingNodes.add(batchId);
+        
+        // Set a safety timeout
+        const timeout = window.setTimeout(() => {
+            this.cleanupBatchAnimation(batchId, rowsToChange, expand);
+        }, 2000);
+        this.animationTimeouts.set(batchId, timeout);
+        
+        // Sort rows by level for better animation (top-to-bottom for expand, bottom-to-top for collapse)
+        rowsToChange.sort((a, b) => {
+            const levelA = parseInt(a.getAttribute('data-level') || '0', 10);
+            const levelB = parseInt(b.getAttribute('data-level') || '0', 10);
+            return expand ? levelA - levelB : levelB - levelA;
+        });
+        
+        // Process each row with small delays between them
+        rowsToChange.forEach((row, index) => {
+            const nodeId = row.getAttribute('data-node-id');
+            if (!nodeId) return;
+            
+            // Update toggle button appearance
+            const toggleButton = row.querySelector('.toggle-button') as HTMLElement;
+            if (toggleButton) {
+                toggleButton.textContent = expand ? '▲' : '▼';
+            }
+            
+            // Update the state in our map
+            this.expandedRows.set(nodeId, expand);
+            
+            // Wait a small amount of time before processing each row
+            setTimeout(() => {
+                const directChildren = Array.from(
+                    this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`)
+                ) as HTMLElement[];
+                
+                if (expand) {
+                    // Animate expansion
+                    this.animateRowsWithoutCleanup(directChildren, expand);
+                } else {
+                    // Animate collapse
+                    this.animateRowsWithoutCleanup(directChildren, expand);
+                }
+                
+                // If this is the last row, set up cleanup
+                if (index === rowsToChange.length - 1) {
+                    const lastChildren = directChildren[directChildren.length - 1];
+                    if (lastChildren) {
+                        lastChildren.addEventListener('animationend', () => {
+                            this.cleanupBatchAnimation(batchId, rowsToChange, expand);
+                        }, { once: true });
                     }
                 }
-            }
+            }, index * 40); // Slightly smaller delay to keep total animation time reasonable
         });
         
         // Save expanded state
+        Visual.savedExpandedState = new Map(this.expandedRows);
+    }
+    
+    // Helper method to animate rows without immediate cleanup
+    private animateRowsWithoutCleanup(rows: HTMLElement[], isExpand: boolean): void {
+        if (rows.length === 0) return;
+        
+        if (isExpand) {
+            // Prepare rows for expand animation
+            rows.forEach(row => {
+                row.classList.remove('collapsed', 'collapsing-wave');
+                row.style.height = '0';
+                row.style.opacity = '0';
+                row.style.overflow = 'hidden';
+                row.style.transformOrigin = 'top';
+                row.style.transform = 'scaleY(0.3)';
+                
+                const naturalHeight = row.scrollHeight;
+                row.style.setProperty('--row-height', `${naturalHeight}px`);
+            });
+            
+            // Force a reflow
+            void rows[0].offsetHeight;
+            
+            // Apply animation with staggered delay
+            rows.forEach((row, index) => {
+                row.style.animationDelay = `${index * 50}ms`;
+                row.classList.add('expanding-wave');
+            });
+        } else {
+            // Prepare rows for collapse animation
+            rows.forEach(row => {
+                row.classList.remove('expanding-wave', 'collapsed');
+                row.style.transformOrigin = 'top';
+                
+                const rowHeight = row.offsetHeight;
+                row.style.setProperty('--row-height', `${rowHeight}px`);
+                row.style.overflow = 'hidden';
+            });
+            
+            // Force a reflow
+            void rows[0].offsetHeight;
+            
+            // Apply animation with staggered delay (reversed for collapse)
+            rows.slice().reverse().forEach((row, index) => {
+                row.style.animationDelay = `${index * 50}ms`;
+                row.classList.add('collapsing-wave');
+            });
+        }
+    }
+    
+    // Cleanup for batch operations
+    private cleanupBatchAnimation(batchId: string, rows: HTMLElement[], wasExpanding: boolean): void {
+        // Clear timeout
+        const timeout = this.animationTimeouts.get(batchId);
+        if (timeout) {
+            window.clearTimeout(timeout);
+            this.animationTimeouts.delete(batchId);
+        }
+        
+        // Remove from animating set
+        this.animatingNodes.delete(batchId);
+        
+        // Re-enable all toggle buttons
+        const allButtons = this.tableDiv.querySelectorAll('.toggle-button');
+        allButtons.forEach((btn) => {
+            const htmlBtn = btn as HTMLElement;
+            htmlBtn.style.cursor = "pointer";
+            htmlBtn.style.opacity = "1";
+            htmlBtn.removeAttribute('data-animating');
+        });
+        
+        // Clean up all rows
+        rows.forEach(row => {
+            const nodeId = row.getAttribute('data-node-id');
+            if (!nodeId) return;
+            
+            // Get direct children
+            const directChildren = Array.from(
+                this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`)
+            ) as HTMLElement[];
+            
+            // Remove animation classes and reset styles
+            directChildren.forEach(child => {
+                child.classList.remove('expanding-wave', 'collapsing-wave');
+                child.style.animationDelay = '';
+                child.style.height = '';
+                child.style.opacity = '';
+                child.style.overflow = '';
+                child.style.transform = '';
+                
+                // Set final class based on expanded state
+                if (wasExpanding) {
+                    child.classList.remove('collapsed');
+                } else {
+                    child.classList.add('collapsed');
+                }
+            });
+        });
+        
+        // Call updateExpandedState to ensure UI is consistent
+        this.updateExpandedState();
+        
+        // Save final state
         Visual.savedExpandedState = new Map(this.expandedRows);
     }
     

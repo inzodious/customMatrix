@@ -64,7 +64,9 @@ export declare class Visual implements IVisual {
     private getAllDescendants;
     private setChildrenCollapsed;
     private handleContextMenuAction;
-    private expandCollapseLevel;
-    private expandCollapseAll;
+    private animateExpandCollapseLevel;
+    private animateExpandCollapseAll;
+    private animateRowsWithoutCleanup;
+    private cleanupBatchAnimation;
     private updateExpandedState;
 }

@@ -9527,33 +9527,40 @@ class Visual {
         if (!this.activeCell)
             return;
         const textToCopy = this.activeCell.textContent || '';
-        // Use the Clipboard API if available
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(textToCopy)
-                .then(() => {
-                // Show a small toast notification
-                this.showToast('Value copied to clipboard');
-            })
-                .catch(err => {
-                console.error('Failed to copy text: ', err);
-            });
-        }
-        else {
-            // Fallback for older browsers
+        try {
+            // Create a temporary textarea element that's properly visible/focused
             const textArea = document.createElement('textarea');
             textArea.value = textToCopy;
-            textArea.style.position = 'fixed'; // Avoid scrolling to bottom
+            // Critical positioning to ensure it works in Power BI
+            textArea.style.position = 'absolute';
+            textArea.style.left = '0';
+            textArea.style.top = '0';
+            textArea.style.width = '2em';
+            textArea.style.height = '2em';
+            textArea.style.padding = '0';
+            textArea.style.border = 'none';
+            textArea.style.outline = 'none';
+            textArea.style.boxShadow = 'none';
+            textArea.style.background = 'transparent';
             document.body.appendChild(textArea);
             textArea.focus();
             textArea.select();
-            try {
-                document.execCommand('copy');
+            // Execute copy command
+            const successful = document.execCommand('copy');
+            // Show appropriate toast
+            if (successful) {
                 this.showToast('Value copied to clipboard');
             }
-            catch (err) {
-                console.error('Fallback: Oops, unable to copy', err);
+            else {
+                this.showToast('Copy failed - try again');
+                console.error('Unable to copy');
             }
+            // Clean up
             document.body.removeChild(textArea);
+        }
+        catch (err) {
+            this.showToast('Copy failed - browser restriction');
+            console.error('Copy failed:', err);
         }
     }
     showToast(message) {

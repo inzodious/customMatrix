@@ -1,18 +1,18 @@
 {
     "visual": {
-      "name": "customMatrix",
-      "displayName": "CustomMatrix",
+      "name": "NovaGrid",
+      "displayName": "NovaGrid",
       "guid": "customMatrix3D2AF31BB00A42FC89209A2F7F87EB77",
       "visualClassName": "Visual",
       "version": "1.0.0.0",
-      "description": "",
-      "supportUrl": "",
-      "gitHubUrl": ""
+      "description": "Configurable matrix visual with conditional formatting and animations.",
+      "supportUrl": "None",
+      "gitHubUrl": "https://github.com/inzodiuous"
     },
     "apiVersion": "5.11.0",
     "author": {
-      "name": "",
-      "email": ""
+      "name": "Joshua Biondo",
+      "email": "biondo.contact@gmail.com"
     },
     "assets": {
       "icon": "assets/icon.png"

@@ -154,7 +154,9 @@ export class Visual implements IVisual {
         }
         
         // Clear previous content
-        this.tableDiv.innerHTML = "";
+        while (this.tableDiv.firstChild) {
+            this.tableDiv.removeChild(this.tableDiv.firstChild);
+          }
         
         // Validate data
         if (!options?.dataViews?.[0]) return;
@@ -792,7 +794,9 @@ export class Visual implements IVisual {
             table.appendChild(tfoot);
         } else {
             // Clear existing content
-            tfoot.innerHTML = '';
+            while (tfoot.firstChild) {
+                tfoot.removeChild(tfoot.firstChild);
+              }
         }
         
         this.addBlankRowBeforeTotal(tfoot, columns);

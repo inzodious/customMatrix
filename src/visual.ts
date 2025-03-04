@@ -19,6 +19,8 @@ import DataView = powerbi.DataView;
 
 import { VisualFormattingSettingsModel } from "./settings";
 
+import { landingPageHTML } from "../style/landingPage";
+
 // Interfaces for matrix data
 interface MatrixNode {
     value?: any; 
@@ -63,6 +65,9 @@ export class Visual implements IVisual {
     private animationTimeouts: Map<string, number> = new Map();
     private cachedFormatString: string = "#,0.00";
     private static savedExpandedState: Map<string, boolean> = new Map<string, boolean>();
+    private isLandingPageOn: boolean = false;
+    private landingPageRemoved: boolean = false;
+    private landingPageElement: HTMLElement;
 
     //=========================================================================
     // INITIALIZATION
@@ -137,11 +142,94 @@ export class Visual implements IVisual {
         this.setupContextMenuEvents();
     }
 
+    private handleLandingPage(options: VisualUpdateOptions): void {
+        // Show landing page if no data views or empty data
+        if (!options.dataViews || !options.dataViews[0]?.metadata?.columns?.length) {
+            if (!this.isLandingPageOn) {
+                this.isLandingPageOn = true;
+                
+                // Clear previous content
+                while (this.target.firstChild) {
+                    this.target.removeChild(this.target.firstChild);
+                }
+                
+                // Create landing page
+                const landingPageHTML = this.getLandingPageHTML();
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = landingPageHTML;
+                
+                // Add landing page to the DOM
+                this.landingPageElement = tempDiv.firstChild as HTMLElement;
+                this.target.appendChild(this.landingPageElement);
+                
+                // Add event listener to the continue button
+                const continueButton = this.landingPageElement.querySelector('.continue-button');
+                if (continueButton) {
+                    continueButton.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        // Remove landing page
+                        if (this.landingPageElement && this.landingPageElement.parentNode) {
+                            this.landingPageElement.parentNode.removeChild(this.landingPageElement);
+                            this.isLandingPageOn = false;
+                            this.landingPageRemoved = true;
+                            this.createContainerElements();
+                        }
+                    });
+                }
+            }
+        } else {
+            // Remove landing page if we have data
+            if (this.isLandingPageOn && !this.landingPageRemoved) {
+                this.landingPageRemoved = true;
+                if (this.landingPageElement && this.landingPageElement.parentNode) {
+                    this.landingPageElement.parentNode.removeChild(this.landingPageElement);
+                }
+                
+                // Recreate the container elements for the actual visual
+                this.createContainerElements();
+            }
+        }
+        
+    }
+
+    // Add method to get the landing page HTML content
+    private getLandingPageHTML(): string {
+        return landingPageHTML;
+    }
+
     //=========================================================================
     // CORE VISUAL METHODS
     //=========================================================================
 
+    //=========================================================================
+// CORE VISUAL METHODS
+//=========================================================================
+
     public update(options: VisualUpdateOptions): void {
+        console.log("Update called, checking for data...");
+        
+        // Check if we have data
+        const hasData = options.dataViews && 
+                    options.dataViews[0] && 
+                    options.dataViews[0].metadata && 
+                    options.dataViews[0].metadata.columns && 
+                    options.dataViews[0].metadata.columns.length > 0;
+        
+        console.log("Has data:", hasData);
+        
+        if (!hasData) {
+            console.log("No data, showing landing page");
+            // Show landing page
+            this.showLandingPage();
+            return; // Exit early - nothing else to do when showing landing page
+        } 
+        
+        // If we get here, we have data
+        console.log("Has data, showing visual");
+        // Hide landing page if it exists
+        this.hideLandingPage();
+        
+        // Regular update logic
         this.lastOptions = options;
         
         // Save scroll position
@@ -156,7 +244,7 @@ export class Visual implements IVisual {
         // Clear previous content
         while (this.tableDiv.firstChild) {
             this.tableDiv.removeChild(this.tableDiv.firstChild);
-          }
+        }
         
         // Validate data
         if (!options?.dataViews?.[0]) return;
@@ -1902,5 +1990,59 @@ export class Visual implements IVisual {
                 }
             }
         });
+    }
+
+    private showLandingPage(): void {
+        console.log("Showing landing page");
+        
+        // Clear existing content
+        while (this.target.firstChild) {
+            this.target.removeChild(this.target.firstChild);
+        }
+        
+        // Create container for landing page
+        const container = document.createElement('div');
+        container.className = 'landing-page-container';
+        container.style.width = '100%';
+        container.style.height = '100%';
+        container.style.overflow = 'hidden';
+        container.style.position = 'relative';
+        container.style.background = '#13141a'; // Dark background from your HTML
+        
+        // Insert the HTML
+        container.innerHTML = landingPageHTML;
+        
+        // Store reference and add to DOM
+        this.landingPageElement = container;
+        this.target.appendChild(container);
+        
+        console.log("Landing page added to DOM");
+        
+        // Add event listener to the continue button
+        const continueButton = this.landingPageElement.querySelector('.continue-button');
+        if (continueButton) {
+            continueButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.hideLandingPage();
+            });
+        }
+        
+        this.isLandingPageOn = true;
+    }
+    
+    private hideLandingPage(): void {
+        if (this.isLandingPageOn && this.landingPageElement) {
+            console.log("Hiding landing page");
+            
+            // Remove landing page
+            if (this.landingPageElement.parentNode) {
+                this.landingPageElement.parentNode.removeChild(this.landingPageElement);
+            }
+            
+            this.isLandingPageOn = false;
+            
+            // Create container elements for the visual
+            this.createContainerElements();
+        }
     }
 }

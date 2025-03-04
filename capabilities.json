@@ -1,4 +1,5 @@
 {
+
     "dataRoles": [
         {
             "displayName": "Rows",
@@ -543,5 +544,8 @@
             }
         }
     ],
+
+    "supportsLandingPage": true,
+    "supportsEmptyDataView": true,
     "privileges": []
 }

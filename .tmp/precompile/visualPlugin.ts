@@ -7,7 +7,7 @@ var powerbiKey: any = "powerbi";
 var powerbi: any = window[powerbiKey];
 var customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG: IVisualPlugin = {
     name: 'customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG',
-    displayName: 'CustomMatrix',
+    displayName: 'NovaGrid',
     class: 'Visual',
     apiVersion: '5.11.0',
     create: (options?: VisualConstructorOptions) => {

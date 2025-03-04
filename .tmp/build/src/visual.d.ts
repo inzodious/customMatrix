@@ -15,8 +15,13 @@ export declare class Visual implements IVisual {
     private animationTimeouts;
     private cachedFormatString;
     private static savedExpandedState;
+    private isLandingPageOn;
+    private landingPageRemoved;
+    private landingPageElement;
     constructor(options: VisualConstructorOptions);
     private createContainerElements;
+    private handleLandingPage;
+    private getLandingPageHTML;
     update(options: VisualUpdateOptions): void;
     getFormattingModel(): powerbi.visuals.FormattingModel;
     private getMeasureName;
@@ -69,4 +74,6 @@ export declare class Visual implements IVisual {
     private animateRowsWithoutCleanup;
     private cleanupBatchAnimation;
     private updateExpandedState;
+    private showLandingPage;
+    private hideLandingPage;
 }

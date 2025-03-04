@@ -1,4 +1,4 @@
-// landingPage.ts
+// landingPage3.ts
 export const landingPageHTML = `<!DOCTYPE html>
 <html lang="en">
 <head>

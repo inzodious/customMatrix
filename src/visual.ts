@@ -19,7 +19,7 @@ import DataView = powerbi.DataView;
 
 import { VisualFormattingSettingsModel } from "./settings";
 
-import { landingPageHTML } from "../style/landingPage";
+import { landingPageHTML } from "../style/landingPage1";
 
 // Interfaces for matrix data
 interface MatrixNode {

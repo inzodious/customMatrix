@@ -49,6 +49,13 @@ export declare class Visual implements IVisual {
     private isExpanded;
     private initializeDefaultExpandedState;
     private toggleExpanded;
+    private contextMenu;
+    private activeNodeId;
+    private activeLevel;
+    private activeCell;
+    private setupContextMenuEvents;
+    private copyValueToClipboard;
+    private showToast;
     private disableAllToggleButtons;
     private animateExpand;
     private animateCollapse;
@@ -56,4 +63,8 @@ export declare class Visual implements IVisual {
     private findAllDescendants;
     private getAllDescendants;
     private setChildrenCollapsed;
+    private handleContextMenuAction;
+    private expandCollapseLevel;
+    private expandCollapseAll;
+    private updateExpandedState;
 }

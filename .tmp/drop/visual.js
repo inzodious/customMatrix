@@ -8594,6 +8594,43 @@ class Visual {
         this.tableDiv.style.overflow = "auto";
         this.tableDiv.style.position = "relative";
         container.appendChild(this.tableDiv);
+        // Create context menu
+        const contextMenu = document.createElement("div");
+        contextMenu.className = "custom-context-menu";
+        contextMenu.style.display = "none";
+        contextMenu.style.position = "absolute";
+        contextMenu.style.zIndex = "1000";
+        // Add the Copy Value option first
+        const copyItem = document.createElement("div");
+        copyItem.className = "context-menu-item";
+        copyItem.setAttribute("data-action", "copyValue");
+        copyItem.textContent = "Copy Value";
+        contextMenu.appendChild(copyItem);
+        // Add separator
+        const separator = document.createElement("div");
+        separator.className = "context-menu-separator";
+        contextMenu.appendChild(separator);
+        // Add menu items for expand/collapse
+        const menuItems = [
+            { id: "expandThis", text: "Expand this item" },
+            { id: "collapseThis", text: "Collapse this item" },
+            { id: "expandLevel", text: "Expand all at this level" },
+            { id: "collapseLevel", text: "Collapse all at this level" },
+            { id: "expandAll", text: "Expand all" },
+            { id: "collapseAll", text: "Collapse all" }
+        ];
+        menuItems.forEach(item => {
+            const menuItem = document.createElement("div");
+            menuItem.className = "context-menu-item";
+            menuItem.setAttribute("data-action", item.id);
+            menuItem.textContent = item.text;
+            contextMenu.appendChild(menuItem);
+        });
+        // Add the context menu to the DOM once
+        this.target.appendChild(contextMenu);
+        this.contextMenu = contextMenu;
+        // Add event listeners for context menu
+        this.setupContextMenuEvents();
     }
     //=========================================================================
     // CORE VISUAL METHODS
@@ -9435,6 +9472,114 @@ class Visual {
             this.animateExpand(directChildren, nodeId);
         }
     }
+    contextMenu;
+    activeNodeId = null;
+    activeLevel = null;
+    activeCell = null;
+    setupContextMenuEvents() {
+        const tableDiv = this.tableDiv;
+        const contextMenu = this.contextMenu;
+        // Prevent default context menu on the table
+        tableDiv.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            // Hide any visible context menu
+            contextMenu.style.display = 'none';
+            // Find the clicked cell
+            const target = e.target;
+            const cell = target.closest('td, th');
+            if (cell) {
+                // Store the active cell
+                this.activeCell = cell;
+                // Get row info for expand/collapse
+                const row = cell.closest('tr');
+                if (row) {
+                    this.activeNodeId = row.getAttribute('data-node-id');
+                    this.activeLevel = parseInt(row.getAttribute('data-level') || '0', 10);
+                }
+                // Show context menu at mouse position
+                contextMenu.style.left = `${e.pageX}px`;
+                contextMenu.style.top = `${e.pageY}px`;
+                contextMenu.style.display = 'block';
+            }
+        });
+        // Handle clicks on menu items
+        contextMenu.addEventListener('click', (e) => {
+            const target = e.target;
+            if (target.classList.contains('context-menu-item')) {
+                const action = target.getAttribute('data-action');
+                if (action === 'copyValue') {
+                    this.copyValueToClipboard();
+                }
+                else if (this.activeNodeId) {
+                    // Handle expand/collapse actions
+                    this.handleContextMenuAction(action, this.activeNodeId, this.activeLevel);
+                }
+                // Hide menu after action
+                contextMenu.style.display = 'none';
+            }
+        });
+        // Hide menu when clicking elsewhere
+        document.addEventListener('click', () => {
+            contextMenu.style.display = 'none';
+        });
+    }
+    copyValueToClipboard() {
+        if (!this.activeCell)
+            return;
+        const textToCopy = this.activeCell.textContent || '';
+        // Use the Clipboard API if available
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                // Show a small toast notification
+                this.showToast('Value copied to clipboard');
+            })
+                .catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+        else {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            textArea.style.position = 'fixed'; // Avoid scrolling to bottom
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                this.showToast('Value copied to clipboard');
+            }
+            catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+            document.body.removeChild(textArea);
+        }
+    }
+    showToast(message) {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = 'copy-toast';
+        toast.textContent = message;
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        toast.style.color = 'white';
+        toast.style.padding = '8px 16px';
+        toast.style.borderRadius = '4px';
+        toast.style.zIndex = '2000';
+        toast.style.transition = 'opacity 0.3s';
+        document.body.appendChild(toast);
+        // Remove toast after delay
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 300);
+        }, 2000);
+    }
     //=========================================================================
     // ANIMATION METHODS
     //=========================================================================
@@ -9611,6 +9756,131 @@ class Visual {
                 this.setChildrenCollapsed(childId, child.children, level + 1);
             }
         }
+    }
+    handleContextMenuAction(action, nodeId, level) {
+        if (!nodeId)
+            return;
+        switch (action) {
+            case 'expandThis':
+                // Expand just this item if it's collapsed
+                if (!this.isExpanded(nodeId)) {
+                    this.toggleExpanded(nodeId);
+                }
+                break;
+            case 'collapseThis':
+                // Collapse just this item if it's expanded
+                if (this.isExpanded(nodeId)) {
+                    this.toggleExpanded(nodeId);
+                }
+                break;
+            case 'expandLevel':
+                // Expand all nodes at this level
+                this.expandCollapseLevel(level, true);
+                break;
+            case 'collapseLevel':
+                // Collapse all nodes at this level
+                this.expandCollapseLevel(level, false);
+                break;
+            case 'expandAll':
+                // Expand all nodes
+                this.expandCollapseAll(true);
+                break;
+            case 'collapseAll':
+                // Collapse all nodes
+                this.expandCollapseAll(false);
+                break;
+        }
+        // Update the UI to reflect changes
+        this.updateExpandedState();
+    }
+    expandCollapseLevel(level, expand) {
+        // Find all rows at the specified level
+        const levelRows = Array.from(this.tableDiv.querySelectorAll(`tr[data-level="${level}"]`));
+        // Update their expanded state
+        levelRows.forEach(row => {
+            const nodeId = row.getAttribute('data-node-id');
+            if (nodeId) {
+                // Only update if the current state doesn't match desired state
+                if (this.expandedRows.get(nodeId) !== expand) {
+                    this.expandedRows.set(nodeId, expand);
+                    // Update toggle button appearance
+                    const toggleButton = row.querySelector('.toggle-button');
+                    if (toggleButton) {
+                        toggleButton.textContent = expand ? '▲' : '▼';
+                    }
+                }
+            }
+        });
+        // Save expanded state
+        Visual.savedExpandedState = new Map(this.expandedRows);
+    }
+    expandCollapseAll(expand) {
+        // Get all rows with toggle buttons
+        const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]'));
+        // Update their expanded state
+        allRows.forEach(row => {
+            const nodeId = row.getAttribute('data-node-id');
+            if (nodeId) {
+                // Only toggle rows that have children
+                const hasChildren = row.querySelector('.toggle-button');
+                if (hasChildren) {
+                    this.expandedRows.set(nodeId, expand);
+                    // Update toggle button appearance
+                    const toggleButton = row.querySelector('.toggle-button');
+                    if (toggleButton) {
+                        toggleButton.textContent = expand ? '▲' : '▼';
+                    }
+                }
+            }
+        });
+        // Save expanded state
+        Visual.savedExpandedState = new Map(this.expandedRows);
+    }
+    updateExpandedState() {
+        // This function updates the UI to reflect the current expanded state
+        const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]'));
+        allRows.forEach(row => {
+            const nodeId = row.getAttribute('data-node-id');
+            const parentId = row.getAttribute('data-parent-id');
+            if (nodeId) {
+                // For non-root elements, check if parent is expanded
+                if (parentId) {
+                    const parentExpanded = this.expandedRows.get(parentId) === true;
+                    if (!parentExpanded) {
+                        // If parent is collapsed, hide this row
+                        row.classList.add('collapsed');
+                    }
+                    else {
+                        // If parent is expanded, show/hide based on this row's state
+                        const isExpanded = this.expandedRows.get(nodeId) === true;
+                        // Only check direct children
+                        const directChildren = Array.from(this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`));
+                        directChildren.forEach(child => {
+                            if (isExpanded) {
+                                child.classList.remove('collapsed');
+                            }
+                            else {
+                                child.classList.add('collapsed');
+                            }
+                        });
+                    }
+                }
+                else {
+                    // Root level elements - just check their own state
+                    const isExpanded = this.expandedRows.get(nodeId) === true;
+                    // Update direct children
+                    const directChildren = Array.from(this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`));
+                    directChildren.forEach(child => {
+                        if (isExpanded) {
+                            child.classList.remove('collapsed');
+                        }
+                        else {
+                            child.classList.add('collapsed');
+                        }
+                    });
+                }
+            }
+        });
     }
 }
 

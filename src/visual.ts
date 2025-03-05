@@ -19,7 +19,9 @@ import DataView = powerbi.DataView;
 
 import { VisualFormattingSettingsModel } from "./settings";
 
-import { landingPageHTML } from "../style/landingPage1";
+import { landingPage1HTML } from "../style/landingPage1";
+import { landingPage2HTML } from "../style/landingPage2";
+import { landingPage3HTML } from "../style/landingPage3";
 
 // Interfaces for matrix data
 interface MatrixNode {
@@ -65,9 +67,10 @@ export class Visual implements IVisual {
     private animationTimeouts: Map<string, number> = new Map();
     private cachedFormatString: string = "#,0.00";
     private static savedExpandedState: Map<string, boolean> = new Map<string, boolean>();
+    private currentLandingPage: number = 1;
+    private landingPageElement: HTMLElement;
     private isLandingPageOn: boolean = false;
     private landingPageRemoved: boolean = false;
-    private landingPageElement: HTMLElement;
 
     //=========================================================================
     // INITIALIZATION
@@ -192,9 +195,17 @@ export class Visual implements IVisual {
         
     }
 
-    // Add method to get the landing page HTML content
     private getLandingPageHTML(): string {
-        return landingPageHTML;
+        switch (this.currentLandingPage) {
+            case 1:
+                return landingPage1HTML;
+            case 2:
+                return landingPage2HTML;
+            case 3:
+                return landingPage3HTML;
+            default:
+                return landingPage1HTML;
+        }
     }
 
     //=========================================================================
@@ -1993,7 +2004,7 @@ export class Visual implements IVisual {
     }
 
     private showLandingPage(): void {
-        console.log("Showing landing page");
+        console.log(`Showing landing page ${this.currentLandingPage}`);
         
         // Clear existing content
         while (this.target.firstChild) {
@@ -2007,29 +2018,57 @@ export class Visual implements IVisual {
         container.style.height = '100%';
         container.style.overflow = 'hidden';
         container.style.position = 'relative';
-        container.style.background = '#13141a'; // Dark background from your HTML
+        container.style.background = '#13141a'; 
         
         // Insert the HTML
-        container.innerHTML = landingPageHTML;
+        container.innerHTML = this.getLandingPageHTML();
         
         // Store reference and add to DOM
         this.landingPageElement = container;
         this.target.appendChild(container);
         
-        console.log("Landing page added to DOM");
-        
-        // Add event listener to the continue button
-        const continueButton = this.landingPageElement.querySelector('.continue-button');
-        if (continueButton) {
-            continueButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.hideLandingPage();
-            });
-        }
+        // Add event listeners for navigation
+        this.setupLandingPageNavigation();
         
         this.isLandingPageOn = true;
     }
     
+    private setupLandingPageNavigation(): void {
+        const nextButtons = this.landingPageElement.querySelectorAll('[data-action="next"]');
+        const backButtons = this.landingPageElement.querySelectorAll('[data-action="back"]');
+        const finishButton = this.landingPageElement.querySelector('[data-action="finish"]');
+        
+        // Next button handler
+        nextButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (this.currentLandingPage < 3) {
+                    this.currentLandingPage += 1;
+                    this.showLandingPage();
+                }
+            });
+        });
+        
+        // Back button handler
+        backButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (this.currentLandingPage > 1) {
+                    this.currentLandingPage -= 1;
+                    this.showLandingPage();
+                }
+            });
+        });
+        
+        // Finish button handler
+        if (finishButton) {
+            finishButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.hideLandingPage();
+            });
+        }
+    }
+
     private hideLandingPage(): void {
         if (this.isLandingPageOn && this.landingPageElement) {
             console.log("Hiding landing page");
@@ -2040,6 +2079,10 @@ export class Visual implements IVisual {
             }
             
             this.isLandingPageOn = false;
+            this.landingPageRemoved = true;
+            
+            // Reset to first page for next time
+            this.currentLandingPage = 1;
             
             // Create container elements for the visual
             this.createContainerElements();

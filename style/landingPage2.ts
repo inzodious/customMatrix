@@ -1,5 +1,5 @@
 // landingPage2.ts
-export const landingPageHTML = `<!DOCTYPE html>
+export const landingPage2HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -59,14 +59,7 @@ export const landingPageHTML = `<!DOCTYPE html>
             align-items: center;
             font-size: 14px;
             font-weight: 500;
-            color: #ff7846;
-        }
-        
-        .logo-icon {
-            width: 20px;
-            height: 20px;
-            background-color: #ff7846;
-            margin-right: 10px;
+            color: #ffffff;
         }
         
         .menu-button {
@@ -112,6 +105,7 @@ export const landingPageHTML = `<!DOCTYPE html>
             letter-spacing: 10px;
             text-align: center;
             margin-bottom: 20px;
+            color: #ffffff;
             text-transform: uppercase;
         }
         
@@ -129,13 +123,36 @@ export const landingPageHTML = `<!DOCTYPE html>
             text-transform: uppercase;
         }
         
-        .continue-button {
+        .feature-list {
+            text-align: center;
+            margin-bottom: 30px;
+            max-width: 600px;
+        }
+        
+        .feature-list ul {
+            list-style: none;
+            margin-top: 15px;
+        }
+        
+        .feature-list li {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #d0d0d0;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .nav-button {
             display: flex;
             flex-direction: column;
             align-items: center;
             text-decoration: none;
             color: #ffffff;
-            margin-top: 20px;
+            cursor: pointer;
         }
         
         .diamond {
@@ -201,9 +218,8 @@ export const landingPageHTML = `<!DOCTYPE html>
         <div class="header">
             <div class="logo">
                 <div class="logo-icon"></div>
-                <div>Nova Matrix Analytics</div>
+                <div>NOVA MATRIX</div>
             </div>
-            <button class="menu-button">Options</button>
         </div>
         
         <div class="orb-container">
@@ -212,55 +228,49 @@ export const landingPageHTML = `<!DOCTYPE html>
         </div>
         
         <h1 class="main-title">
-            <span>W</span>
+            <span>F</span>
             <span>E</span>
-            <span>L</span>
-            <span>C</span>
-            <span>O</span>
-            <span>M</span>
-            <span>E</span>
-            <span>&nbsp;</span>
-            <span>T</span>
-            <span>O</span>
-            <span>&nbsp;</span>
-            <span>T</span>
-            <span>H</span>
-            <span>E</span>
-            <span>&nbsp;</span>
-            <span>N</span>
-            <span>O</span>
-            <span>V</span>
-            <span>A</span>
-            <span>&nbsp;</span>
-            <span>M</span>
             <span>A</span>
             <span>T</span>
+            <span>U</span>
             <span>R</span>
-            <span>I</span>
-            <span>X</span>
+            <span>E</span>
+            <span>S</span>
         </h1>
         
-        <p class="subtitle">Data will not make decisions for you. You do it!</p>
+        <div class="feature-list">
+            <p class="subtitle">Nova Matrix offers powerful features for your data</p>
+            <ul>
+                <li>✨ Highly customizable styling and formatting</li>
+                <li>✨ Interactive expand/collapse functionality</li>
+                <li>✨ Advanced subtotal calculations</li>
+                <li>✨ Dynamic row and column sizing</li>
+                <li>✨ Smart context menu for quick actions</li>
+            </ul>
+        </div>
         
-        <a href="#" class="continue-button">
-            <div class="diamond">
-                <div class="diamond-inner"></div>
-            </div>
-            <span class="continue-text">Continue</span>
-        </a>
+        <div class="nav-buttons">
+            <a href="#" class="nav-button" data-action="back">
+                <div class="diamond">
+                    <div class="diamond-inner"></div>
+                </div>
+                <span class="continue-text">Back</span>
+            </a>
+            <a href="#" class="nav-button" data-action="next">
+                <div class="diamond">
+                    <div class="diamond-inner"></div>
+                </div>
+                <span class="continue-text">Next</span>
+            </a>
+        </div>
         
         <div class="footer">
             <div class="progress">
+                <div class="progress-item"></div>
                 <div class="progress-item active"></div>
                 <div class="progress-item"></div>
-                <div class="progress-item"></div>
-                <div class="progress-item"></div>
-                <div class="progress-item"></div>
-                <div class="progress-item"></div>
-                <div class="progress-item"></div>
-                <div class="progress-item"></div>
             </div>
-            <div class="credit">Developed by Matrix Team</div>
+            <div class="credit">Developed by Joshua Biondo</div>
         </div>
     </div>
 </body>

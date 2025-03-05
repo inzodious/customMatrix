@@ -1,10 +1,10 @@
 // landingPage3.ts
-export const landingPageHTML = `<!DOCTYPE html>
+export const landingPage3HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nova Matrix</title>
+    <title>Nova Matrix - Basic</title>
     <style>
         * {
             margin: 0;
@@ -38,11 +38,13 @@ export const landingPageHTML = `<!DOCTYPE html>
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             height: 100%;
             position: relative;
             z-index: 1;
             padding: 20px;
+            overflow-y: auto;
+            min-height: 600px;
         }
         
         .header {
@@ -59,83 +61,173 @@ export const landingPageHTML = `<!DOCTYPE html>
             align-items: center;
             font-size: 14px;
             font-weight: 500;
-            color: #ff7846;
-        }
-        
-        .logo-icon {
-            width: 20px;
-            height: 20px;
-            background-color: #ff7846;
-            margin-right: 10px;
-        }
-        
-        .menu-button {
-            border: none;
-            background: transparent;
             color: #ffffff;
-            cursor: pointer;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
         }
         
+        /* ENHANCED ORB CONTAINER */
         .orb-container {
             position: relative;
-            width: 180px;
-            height: 180px;
-            margin-bottom: 40px;
+            width: min(250px, 80vw);
+            height: min(250px, 80vw);
+            margin: 80px auto 40px auto;
+            perspective: 1200px;
+            transform-style: preserve-3d;
+            flex-shrink: 0;
         }
         
+        /* ENHANCED ORB */
         .orb {
-            width: 150px;
-            height: 150px;
-            background: radial-gradient(circle, #ffffff 0%, #e0e0e0 70%, #b0b0b0 100%);
+            width: min(150px, 50vw);
+            height: min(150px, 50vw);
+            background: radial-gradient(circle, 
+                rgba(255, 255, 255, 0.9) 15%, 
+                rgba(255, 234, 130, 0.8) 30%, 
+                rgba(255, 183, 101, 0.7) 45%, 
+                rgba(255, 100, 80, 0.5) 60%,
+                transparent 75%);
             border-radius: 50%;
-            margin: 15px;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 
+                0 0 60px rgba(255, 234, 130, 0.4),
+                0 0 100px rgba(255, 183, 101, 0.2);
+            z-index: 3;
+            animation: pulse 4s infinite alternate, rotate 30s infinite linear;
+            opacity: 0.9;
+            min-width: 80px;
+            min-height: 80px;
         }
         
-        .orb-ring {
+        /* Orb glow ring */
+        .orb:before {
+            content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 180px;
-            height: 180px;
-            border: 2px solid #2a2a36;
+            top: -15%;
+            left: -15%;
+            right: -15%;
+            bottom: -15%;
             border-radius: 50%;
-            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
+            background: radial-gradient(circle, 
+                transparent 60%, 
+                rgba(255, 234, 130, 0.1) 70%, 
+                rgba(255, 183, 101, 0.1) 80%, 
+                transparent 100%);
+            z-index: -1;
+            animation: glow 6s infinite alternate;
+        }
+        
+        /* Orb inner core */
+        .orb:after {
+            content: '';
+            position: absolute;
+            width: calc(40% + 10px);
+            height: calc(40% + 10px);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, 
+                rgba(255, 255, 255, 0.9) 0%, 
+                rgba(255, 240, 180, 0.8) 50%, 
+                transparent 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 240, 180, 0.5);
+            animation: coreGlow 3s infinite alternate;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+        }
+        
+        @keyframes glow {
+            0% {
+                opacity: 0.4;
+                box-shadow: 0 0 30px rgba(255, 234, 130, 0.2);
+            }
+            100% {
+                opacity: 0.7;
+                box-shadow: 0 0 50px rgba(255, 183, 101, 0.4);
+            }
+        }
+        
+        @keyframes coreGlow {
+            0% {
+                opacity: 0.7;
+                width: calc(36% + 10px);
+                height: calc(36% + 10px);
+            }
+            100% {
+                opacity: 1;
+                width: calc(43% + 10px);
+                height: calc(43% + 10px);
+            }
+        }
+        
+        @keyframes rotate {
+            0% {
+                background-position: 0% 0%;
+            }
+            100% {
+                background-position: 100% 100%;
+            }
         }
         
         .main-title {
-            font-size: 42px;
+            font-size: clamp(24px, 5vw, 36px);
             font-weight: bold;
-            letter-spacing: 10px;
+            letter-spacing: 8px;
             text-align: center;
             margin-bottom: 20px;
+            color: #ffffff;
             text-transform: uppercase;
-        }
-        
-        .main-title span {
-            display: inline-block;
-            margin: 0 5px;
         }
         
         .subtitle {
             font-size: 14px;
             letter-spacing: 2px;
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             color: #b0b0b0;
             text-transform: uppercase;
         }
         
-        .continue-button {
+        .feature-list {
+            text-align: center;
+            margin-bottom: 30px;
+            max-width: 600px;
+            padding: 0 10px;
+        }
+        
+        .feature-list ul {
+            list-style: none;
+            margin-top: 15px;
+        }
+        
+        .feature-list li {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #d0d0d0;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .nav-button {
             display: flex;
             flex-direction: column;
             align-items: center;
             text-decoration: none;
             color: #ffffff;
-            margin-top: 20px;
+            cursor: pointer;
         }
         
         .diamond {
@@ -163,10 +255,10 @@ export const landingPageHTML = `<!DOCTYPE html>
         }
         
         .footer {
-            position: absolute;
-            bottom: 20px;
             width: 100%;
             text-align: center;
+            margin-top: 40px;
+            position: relative;
         }
         
         .progress {
@@ -194,73 +286,112 @@ export const landingPageHTML = `<!DOCTYPE html>
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+            /* Media queries for responsiveness */
+        @media (max-height: 700px) {
+            .container {
+                justify-content: flex-start;
+                padding-top: 70px;
+            }
+            
+            .orb-container {
+                margin: 20px auto;
+            }
+            
+            .feature-list {
+                margin-bottom: 20px;
+            }
+            
+            .nav-buttons {
+                margin-top: 10px;
+            }
+            
+            .footer {
+                margin-top: 20px;
+            }
+        }
+        
+        @media (max-width: 500px) {
+            .nav-buttons {
+                gap: 15px;
+            }
+            
+            .diamond {
+                width: 30px;
+                height: 30px;
+            }
+            
+            .progress {
+                gap: 10px;
+            }
+            
+            .progress-item {
+                width: 10px;
+                height: 10px;
+            }
+        }
+        
+        /* Hide orb on very small screens */
+        @media (max-width: 400px), (max-height: 500px) {
+            .orb-container {
+                display: none;
+            }
+            
+            .container {
+                padding-top: 60px;
+            }
+            
+            .main-title {
+                margin-top: 20px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="logo">
-                <div class="logo-icon"></div>
-                <div>Nova Matrix Analytics</div>
+                <div>NOVA MATRIX</div>
             </div>
-            <button class="menu-button">Options</button>
         </div>
         
         <div class="orb-container">
             <div class="orb"></div>
-            <div class="orb-ring"></div>
         </div>
         
-        <h1 class="main-title">
-            <span>W</span>
-            <span>E</span>
-            <span>L</span>
-            <span>C</span>
-            <span>O</span>
-            <span>M</span>
-            <span>E</span>
-            <span>&nbsp;</span>
-            <span>T</span>
-            <span>O</span>
-            <span>&nbsp;</span>
-            <span>T</span>
-            <span>H</span>
-            <span>E</span>
-            <span>&nbsp;</span>
-            <span>N</span>
-            <span>O</span>
-            <span>V</span>
-            <span>A</span>
-            <span>&nbsp;</span>
-            <span>M</span>
-            <span>A</span>
-            <span>T</span>
-            <span>R</span>
-            <span>I</span>
-            <span>X</span>
-        </h1>
+        <h1 class="main-title">INSTRUCTIONS</h1>
         
-        <p class="subtitle">Data will not make decisions for you. You do it!</p>
+        <div class="feature-list">
+            <p class="subtitle">Begin presenting your data to viewers by:</p>
+            <ul>
+                <li>✨ Adding a Matrix visual to your report</li>
+                <li>✨ Configure the Rows, Columns, and Values fields</li>
+                <li>✨ Use the formatting panel to customize your matrix</li>
+                <li>✨ Enjoy the power of interactive data exploration!</li>
+            </ul>
+        </div>
         
-        <a href="#" class="continue-button">
-            <div class="diamond">
-                <div class="diamond-inner"></div>
-            </div>
-            <span class="continue-text">Continue</span>
-        </a>
+        <div class="nav-buttons">
+            <a href="#" class="nav-button">
+                <div class="diamond">
+                    <div class="diamond-inner"></div>
+                </div>
+                <span class="continue-text">Back</span>
+            </a>
+            <a href="#" class="nav-button">
+                <div class="diamond">
+                    <div class="diamond-inner"></div>
+                </div>
+                <span class="continue-text">Next</span>
+            </a>
+        </div>
         
         <div class="footer">
             <div class="progress">
+                <div class="progress-item"></div>
+                <div class="progress-item"></div>
                 <div class="progress-item active"></div>
-                <div class="progress-item"></div>
-                <div class="progress-item"></div>
-                <div class="progress-item"></div>
-                <div class="progress-item"></div>
-                <div class="progress-item"></div>
-                <div class="progress-item"></div>
-                <div class="progress-item"></div>
             </div>
-            <div class="credit">Developed by Matrix Team</div>
+            <div class="credit">Developed by Joshua Biondo</div>
         </div>
     </div>
 </body>

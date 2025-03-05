@@ -15,9 +15,10 @@ export declare class Visual implements IVisual {
     private animationTimeouts;
     private cachedFormatString;
     private static savedExpandedState;
+    private currentLandingPage;
+    private landingPageElement;
     private isLandingPageOn;
     private landingPageRemoved;
-    private landingPageElement;
     constructor(options: VisualConstructorOptions);
     private createContainerElements;
     private handleLandingPage;
@@ -75,5 +76,6 @@ export declare class Visual implements IVisual {
     private cleanupBatchAnimation;
     private updateExpandedState;
     private showLandingPage;
+    private setupLandingPageNavigation;
     private hideLandingPage;
 }

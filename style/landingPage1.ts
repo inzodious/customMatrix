@@ -1,5 +1,6 @@
 // landingPage1.ts
-export const landingPageHTML = `<!DOCTYPE html>
+export const landingPage1HTML = `
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -59,14 +60,7 @@ export const landingPageHTML = `<!DOCTYPE html>
             align-items: center;
             font-size: 14px;
             font-weight: 500;
-            color: #ff7846;
-        }
-        
-        .logo-icon {
-            width: 20px;
-            height: 20px;
-            background-color: #ff7846;
-            margin-right: 10px;
+            color: #ffffff;
         }
         
         .menu-button {
@@ -89,7 +83,7 @@ export const landingPageHTML = `<!DOCTYPE html>
         .orb {
             width: 150px;
             height: 150px;
-            background: radial-gradient(circle, #ffffff 0%, #e0e0e0 70%, #b0b0b0 100%);
+            background: radial-gradient(circle, #ffffff 35%, #e0e0e0 35%, #b0b0b0 30%);
             border-radius: 50%;
             margin: 15px;
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
@@ -112,6 +106,7 @@ export const landingPageHTML = `<!DOCTYPE html>
             letter-spacing: 10px;
             text-align: center;
             margin-bottom: 20px;
+            color: #ffffff;
             text-transform: uppercase;
         }
         
@@ -129,13 +124,14 @@ export const landingPageHTML = `<!DOCTYPE html>
             text-transform: uppercase;
         }
         
-        .continue-button {
+        .nav-button {
             display: flex;
             flex-direction: column;
             align-items: center;
             text-decoration: none;
             color: #ffffff;
             margin-top: 20px;
+            cursor: pointer;
         }
         
         .diamond {
@@ -201,9 +197,8 @@ export const landingPageHTML = `<!DOCTYPE html>
         <div class="header">
             <div class="logo">
                 <div class="logo-icon"></div>
-                <div>Nova Matrix Analytics</div>
+                <div>NOVA MATRIX</div>
             </div>
-            <button class="menu-button">Options</button>
         </div>
         
         <div class="orb-container">
@@ -219,34 +214,15 @@ export const landingPageHTML = `<!DOCTYPE html>
             <span>O</span>
             <span>M</span>
             <span>E</span>
-            <span>&nbsp;</span>
-            <span>T</span>
-            <span>O</span>
-            <span>&nbsp;</span>
-            <span>T</span>
-            <span>H</span>
-            <span>E</span>
-            <span>&nbsp;</span>
-            <span>N</span>
-            <span>O</span>
-            <span>V</span>
-            <span>A</span>
-            <span>&nbsp;</span>
-            <span>M</span>
-            <span>A</span>
-            <span>T</span>
-            <span>R</span>
-            <span>I</span>
-            <span>X</span>
         </h1>
         
-        <p class="subtitle">Data will not make decisions for you. You do it!</p>
+        <p class="subtitle">Welcome to the Nova Matrix - A powerful matrix visualization tool</p>
         
-        <a href="#" class="continue-button">
+        <a href="#" class="nav-button" data-action="next">
             <div class="diamond">
                 <div class="diamond-inner"></div>
             </div>
-            <span class="continue-text">Continue</span>
+            <span class="continue-text">Next</span>
         </a>
         
         <div class="footer">
@@ -254,13 +230,8 @@ export const landingPageHTML = `<!DOCTYPE html>
                 <div class="progress-item active"></div>
                 <div class="progress-item"></div>
                 <div class="progress-item"></div>
-                <div class="progress-item"></div>
-                <div class="progress-item"></div>
-                <div class="progress-item"></div>
-                <div class="progress-item"></div>
-                <div class="progress-item"></div>
             </div>
-            <div class="credit">Developed by Matrix Team</div>
+            <div class="credit">Developed by Joshua Biondo</div>
         </div>
     </div>
 </body>

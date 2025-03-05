@@ -4,7 +4,7 @@ export const landingPage2HTML = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nova Matrix</title>
+    <title>Nova Matrix - Features</title>
     <style>
         * {
             margin: 0;
@@ -43,15 +43,19 @@ export const landingPage2HTML = `<!DOCTYPE html>
             position: relative;
             z-index: 1;
             padding: 20px;
+            overflow-y: auto;
+            min-height: 500px;
+            gap: clamp(15px, 2.5vh, 25px);
         }
         
         .header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             width: 100%;
             position: absolute;
-            top: 30px;
-            padding: 0 30px;
+            top: 0;
+            padding: 20px 30px;
         }
         
         .logo {
@@ -62,71 +66,29 @@ export const landingPage2HTML = `<!DOCTYPE html>
             color: #ffffff;
         }
         
-        .menu-button {
-            border: none;
-            background: transparent;
-            color: #ffffff;
-            cursor: pointer;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        
-        .orb-container {
-            position: relative;
-            width: 180px;
-            height: 180px;
-            margin-bottom: 40px;
-        }
-        
-        .orb {
-            width: 150px;
-            height: 150px;
-            background: radial-gradient(circle, #ffffff 0%, #e0e0e0 70%, #b0b0b0 100%);
-            border-radius: 50%;
-            margin: 15px;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-        }
-        
-        .orb-ring {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 180px;
-            height: 180px;
-            border: 2px solid #2a2a36;
-            border-radius: 50%;
-            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
-        }
-        
         .main-title {
-            font-size: 42px;
+            font-size: clamp(24px, 5vw, 36px);
             font-weight: bold;
-            letter-spacing: 10px;
+            letter-spacing: clamp(4px, 1vw, 8px);
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: clamp(5px, 1.5vh, 10px);
             color: #ffffff;
             text-transform: uppercase;
-        }
-        
-        .main-title span {
-            display: inline-block;
-            margin: 0 5px;
         }
         
         .subtitle {
             font-size: 14px;
             letter-spacing: 2px;
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: clamp(15px, 2vh, 30px);
             color: #b0b0b0;
             text-transform: uppercase;
         }
         
         .feature-list {
             text-align: center;
-            margin-bottom: 30px;
             max-width: 600px;
+            padding: 0 10px;
         }
         
         .feature-list ul {
@@ -142,8 +104,8 @@ export const landingPage2HTML = `<!DOCTYPE html>
         
         .nav-buttons {
             display: flex;
-            gap: 30px;
-            margin-top: 20px;
+            gap: clamp(15px, 4vw, 30px);
+            margin-top: clamp(10px, 2vh, 20px);
         }
         
         .nav-button {
@@ -155,22 +117,109 @@ export const landingPage2HTML = `<!DOCTYPE html>
             cursor: pointer;
         }
         
-        .diamond {
-            width: 40px;
-            height: 40px;
-            background-color: transparent;
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            transform: rotate(45deg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        /* Button orbs */
+        .button-orb-container {
+            width: 50px;
+            height: 50px;
+            position: relative;
             margin-bottom: 10px;
         }
         
-        .diamond-inner {
-            width: 10px;
-            height: 10px;
-            background-color: rgba(255, 255, 255, 0.5);
+        .button-orb {
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle, 
+                rgba(255, 255, 255, 0.9) 15%, 
+                rgba(255, 234, 130, 0.8) 30%, 
+                rgba(255, 183, 101, 0.7) 45%, 
+                rgba(255, 100, 80, 0.5) 60%,
+                transparent 75%);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 
+                0 0 15px rgba(255, 234, 130, 0.4),
+                0 0 25px rgba(255, 183, 101, 0.2);
+            animation: buttonPulse 2s infinite alternate, rotate 15s infinite linear;
+            opacity: 0.9;
+        }
+        
+        .button-orb:before {
+            content: '';
+            position: absolute;
+            top: -15%;
+            left: -15%;
+            right: -15%;
+            bottom: -15%;
+            border-radius: 50%;
+            background: radial-gradient(circle, 
+                transparent 60%, 
+                rgba(255, 234, 130, 0.1) 70%, 
+                rgba(255, 183, 101, 0.1) 80%, 
+                transparent 100%);
+            z-index: -1;
+            animation: buttonGlow 3s infinite alternate;
+        }
+        
+        .button-orb:after {
+            content: '';
+            position: absolute;
+            width: 40%;
+            height: 40%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, 
+                rgba(255, 255, 255, 0.9) 0%, 
+                rgba(255, 240, 180, 0.8) 50%, 
+                transparent 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 240, 180, 0.5);
+            animation: buttonCoreGlow 1.5s infinite alternate;
+        }
+        
+        @keyframes buttonPulse {
+            0% {
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+        }
+        
+        @keyframes buttonGlow {
+            0% {
+                opacity: 0.3;
+                box-shadow: 0 0 15px rgba(255, 234, 130, 0.2);
+            }
+            100% {
+                opacity: 0.6;
+                box-shadow: 0 0 25px rgba(255, 183, 101, 0.4);
+            }
+        }
+        
+        @keyframes buttonCoreGlow {
+            0% {
+                opacity: 0.7;
+                width: 36%;
+                height: 36%;
+            }
+            100% {
+                opacity: 1;
+                width: 43%;
+                height: 43%;
+            }
+        }
+        
+        @keyframes rotate {
+            0% {
+                background-position: 0% 0%;
+            }
+            100% {
+                background-position: 100% 100%;
+            }
         }
         
         .continue-text {
@@ -180,10 +229,10 @@ export const landingPage2HTML = `<!DOCTYPE html>
         }
         
         .footer {
-            position: absolute;
-            bottom: 20px;
             width: 100%;
             text-align: center;
+            margin-top: clamp(10px, 2vh, 20px);
+            position: relative;
         }
         
         .progress {
@@ -191,7 +240,6 @@ export const landingPage2HTML = `<!DOCTYPE html>
             justify-content: center;
             align-items: center;
             gap: 15px;
-            margin-bottom: 20px;
         }
         
         .progress-item {
@@ -211,66 +259,73 @@ export const landingPage2HTML = `<!DOCTYPE html>
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+        
+        /* Content wrapper to maintain consistent vertical centering */
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 100%;
+            padding-top: 60px; /* Fixed space for header */
+        }
+        
+        /* Smoother responsive approach with no sudden jumps */
+        @media (max-width: 768px) {
+            .nav-buttons {
+                gap: calc(15px + (30 - 15) * ((100vw - 320px) / (768 - 320)));
+            }
+            
+            .progress {
+                gap: calc(10px + (15 - 10) * ((100vw - 320px) / (768 - 320)));
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="logo">
-                <div class="logo-icon"></div>
                 <div>NOVA MATRIX</div>
             </div>
-        </div>
-        
-        <div class="orb-container">
-            <div class="orb"></div>
-            <div class="orb-ring"></div>
-        </div>
-        
-        <h1 class="main-title">
-            <span>F</span>
-            <span>E</span>
-            <span>A</span>
-            <span>T</span>
-            <span>U</span>
-            <span>R</span>
-            <span>E</span>
-            <span>S</span>
-        </h1>
-        
-        <div class="feature-list">
-            <p class="subtitle">Nova Matrix offers powerful features for your data</p>
-            <ul>
-                <li>✨ Highly customizable styling and formatting</li>
-                <li>✨ Interactive expand/collapse functionality</li>
-                <li>✨ Advanced subtotal calculations</li>
-                <li>✨ Dynamic row and column sizing</li>
-                <li>✨ Smart context menu for quick actions</li>
-            </ul>
-        </div>
-        
-        <div class="nav-buttons">
-            <a href="#" class="nav-button" data-action="back">
-                <div class="diamond">
-                    <div class="diamond-inner"></div>
-                </div>
-                <span class="continue-text">Back</span>
-            </a>
-            <a href="#" class="nav-button" data-action="next">
-                <div class="diamond">
-                    <div class="diamond-inner"></div>
-                </div>
-                <span class="continue-text">Next</span>
-            </a>
-        </div>
-        
-        <div class="footer">
             <div class="progress">
                 <div class="progress-item"></div>
                 <div class="progress-item active"></div>
                 <div class="progress-item"></div>
             </div>
-            <div class="credit">Developed by Joshua Biondo</div>
+        </div>
+        
+        <div class="content-wrapper">
+            <h1 class="main-title">FEATURES</h1>
+            
+            <div class="feature-list">
+                <p class="subtitle">Nova Matrix offers powerful features for your data</p>
+                <ul>
+                    <li>✨ Highly customizable styling and formatting</li>
+                    <li>✨ Interactive expand/collapse functionality</li>
+                    <li>✨ Advanced subtotal calculations</li>
+                    <li>✨ Dynamic row and column sizing</li>
+                    <li>✨ Smart context menu for quick actions</li>
+                </ul>
+            </div>
+            
+            <div class="nav-buttons">
+                <a href="#" class="nav-button">
+                    <div class="button-orb-container">
+                        <div class="button-orb"></div>
+                    </div>
+                    <span class="continue-text">Back</span>
+                </a>
+                <a href="#" class="nav-button">
+                    <div class="button-orb-container">
+                        <div class="button-orb"></div>
+                    </div>
+                    <span class="continue-text">Next</span>
+                </a>
+            </div>
+            
+            <div class="footer">
+                <div class="credit">Developed by Joshua Biondo</div>
+            </div>
         </div>
     </div>
 </body>

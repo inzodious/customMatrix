@@ -2019,6 +2019,40 @@ export class Visual implements IVisual {
         container.style.overflow = 'hidden';
         container.style.position = 'relative';
         container.style.background = '#13141a'; 
+        container.style.display = 'block'; // Explicitly set display
+        container.style.visibility = 'visible'; // Ensure visibility
+        
+        // Insert the HTML
+        container.innerHTML = this.getLandingPageHTML();
+        
+        // Store reference and add to DOM
+        this.landingPageElement = container;
+        this.target.appendChild(container);
+        
+        // Force a reflow/repaint
+        void container.offsetHeight;
+        
+        // Add event listeners for navigation
+        this.setupLandingPageNavigation();
+        
+        this.isLandingPageOn = true;
+        
+        // Log to confirm landing page is shown
+        console.log("Landing page element added to DOM:", this.landingPageElement);
+    }
+    
+    private createNewLandingPage(): void {
+        // Create container for landing page
+        const container = document.createElement('div');
+        container.className = 'landing-page-container';
+        container.style.width = '100%';
+        container.style.height = '100%';
+        container.style.overflow = 'hidden';
+        container.style.position = 'relative';
+        container.style.background = '#13141a'; 
+        
+        // Start with opacity 0
+        container.style.opacity = '0';
         
         // Insert the HTML
         container.innerHTML = this.getLandingPageHTML();
@@ -2031,6 +2065,12 @@ export class Visual implements IVisual {
         this.setupLandingPageNavigation();
         
         this.isLandingPageOn = true;
+        
+        // Trigger fade in after a small delay
+        setTimeout(() => {
+            container.style.opacity = '1';
+            container.style.transition = 'opacity 0.5s ease';
+        }, 50);
     }
     
     private setupLandingPageNavigation(): void {

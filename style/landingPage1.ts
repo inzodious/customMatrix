@@ -46,6 +46,12 @@ export const landingPage1HTML = `<!DOCTYPE html>
             overflow-y: auto;
             min-height: 500px;
             gap: clamp(15px, 2.5vh, 25px);
+            transition: opacity 0.5s ease;
+            opacity: 1;
+        }
+
+        .container.fade-out {
+            opacity: 0;
         }
         
         .header {
@@ -303,7 +309,7 @@ export const landingPage1HTML = `<!DOCTYPE html>
             </div>
             
             <div class="nav-buttons">
-                <a href="#" class="nav-button">
+                <a href="#" class="nav-button" data-action="next">
                     <div class="button-orb-container">
                         <div class="button-orb"></div>
                     </div>

@@ -46,8 +46,14 @@ export const landingPage3HTML = `<!DOCTYPE html>
             overflow-y: auto;
             min-height: 500px;
             gap: clamp(15px, 2.5vh, 25px);
+            transition: opacity 0.5s ease;
+            opacity: 1;
         }
-        
+
+        .container.fade-out {
+            opacity: 0;
+        }
+
         .header {
             display: flex;
             justify-content: space-between;
@@ -308,11 +314,17 @@ export const landingPage3HTML = `<!DOCTYPE html>
             </div>
             
             <div class="nav-buttons">
-                <a href="#" class="nav-button">
+                <a href="#" class="nav-button" data-action="back">
                     <div class="button-orb-container">
                         <div class="button-orb"></div>
                     </div>
                     <span class="continue-text">Back</span>
+                </a>
+                <a href="#" class="nav-button" data-action="finish">
+                    <div class="button-orb-container">
+                        <div class="button-orb"></div>
+                    </div>
+                    <span class="continue-text">Get Started</span>
                 </a>
             </div>
             

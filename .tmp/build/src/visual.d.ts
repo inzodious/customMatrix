@@ -76,6 +76,7 @@ export declare class Visual implements IVisual {
     private cleanupBatchAnimation;
     private updateExpandedState;
     private showLandingPage;
+    private createNewLandingPage;
     private setupLandingPageNavigation;
     private hideLandingPage;
 }

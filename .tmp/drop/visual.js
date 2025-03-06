@@ -10922,8 +10922,7 @@ class Visual {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (this.currentLandingPage < 3) {
-                    this.currentLandingPage += 1;
-                    this.showLandingPage();
+                    this.transitionToPage(this.currentLandingPage + 1);
                 }
             });
         });
@@ -10932,8 +10931,7 @@ class Visual {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (this.currentLandingPage > 1) {
-                    this.currentLandingPage -= 1;
-                    this.showLandingPage();
+                    this.transitionToPage(this.currentLandingPage - 1);
                 }
             });
         });
@@ -10941,9 +10939,57 @@ class Visual {
         if (finishButton) {
             finishButton.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.hideLandingPage();
+                this.fadeOutAndHideLandingPage();
             });
         }
+    }
+    // Add this new method to handle transitions
+    transitionToPage(newPageNumber) {
+        // Get container element
+        const container = this.landingPageElement.querySelector('.container');
+        if (!container)
+            return;
+        // Apply fade-out class
+        container.classList.add('fade-out');
+        // Wait for animation to complete before changing page
+        setTimeout(() => {
+            // Update the current page
+            this.currentLandingPage = newPageNumber;
+            // Create new container with updated content but still faded out
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = this.getLandingPageHTML();
+            // Replace the old content
+            while (this.landingPageElement.firstChild) {
+                this.landingPageElement.removeChild(this.landingPageElement.firstChild);
+            }
+            // Add the new content
+            while (tempDiv.firstChild) {
+                this.landingPageElement.appendChild(tempDiv.firstChild);
+            }
+            // Set up navigation for the new page
+            this.setupLandingPageNavigation();
+            // Force a reflow before removing the fade-out class
+            const newContainer = this.landingPageElement.querySelector('.container');
+            if (newContainer) {
+                void newContainer.offsetHeight;
+                newContainer.classList.remove('fade-out');
+            }
+        }, 500); // Match this to your CSS transition duration
+    }
+    // Add this method for the finish button
+    fadeOutAndHideLandingPage() {
+        // Get container element
+        const container = this.landingPageElement.querySelector('.container');
+        if (!container) {
+            this.hideLandingPage();
+            return;
+        }
+        // Apply fade-out class
+        container.classList.add('fade-out');
+        // Wait for animation to complete before hiding
+        setTimeout(() => {
+            this.hideLandingPage();
+        }, 500); // Match this to your CSS transition duration
     }
     hideLandingPage() {
         if (this.isLandingPageOn && this.landingPageElement) {

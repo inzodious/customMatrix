@@ -41,10 +41,10 @@
             height: 100%;
             position: relative;
             z-index: 1;
-            padding: 20px;
+            padding: 10;
             overflow-y: auto;
-            min-height: 500px;
-            gap: clamp(15px, 2.5vh, 25px);
+            min-height: 250;
+            gap: clamp(10px, 2.5vh, 25px);
             transition: opacity 0.5s ease;
             opacity: 1;
         }
@@ -52,7 +52,7 @@
         .container.fade-out {
             opacity: 0;
         }
-
+        
         .header {
             display: flex;
             justify-content: space-between;
@@ -60,7 +60,7 @@
             width: 100%;
             position: absolute;
             top: 0;
-            padding: 20px 30px;
+            padding: 10px 10px;
         }
         
         .logo {
@@ -72,7 +72,7 @@
         }
         
         .main-title {
-            font-size: clamp(24px, 5vw, 36px);
+            font-size: clamp(12px, 5vw, 36px);
             font-weight: bold;
             letter-spacing: clamp(4px, 1vw, 8px);
             text-align: center;
@@ -82,10 +82,10 @@
         }
         
         .subtitle {
-            font-size: 14px;
+            font-size: clamp(8px, 5vw, 14px);
             letter-spacing: 2px;
             text-align: center;
-            margin-bottom: clamp(15px, 2vh, 30px);
+            margin-bottom: clamp(5px, 2vh, 15px);
             color: #b0b0b0;
             text-transform: uppercase;
         }
@@ -98,11 +98,11 @@
         
         .feature-list ul {
             list-style: none;
-            margin-top: 15px;
+            margin-top: clamp(5px, 2vh, 15px);
         }
         
         .feature-list li {
-            margin-bottom: 10px;
+            margin-bottom: clamp(5px, 2vh, 15px);
             font-size: 14px;
             color: #d0d0d0;
         }
@@ -110,7 +110,7 @@
         .nav-buttons {
             display: flex;
             gap: clamp(15px, 4vw, 30px);
-            margin-top: clamp(10px, 2vh, 20px);
+            margin-top: clamp(5px, 2vh, 15px);
         }
         
         .nav-button {
@@ -124,15 +124,15 @@
         
         /* Button orbs */
         .button-orb-container {
-            width: 50px;
-            height: 50px;
+            width: 100px;
+            height: 100px;
             position: relative;
-            margin-bottom: 10px;
+            margin-bottom: clamp(5px, 2vh, 15px);
         }
         
         .button-orb {
-            width: 30px;
-            height: 30px;
+            width: 75px;
+            height: 75px;
             background: radial-gradient(circle, 
                 rgba(255, 255, 255, 0.9) 15%, 
                 rgba(255, 234, 130, 0.8) 30%, 
@@ -257,6 +257,25 @@
         .progress-item.active {
             background-color: rgba(255, 255, 255, 0.5);
         }
+
+        .diamond {
+            width: 10px;
+            height: 10px;
+            background-color: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transform: rotate(45deg);
+            display: inline-flex; /* Changed from 'flex' to 'inline-flex' */
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px; /* Adds spacing instead of margin-bottom */
+            vertical-align: middle; /* Aligns with text */
+        }
+        
+        .diamond-inner {
+            width: 4px;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.5);
+        }
         
         .credit {
             font-size: 10px;
@@ -271,7 +290,7 @@
             flex-direction: column;
             align-items: center;
             max-width: 100%;
-            padding-top: 60px; /* Fixed space for header */
+            padding-top: clamp(0px, 5vh, 60px);
         }
         
         /* Smoother responsive approach with no sudden jumps */
@@ -305,12 +324,21 @@
             <div class="feature-list">
                 <p class="subtitle">Begin presenting your data to viewers by:</p>
                 <ul>
-                    <li>✨ Adding a Matrix visual to your report</li>
-                    <li>✨ Configure the Rows, Columns, and Values fields</li>
-                    <li>✨ Use the formatting panel to customize your matrix</li>
-                    <li>✨ Enjoy the power of interactive data exploration!</li>
+                    <li>
+                        <div class="diamond"><div class="diamond-inner"></div></div> Adding a Matrix visual to your report
+                    </li>
+                    <li>
+                        <div class="diamond"><div class="diamond-inner"></div></div> Configure the Rows, Columns, and Values fields
+                    </li>
+                    <li>
+                        <div class="diamond"><div class="diamond-inner"></div></div> Use the formatting panel to customize your matrix
+                    </li>
+                    <li>
+                        <div class="diamond"><div class="diamond-inner"></div></div> Enjoy the power of interactive data exploration!
+                    </li>
                 </ul>
             </div>
+            
             
             <div class="nav-buttons">
                 <a href="#" class="nav-button" data-action="back">

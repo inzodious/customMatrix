@@ -273,3 +273,29 @@ to {
     background-color: #e0e0e0;
     margin: 5px 0;
 }
+
+.load-more-button {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 10px;
+  background-color: #0078d4;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+  z-index: 100;
+  text-align: center;
+  font-family: inherit;
+  transition: background-color 0.3s ease;
+  
+  &:hover {
+      background-color: #106ebe;
+  }
+  
+  &:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+  }
+}

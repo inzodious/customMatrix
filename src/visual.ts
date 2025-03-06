@@ -71,6 +71,9 @@ export class Visual implements IVisual {
     private landingPageElement: HTMLElement;
     private isLandingPageOn: boolean = false;
     private landingPageRemoved: boolean = false;
+    private hasMoreData: boolean = false;
+    private isLoadingMore: boolean = false;
+    private loadMoreButton: HTMLButtonElement;
 
     //=========================================================================
     // INITIALIZATION
@@ -143,57 +146,6 @@ export class Visual implements IVisual {
         
         // Add event listeners for context menu
         this.setupContextMenuEvents();
-    }
-
-    private handleLandingPage(options: VisualUpdateOptions): void {
-        // Show landing page if no data views or empty data
-        if (!options.dataViews || !options.dataViews[0]?.metadata?.columns?.length) {
-            if (!this.isLandingPageOn) {
-                this.isLandingPageOn = true;
-                
-                // Clear previous content
-                while (this.target.firstChild) {
-                    this.target.removeChild(this.target.firstChild);
-                }
-                
-                // Create landing page
-                const landingPageHTML = this.getLandingPageHTML();
-                const tempDiv = document.createElement('div');
-                /* eslint-disable powerbi-visuals/no-inner-outer-html */
-                tempDiv.innerHTML = landingPageHTML;
-                
-                // Add landing page to the DOM
-                this.landingPageElement = tempDiv.firstChild as HTMLElement;
-                this.target.appendChild(this.landingPageElement);
-                
-                // Add event listener to the continue button
-                const continueButton = this.landingPageElement.querySelector('.continue-button');
-                if (continueButton) {
-                    continueButton.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        // Remove landing page
-                        if (this.landingPageElement && this.landingPageElement.parentNode) {
-                            this.landingPageElement.parentNode.removeChild(this.landingPageElement);
-                            this.isLandingPageOn = false;
-                            this.landingPageRemoved = true;
-                            this.createContainerElements();
-                        }
-                    });
-                }
-            }
-        } else {
-            // Remove landing page if we have data
-            if (this.isLandingPageOn && !this.landingPageRemoved) {
-                this.landingPageRemoved = true;
-                if (this.landingPageElement && this.landingPageElement.parentNode) {
-                    this.landingPageElement.parentNode.removeChild(this.landingPageElement);
-                }
-                
-                // Recreate the container elements for the actual visual
-                this.createContainerElements();
-            }
-        }
-        
     }
 
     private getLandingPageHTML(): string {
@@ -275,6 +227,12 @@ export class Visual implements IVisual {
             // Check if we have matrix data
             if (!dataView.matrix) return;
             
+            // Check if there's more data to load and update flags
+            this.hasMoreData = !!dataView.metadata?.segment;
+            if (options.operationKind === powerbi.VisualDataChangeOperationKind.Append) {
+                this.isLoadingMore = false; // Reset loading flag on successful append
+            }
+            
             // Restore the expanded state from the static property
             if (Visual.savedExpandedState.size > 0) {
                 this.expandedRows = new Map<string, boolean>(Visual.savedExpandedState);
@@ -285,6 +243,9 @@ export class Visual implements IVisual {
             
             // Create matrix table
             this.createMatrixTable(matrix, measureName);
+            
+            // Add "Load More" button if there's more data
+            this.updateLoadMoreButton();
             
             // Restore scroll position
             this.tableDiv.scrollTop = scrollTop;
@@ -1220,26 +1181,6 @@ export class Visual implements IVisual {
         return this.expandedRows.get(nodeId) === true;
     }
 
-    private initializeDefaultExpandedState(rows: any[], level: number, parentId: string): void {
-        if (!rows) return;
-        
-        for (const row of rows) {
-            const nodeId = parentId + this.getNodeId(row, level);
-            
-            // Default: expand level 0, collapse others
-            const defaultExpanded = level === 0;
-            this.expandedRows.set(nodeId, defaultExpanded);
-            
-            // Always recursively process children
-            if (row.children?.length > 0) {
-                this.initializeDefaultExpandedState(row.children, level + 1, nodeId);
-            }
-        }
-        
-        // Save to static property
-        Visual.savedExpandedState = new Map<string, boolean>(this.expandedRows);
-    }
-
     // Toggle expanded state of a node
     private toggleExpanded(nodeId: string): void {
         // Prevent action if this node is currently animating
@@ -2042,40 +1983,7 @@ export class Visual implements IVisual {
         // Log to confirm landing page is shown
         console.log("Landing page element added to DOM:", this.landingPageElement);
     }
-    
-    private createNewLandingPage(): void {
-        // Create container for landing page
-        const container = document.createElement('div');
-        container.className = 'landing-page-container';
-        container.style.width = '100%';
-        container.style.height = '100%';
-        container.style.overflow = 'hidden';
-        container.style.position = 'relative';
-        container.style.background = '#13141a'; 
         
-        // Start with opacity 0
-        container.style.opacity = '0';
-        
-        // Insert the HTML
-        /* eslint-disable powerbi-visuals/no-inner-outer-html */
-        container.innerHTML = this.getLandingPageHTML();
-        
-        // Store reference and add to DOM
-        this.landingPageElement = container;
-        this.target.appendChild(container);
-        
-        // Add event listeners for navigation
-        this.setupLandingPageNavigation();
-        
-        this.isLandingPageOn = true;
-        
-        // Trigger fade in after a small delay
-        setTimeout(() => {
-            container.style.opacity = '1';
-            container.style.transition = 'opacity 0.5s ease';
-        }, 50);
-    }
-    
     private setupLandingPageNavigation(): void {
         const nextButtons = this.landingPageElement.querySelectorAll('[data-action="next"]');
         const backButtons = this.landingPageElement.querySelectorAll('[data-action="back"]');
@@ -2185,6 +2093,78 @@ export class Visual implements IVisual {
             
             // Create container elements for the visual
             this.createContainerElements();
+        }
+    }
+
+    // Method to update the Load More button
+    private updateLoadMoreButton(): void {
+        // Remove existing button if any
+        const existingButton = this.tableDiv.querySelector('.load-more-button');
+        if (existingButton) {
+            existingButton.remove();
+        }
+        
+        // Add button if there's more data
+        if (this.hasMoreData) {
+            const loadMoreButton = document.createElement('button');
+            loadMoreButton.className = 'load-more-button';
+            loadMoreButton.textContent = 'Load More Data';
+            loadMoreButton.style.position = 'sticky';
+            loadMoreButton.style.bottom = '0';
+            loadMoreButton.style.left = '0';
+            loadMoreButton.style.width = '100%';
+            loadMoreButton.style.padding = '10px';
+            loadMoreButton.style.backgroundColor = '#0078d4';
+            loadMoreButton.style.color = 'white';
+            loadMoreButton.style.border = 'none';
+            loadMoreButton.style.cursor = 'pointer';
+            loadMoreButton.style.marginTop = '10px';
+            loadMoreButton.style.zIndex = '100';
+            loadMoreButton.style.textAlign = 'center';
+            loadMoreButton.style.fontFamily = this.formattingSettings.generalSettings.fontFamily.value;
+            
+            // Disable button if already loading
+            if (this.isLoadingMore) {
+                loadMoreButton.disabled = true;
+                loadMoreButton.textContent = 'Loading...';
+                loadMoreButton.style.backgroundColor = '#cccccc';
+            }
+            
+            loadMoreButton.addEventListener('click', () => {
+                this.loadMoreData();
+            });
+            
+            this.tableDiv.appendChild(loadMoreButton);
+            this.loadMoreButton = loadMoreButton;
+        }
+    }
+
+    // Method to load more data
+    private loadMoreData(): void {
+        if (this.hasMoreData && !this.isLoadingMore) {
+            this.isLoadingMore = true;
+            
+            // Update button state
+            if (this.loadMoreButton) {
+                this.loadMoreButton.disabled = true;
+                this.loadMoreButton.textContent = 'Loading...';
+                this.loadMoreButton.style.backgroundColor = '#cccccc';
+            }
+            
+            // Call fetchMoreData with aggregateSegments=true
+            const success = this.host.fetchMoreData(true);
+            
+            if (!success) {
+                // Handle the case where fetching more data failed
+                console.error("Failed to fetch more data - might have hit memory limits");
+                this.isLoadingMore = false;
+                
+                // Update button state
+                if (this.loadMoreButton) {
+                    this.loadMoreButton.textContent = 'Failed to load more (memory limit)';
+                    this.loadMoreButton.style.backgroundColor = '#ff0000';
+                }
+            }
         }
     }
 }

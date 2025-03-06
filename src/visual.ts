@@ -19,9 +19,9 @@ import DataView = powerbi.DataView;
 
 import { VisualFormattingSettingsModel } from "./settings";
 
-import { landingPage1HTML } from "../style/landingPage1";
-import { landingPage2HTML } from "../style/landingPage2";
-import { landingPage3HTML } from "../style/landingPage3";
+const landingPage1HTML = require("!!raw-loader!../style/landingPage1.html").default;
+const landingPage2HTML = require("!!raw-loader!../style/landingPage2.html").default;
+const landingPage3HTML = require("!!raw-loader!../style/landingPage3.html").default;
 
 // Interfaces for matrix data
 interface MatrixNode {
@@ -159,6 +159,7 @@ export class Visual implements IVisual {
                 // Create landing page
                 const landingPageHTML = this.getLandingPageHTML();
                 const tempDiv = document.createElement('div');
+                /* eslint-disable powerbi-visuals/no-inner-outer-html */
                 tempDiv.innerHTML = landingPageHTML;
                 
                 // Add landing page to the DOM
@@ -2023,6 +2024,7 @@ export class Visual implements IVisual {
         container.style.visibility = 'visible'; // Ensure visibility
         
         // Insert the HTML
+        /* eslint-disable powerbi-visuals/no-inner-outer-html */
         container.innerHTML = this.getLandingPageHTML();
         
         // Store reference and add to DOM
@@ -2055,6 +2057,7 @@ export class Visual implements IVisual {
         container.style.opacity = '0';
         
         // Insert the HTML
+        /* eslint-disable powerbi-visuals/no-inner-outer-html */
         container.innerHTML = this.getLandingPageHTML();
         
         // Store reference and add to DOM

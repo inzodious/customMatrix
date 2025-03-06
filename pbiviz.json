@@ -2,7 +2,7 @@
     "visual": {
       "name": "NovaGrid",
       "displayName": "NovaGrid",
-      "guid": "customMatrix3D2AF31BB00A42FC89209A2F7F87EB77",
+      "guid": "NovaGridMatrix",
       "visualClassName": "Visual",
       "version": "1.0.0.0",
       "description": "Configurable matrix visual with conditional formatting and animations.",

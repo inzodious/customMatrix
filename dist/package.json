@@ -5,10 +5,10 @@
 			{
 				"resourceId": "rId0",
 				"sourceType": 5,
-				"file": "resources/customMatrix3D2AF31BB00A42FC89209A2F7F87EB77.pbiviz.json"
+				"file": "resources/NovaGridMatrix.pbiviz.json"
 			}
 		],
-		"visual": {"name":"NovaGrid","displayName":"NovaGrid","guid":"customMatrix3D2AF31BB00A42FC89209A2F7F87EB77","visualClassName":"Visual","version":"1.0.0.0","description":"Configurable matrix visual with conditional formatting and animations.","supportUrl":"None","gitHubUrl":"https://github.com/inzodiuous"},
+		"visual": {"name":"NovaGrid","displayName":"NovaGrid","guid":"NovaGridMatrix","visualClassName":"Visual","version":"1.0.0.0","description":"Configurable matrix visual with conditional formatting and animations.","supportUrl":"None","gitHubUrl":"https://github.com/inzodiuous"},
 		"metadata": {
 			"pbivizjson": {
 				"resourceId": "rId0"

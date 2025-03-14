@@ -19,11 +19,9 @@ export declare class Visual implements IVisual {
     private landingPageElement;
     private isLandingPageOn;
     private landingPageRemoved;
-    private hasMoreData;
-    private isLoadingMore;
-    private loadMoreButton;
     constructor(options: VisualConstructorOptions);
     private createContainerElements;
+    private handleLandingPage;
     private getLandingPageHTML;
     update(options: VisualUpdateOptions): void;
     getFormattingModel(): powerbi.visuals.FormattingModel;
@@ -55,6 +53,7 @@ export declare class Visual implements IVisual {
     private applyGlobalBorders;
     private getNodeId;
     private isExpanded;
+    private initializeDefaultExpandedState;
     private toggleExpanded;
     private contextMenu;
     private activeNodeId;
@@ -77,10 +76,9 @@ export declare class Visual implements IVisual {
     private cleanupBatchAnimation;
     private updateExpandedState;
     private showLandingPage;
+    private createNewLandingPage;
     private setupLandingPageNavigation;
     private transitionToPage;
     private fadeOutAndHideLandingPage;
     private hideLandingPage;
-    private updateLoadMoreButton;
-    private loadMoreData;
 }

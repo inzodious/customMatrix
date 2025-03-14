@@ -1,4 +1,4 @@
-var customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG;
+var NovaGridMatrix_DEBUG;
 /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
@@ -242,16 +242,6 @@ var EphemeralStorageService = /** @class */ (function () {
 exports.EphemeralStorageService = EphemeralStorageService;
 exports.ephemeralStorageService = new EphemeralStorageService();
 //# sourceMappingURL=ephemeralStorageService.js.map
-
-/***/ }),
-
-/***/ 262:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   A: () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Nova Matrix - Welcome</title>\n    <style>\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n        \n        body {\n            font-family: 'Segoe UI', Arial, sans-serif;\n            background-color: #13141a;\n            color: #ffffff;\n            height: 100vh;\n            width: 100%;\n            overflow: hidden;\n            position: relative;\n        }\n        \n        /* Star background */\n        body:before {\n            content: '';\n            position: absolute;\n            width: 100%;\n            height: 100%;\n            background-image: radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px);\n            background-size: 50px 50px;\n            z-index: 0;\n            opacity: 0.3;\n        }\n        \n        .container {\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            justify-content: center;\n            height: 100%;\n            position: relative;\n            z-index: 1;\n            padding: 10;\n            overflow-y: auto;\n            min-height: 250;\n            gap: clamp(10px, 2.5vh, 25px);\n            transition: opacity 0.5s ease;\n            opacity: 1;\n        }\n\n        .container.fade-out {\n            opacity: 0;\n        }\n        \n        .header {\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n            width: 100%;\n            position: absolute;\n            top: 0;\n            padding: 10px 10px;\n        }\n        \n        .logo {\n            display: flex;\n            align-items: center;\n            font-size: 14px;\n            font-weight: 500;\n            color: #ffffff;\n        }\n        \n        .main-title {\n            font-size: clamp(12px, 5vw, 36px);\n            font-weight: bold;\n            letter-spacing: clamp(4px, 1vw, 8px);\n            text-align: center;\n            margin-bottom: clamp(5px, 1.5vh, 10px);\n            color: #ffffff;\n            text-transform: uppercase;\n        }\n        \n        .subtitle {\n            font-size: clamp(8px, 5vw, 14px);\n            letter-spacing: 2px;\n            text-align: center;\n            margin-bottom: clamp(5px, 2vh, 15px);\n            color: #b0b0b0;\n            text-transform: uppercase;\n        }\n        \n        .feature-list {\n            text-align: center;\n            max-width: 600px;\n            padding: 0 10px;\n        }\n        \n        .feature-list ul {\n            list-style: none;\n            margin-top: clamp(5px, 2vh, 15px);\n        }\n        \n        .feature-list li {\n            margin-bottom: clamp(5px, 2vh, 15px);\n            font-size: 14px;\n            color: #d0d0d0;\n        }\n        \n        .nav-buttons {\n            display: flex;\n            gap: clamp(15px, 4vw, 30px);\n            margin-top: clamp(5px, 2vh, 15px);\n        }\n        \n        .nav-button {\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            text-decoration: none;\n            color: #ffffff;\n            cursor: pointer;\n        }\n        \n        /* Button orbs */\n        .button-orb-container {\n            width: 100px;\n            height: 100px;\n            position: relative;\n            margin-bottom: clamp(5px, 2vh, 15px);\n        }\n        \n        .button-orb {\n            width: 75px;\n            height: 75px;\n            background: radial-gradient(circle, \n                rgba(255, 255, 255, 0.9) 15%, \n                rgba(255, 234, 130, 0.8) 30%, \n                rgba(255, 183, 101, 0.7) 45%, \n                rgba(255, 100, 80, 0.5) 60%,\n                transparent 75%);\n            border-radius: 50%;\n            position: absolute;\n            top: 50%;\n            left: 50%;\n            transform: translate(-50%, -50%);\n            box-shadow: \n                0 0 15px rgba(255, 234, 130, 0.4),\n                0 0 25px rgba(255, 183, 101, 0.2);\n            animation: buttonPulse 2s infinite alternate, rotate 15s infinite linear;\n            opacity: 0.9;\n        }\n        \n        .button-orb:before {\n            content: '';\n            position: absolute;\n            top: -15%;\n            left: -15%;\n            right: -15%;\n            bottom: -15%;\n            border-radius: 50%;\n            background: radial-gradient(circle, \n                transparent 60%, \n                rgba(255, 234, 130, 0.1) 70%, \n                rgba(255, 183, 101, 0.1) 80%, \n                transparent 100%);\n            z-index: -1;\n            animation: buttonGlow 3s infinite alternate;\n        }\n        \n        .button-orb:after {\n            content: '';\n            position: absolute;\n            width: 40%;\n            height: 40%;\n            top: 50%;\n            left: 50%;\n            transform: translate(-50%, -50%);\n            background: radial-gradient(circle, \n                rgba(255, 255, 255, 0.9) 0%, \n                rgba(255, 240, 180, 0.8) 50%, \n                transparent 100%);\n            border-radius: 50%;\n            box-shadow: 0 0 10px rgba(255, 240, 180, 0.5);\n            animation: buttonCoreGlow 1.5s infinite alternate;\n        }\n        \n        @keyframes buttonPulse {\n            0% {\n                transform: translate(-50%, -50%) scale(0.9);\n            }\n            100% {\n                transform: translate(-50%, -50%) scale(1.1);\n            }\n        }\n        \n        @keyframes buttonGlow {\n            0% {\n                opacity: 0.3;\n                box-shadow: 0 0 15px rgba(255, 234, 130, 0.2);\n            }\n            100% {\n                opacity: 0.6;\n                box-shadow: 0 0 25px rgba(255, 183, 101, 0.4);\n            }\n        }\n        \n        @keyframes buttonCoreGlow {\n            0% {\n                opacity: 0.7;\n                width: 36%;\n                height: 36%;\n            }\n            100% {\n                opacity: 1;\n                width: 43%;\n                height: 43%;\n            }\n        }\n        \n        @keyframes rotate {\n            0% {\n                background-position: 0% 0%;\n            }\n            100% {\n                background-position: 100% 100%;\n            }\n        }\n        \n        .continue-text {\n            font-size: 12px;\n            text-transform: uppercase;\n            letter-spacing: 2px;\n        }\n        \n        .footer {\n            width: 100%;\n            text-align: center;\n            margin-top: clamp(10px, 2vh, 20px);\n            position: relative;\n        }\n        \n        .progress {\n            display: flex;\n            justify-content: center;\n            align-items: center;\n            gap: 15px;\n        }\n        \n        .progress-item {\n            width: 12px;\n            height: 12px;\n            border: 1px solid rgba(255, 255, 255, 0.5);\n            border-radius: 50%;\n        }\n        \n        .progress-item.active {\n            background-color: rgba(255, 255, 255, 0.5);\n        }\n\n        .diamond {\n            width: 10px;\n            height: 10px;\n            background-color: transparent;\n            border: 1px solid rgba(255, 255, 255, 0.5);\n            transform: rotate(45deg);\n            display: inline-flex; /* Changed from 'flex' to 'inline-flex' */\n            align-items: center;\n            justify-content: center;\n            margin-right: 8px; /* Adds spacing instead of margin-bottom */\n            vertical-align: middle; /* Aligns with text */\n        }\n        \n        .diamond-inner {\n            width: 4px;\n            height: 4px;\n            background-color: rgba(255, 255, 255, 0.5);\n        }\n        \n        .credit {\n            font-size: 10px;\n            color: #666;\n            text-transform: uppercase;\n            letter-spacing: 1px;\n        }\n        \n        /* Content wrapper to maintain consistent vertical centering */\n        .content-wrapper {\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            max-width: 100%;\n            padding-top: clamp(0px, 5vh, 60px);\n        }\n        \n        /* Smoother responsive approach with no sudden jumps */\n        @media (max-width: 768px) {\n            .nav-buttons {\n                gap: calc(15px + (30 - 15) * ((100vw - 320px) / (768 - 320)));\n            }\n            \n            .progress {\n                gap: calc(10px + (15 - 10) * ((100vw - 320px) / (768 - 320)));\n            }\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <div class=\"logo\">\n                <div>NOVA MATRIX</div>\n            </div>\n            <div class=\"progress\">\n                <div class=\"progress-item active\"></div>\n                <div class=\"progress-item\"></div>\n                <div class=\"progress-item\"></div>\n            </div>\n        </div>\n        \n        <div class=\"content-wrapper\">\n            <h1 class=\"main-title\">WELCOME</h1>\n            \n            <div class=\"feature-list\">\n                <p class=\"subtitle\">Welcome to the Nova Matrix - A powerful matrix visualization tool</p>\n\n            </div>\n            \n            <div class=\"nav-buttons\">\n                <a href=\"#\" class=\"nav-button\" data-action=\"next\">\n                    <div class=\"button-orb-container\">\n                        <div class=\"button-orb\"></div>\n                    </div>\n                    <span class=\"continue-text\">Next</span>\n                </a>\n            </div>\n            \n            <div class=\"footer\">\n                <div class=\"credit\">Developed by Joshua Biondo</div>\n            </div>\n        </div>\n    </div>\n</body>\n</html>");
 
 /***/ }),
 
@@ -699,16 +689,6 @@ function createDataViewWildcardSelector(dataViewWildcardMatchingOption) {
     return selector;
 }
 //# sourceMappingURL=dataViewWildcard.js.map
-
-/***/ }),
-
-/***/ 855:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   A: () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Nova Matrix - Features</title>\n    <style>\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n        \n        body {\n            font-family: 'Segoe UI', Arial, sans-serif;\n            background-color: #13141a;\n            color: #ffffff;\n            height: 100vh;\n            width: 100%;\n            overflow: hidden;\n            position: relative;\n        }\n        \n        /* Star background */\n        body:before {\n            content: '';\n            position: absolute;\n            width: 100%;\n            height: 100%;\n            background-image: radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px);\n            background-size: 50px 50px;\n            z-index: 0;\n            opacity: 0.3;\n        }\n        \n        .container {\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            justify-content: center;\n            height: 100%;\n            position: relative;\n            z-index: 1;\n            padding: 10;\n            overflow-y: auto;\n            min-height: 250;\n            gap: clamp(10px, 2.5vh, 25px);\n            transition: opacity 0.5s ease;\n            opacity: 1;\n        }\n\n        .container.fade-out {\n            opacity: 0;\n        }\n        \n        .header {\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n            width: 100%;\n            position: absolute;\n            top: 0;\n            padding: 10px 10px;\n        }\n        \n        .logo {\n            display: flex;\n            align-items: center;\n            font-size: 14px;\n            font-weight: 500;\n            color: #ffffff;\n        }\n        \n        .main-title {\n            font-size: clamp(12px, 5vw, 36px);\n            font-weight: bold;\n            letter-spacing: clamp(4px, 1vw, 8px);\n            text-align: center;\n            margin-bottom: clamp(5px, 1.5vh, 10px);\n            color: #ffffff;\n            text-transform: uppercase;\n        }\n        \n        .subtitle {\n            font-size: clamp(8px, 5vw, 14px);\n            letter-spacing: 2px;\n            text-align: center;\n            margin-bottom: clamp(5px, 2vh, 15px);\n            color: #b0b0b0;\n            text-transform: uppercase;\n        }\n        \n        .feature-list {\n            text-align: center;\n            max-width: 600px;\n            padding: 0 10px;\n        }\n        \n        .feature-list ul {\n            list-style: none;\n            margin-top: clamp(5px, 2vh, 15px);\n        }\n        \n        .feature-list li {\n            margin-bottom: clamp(5px, 2vh, 15px);\n            font-size: 14px;\n            color: #d0d0d0;\n        }\n        \n        .nav-buttons {\n            display: flex;\n            gap: clamp(15px, 4vw, 30px);\n            margin-top: clamp(5px, 2vh, 15px);\n        }\n        \n        .nav-button {\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            text-decoration: none;\n            color: #ffffff;\n            cursor: pointer;\n        }\n        \n        /* Button orbs */\n        .button-orb-container {\n            width: 100px;\n            height: 100px;\n            position: relative;\n            margin-bottom: clamp(5px, 2vh, 15px);\n        }\n        \n        .button-orb {\n            width: 75px;\n            height: 75px;\n            background: radial-gradient(circle, \n                rgba(255, 255, 255, 0.9) 15%, \n                rgba(255, 234, 130, 0.8) 30%, \n                rgba(255, 183, 101, 0.7) 45%, \n                rgba(255, 100, 80, 0.5) 60%,\n                transparent 75%);\n            border-radius: 50%;\n            position: absolute;\n            top: 50%;\n            left: 50%;\n            transform: translate(-50%, -50%);\n            box-shadow: \n                0 0 15px rgba(255, 234, 130, 0.4),\n                0 0 25px rgba(255, 183, 101, 0.2);\n            animation: buttonPulse 2s infinite alternate, rotate 15s infinite linear;\n            opacity: 0.9;\n        }\n        \n        .button-orb:before {\n            content: '';\n            position: absolute;\n            top: -15%;\n            left: -15%;\n            right: -15%;\n            bottom: -15%;\n            border-radius: 50%;\n            background: radial-gradient(circle, \n                transparent 60%, \n                rgba(255, 234, 130, 0.1) 70%, \n                rgba(255, 183, 101, 0.1) 80%, \n                transparent 100%);\n            z-index: -1;\n            animation: buttonGlow 3s infinite alternate;\n        }\n        \n        .button-orb:after {\n            content: '';\n            position: absolute;\n            width: 40%;\n            height: 40%;\n            top: 50%;\n            left: 50%;\n            transform: translate(-50%, -50%);\n            background: radial-gradient(circle, \n                rgba(255, 255, 255, 0.9) 0%, \n                rgba(255, 240, 180, 0.8) 50%, \n                transparent 100%);\n            border-radius: 50%;\n            box-shadow: 0 0 10px rgba(255, 240, 180, 0.5);\n            animation: buttonCoreGlow 1.5s infinite alternate;\n        }\n        \n        @keyframes buttonPulse {\n            0% {\n                transform: translate(-50%, -50%) scale(0.9);\n            }\n            100% {\n                transform: translate(-50%, -50%) scale(1.1);\n            }\n        }\n        \n        @keyframes buttonGlow {\n            0% {\n                opacity: 0.3;\n                box-shadow: 0 0 15px rgba(255, 234, 130, 0.2);\n            }\n            100% {\n                opacity: 0.6;\n                box-shadow: 0 0 25px rgba(255, 183, 101, 0.4);\n            }\n        }\n        \n        @keyframes buttonCoreGlow {\n            0% {\n                opacity: 0.7;\n                width: 36%;\n                height: 36%;\n            }\n            100% {\n                opacity: 1;\n                width: 43%;\n                height: 43%;\n            }\n        }\n        \n        @keyframes rotate {\n            0% {\n                background-position: 0% 0%;\n            }\n            100% {\n                background-position: 100% 100%;\n            }\n        }\n        \n        .continue-text {\n            font-size: 12px;\n            text-transform: uppercase;\n            letter-spacing: 2px;\n        }\n        \n        .footer {\n            width: 100%;\n            text-align: center;\n            margin-top: clamp(10px, 2vh, 20px);\n            position: relative;\n        }\n        \n        .progress {\n            display: flex;\n            justify-content: center;\n            align-items: center;\n            gap: 15px;\n        }\n        \n        .progress-item {\n            width: 12px;\n            height: 12px;\n            border: 1px solid rgba(255, 255, 255, 0.5);\n            border-radius: 50%;\n        }\n        \n        .progress-item.active {\n            background-color: rgba(255, 255, 255, 0.5);\n        }\n\n        .diamond {\n            width: 10px;\n            height: 10px;\n            background-color: transparent;\n            border: 1px solid rgba(255, 255, 255, 0.5);\n            transform: rotate(45deg);\n            display: inline-flex; /* Changed from 'flex' to 'inline-flex' */\n            align-items: center;\n            justify-content: center;\n            margin-right: 8px; /* Adds spacing instead of margin-bottom */\n            vertical-align: middle; /* Aligns with text */\n        }\n        \n        .diamond-inner {\n            width: 4px;\n            height: 4px;\n            background-color: rgba(255, 255, 255, 0.5);\n        }\n        \n        .credit {\n            font-size: 10px;\n            color: #666;\n            text-transform: uppercase;\n            letter-spacing: 1px;\n        }\n        \n        /* Content wrapper to maintain consistent vertical centering */\n        .content-wrapper {\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            max-width: 100%;\n            padding-top: clamp(0px, 5vh, 60px);\n        }\n        \n        /* Smoother responsive approach with no sudden jumps */\n        @media (max-width: 768px) {\n            .nav-buttons {\n                gap: calc(15px + (30 - 15) * ((100vw - 320px) / (768 - 320)));\n            }\n            \n            .progress {\n                gap: calc(10px + (15 - 10) * ((100vw - 320px) / (768 - 320)));\n            }\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <div class=\"logo\">\n                <div>NOVA MATRIX</div>\n            </div>\n            <div class=\"progress\">\n                <div class=\"progress-item\"></div>\n                <div class=\"progress-item active\"></div>\n                <div class=\"progress-item\"></div>\n            </div>\n        </div>\n        \n        <div class=\"content-wrapper\">\n            <h1 class=\"main-title\">FEATURES</h1>\n            \n            <div class=\"feature-list\">\n                <p class=\"subtitle\">Nova Matrix offers powerful features for your data</p>\n                <ul>\n                    <li>\n                        <div class=\"diamond\"><div class=\"diamond-inner\"></div></div> Highly customizable styling and formatting\n                    </li>\n                    <li>\n                        <div class=\"diamond\"><div class=\"diamond-inner\"></div></div> Interactive expand/collapse functionality\n                    </li>\n                    <li>\n                        <div class=\"diamond\"><div class=\"diamond-inner\"></div></div> Advanced subtotal calculations\n                    </li>\n                    <li>\n                        <div class=\"diamond\"><div class=\"diamond-inner\"></div></div> Dynamic row and column sizing\n                    </li>\n                    <li>\n                        <div class=\"diamond\"><div class=\"diamond-inner\"></div></div> Smart context menu for quick actions\n                    </li>\n                </ul>\n            </div>            \n            \n            <div class=\"nav-buttons\">\n                <a href=\"#\" class=\"nav-button\" data-action=\"back\">\n                    <div class=\"button-orb-container\">\n                        <div class=\"button-orb\"></div>\n                    </div>\n                    <span class=\"continue-text\">Back</span>\n                </a>\n                <a href=\"#\" class=\"nav-button\" data-action=\"next\">\n                    <div class=\"button-orb-container\">\n                        <div class=\"button-orb\"></div>\n                    </div>\n                    <span class=\"continue-text\">Next</span>\n                </a>\n            </div>\n            \n            <div class=\"footer\">\n                <div class=\"credit\">Developed by Joshua Biondo</div>\n            </div>\n        </div>\n    </div>\n</body>\n</html>");
 
 /***/ }),
 
@@ -1849,6 +1829,16 @@ function wordBreakOverflowingText(textElement, maxWidth, maxHeight, linePadding)
 }
 exports.wordBreakOverflowingText = wordBreakOverflowingText;
 //# sourceMappingURL=textMeasurementService.js.map
+
+/***/ }),
+
+/***/ 2855:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   A: () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Nova Matrix - Features</title>\n    <style>\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n        \n        body {\n            font-family: 'Segoe UI', Arial, sans-serif;\n            background-color: #13141a;\n            color: #ffffff;\n            height: 100vh;\n            width: 100%;\n            overflow: hidden;\n            position: relative;\n        }\n        \n        /* Star background */\n        body:before {\n            content: '';\n            position: absolute;\n            width: 100%;\n            height: 100%;\n            background-image: radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px);\n            background-size: 50px 50px;\n            z-index: 0;\n            opacity: 0.3;\n        }\n        \n        .container {\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            justify-content: center;\n            height: 100%;\n            position: relative;\n            z-index: 1;\n            padding: 10;\n            overflow-y: auto;\n            min-height: 250;\n            gap: clamp(10px, 2.5vh, 25px);\n            transition: opacity 0.5s ease;\n            opacity: 1;\n        }\n\n        .container.fade-out {\n            opacity: 0;\n        }\n        \n        .header {\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n            width: 100%;\n            position: absolute;\n            top: 0;\n            padding: 10px 10px;\n        }\n        \n        .logo {\n            display: flex;\n            align-items: center;\n            font-size: 14px;\n            font-weight: 500;\n            color: #ffffff;\n        }\n        \n        .main-title {\n            font-size: clamp(12px, 5vw, 36px);\n            font-weight: bold;\n            letter-spacing: clamp(4px, 1vw, 8px);\n            text-align: center;\n            margin-bottom: clamp(5px, 1.5vh, 10px);\n            color: #ffffff;\n            text-transform: uppercase;\n        }\n        \n        .subtitle {\n            font-size: clamp(8px, 5vw, 14px);\n            letter-spacing: 2px;\n            text-align: center;\n            margin-bottom: clamp(5px, 2vh, 15px);\n            color: #b0b0b0;\n            text-transform: uppercase;\n        }\n        \n        .feature-list {\n            text-align: center;\n            max-width: 600px;\n            padding: 0 10px;\n        }\n        \n        .feature-list ul {\n            list-style: none;\n            margin-top: clamp(5px, 2vh, 15px);\n        }\n        \n        .feature-list li {\n            margin-bottom: clamp(5px, 2vh, 15px);\n            font-size: 14px;\n            color: #d0d0d0;\n        }\n        \n        .nav-buttons {\n            display: flex;\n            gap: clamp(15px, 4vw, 30px);\n            margin-top: clamp(5px, 2vh, 15px);\n        }\n        \n        .nav-button {\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            text-decoration: none;\n            color: #ffffff;\n            cursor: pointer;\n        }\n        \n        /* Button orbs */\n        .button-orb-container {\n            width: 100px;\n            height: 100px;\n            position: relative;\n            margin-bottom: clamp(5px, 2vh, 15px);\n        }\n        \n        .button-orb {\n            width: 75px;\n            height: 75px;\n            background: radial-gradient(circle, \n                rgba(255, 255, 255, 0.9) 15%, \n                rgba(255, 234, 130, 0.8) 30%, \n                rgba(255, 183, 101, 0.7) 45%, \n                rgba(255, 100, 80, 0.5) 60%,\n                transparent 75%);\n            border-radius: 50%;\n            position: absolute;\n            top: 50%;\n            left: 50%;\n            transform: translate(-50%, -50%);\n            box-shadow: \n                0 0 15px rgba(255, 234, 130, 0.4),\n                0 0 25px rgba(255, 183, 101, 0.2);\n            animation: buttonPulse 2s infinite alternate, rotate 15s infinite linear;\n            opacity: 0.9;\n        }\n        \n        .button-orb:before {\n            content: '';\n            position: absolute;\n            top: -15%;\n            left: -15%;\n            right: -15%;\n            bottom: -15%;\n            border-radius: 50%;\n            background: radial-gradient(circle, \n                transparent 60%, \n                rgba(255, 234, 130, 0.1) 70%, \n                rgba(255, 183, 101, 0.1) 80%, \n                transparent 100%);\n            z-index: -1;\n            animation: buttonGlow 3s infinite alternate;\n        }\n        \n        .button-orb:after {\n            content: '';\n            position: absolute;\n            width: 40%;\n            height: 40%;\n            top: 50%;\n            left: 50%;\n            transform: translate(-50%, -50%);\n            background: radial-gradient(circle, \n                rgba(255, 255, 255, 0.9) 0%, \n                rgba(255, 240, 180, 0.8) 50%, \n                transparent 100%);\n            border-radius: 50%;\n            box-shadow: 0 0 10px rgba(255, 240, 180, 0.5);\n            animation: buttonCoreGlow 1.5s infinite alternate;\n        }\n        \n        @keyframes buttonPulse {\n            0% {\n                transform: translate(-50%, -50%) scale(0.9);\n            }\n            100% {\n                transform: translate(-50%, -50%) scale(1.1);\n            }\n        }\n        \n        @keyframes buttonGlow {\n            0% {\n                opacity: 0.3;\n                box-shadow: 0 0 15px rgba(255, 234, 130, 0.2);\n            }\n            100% {\n                opacity: 0.6;\n                box-shadow: 0 0 25px rgba(255, 183, 101, 0.4);\n            }\n        }\n        \n        @keyframes buttonCoreGlow {\n            0% {\n                opacity: 0.7;\n                width: 36%;\n                height: 36%;\n            }\n            100% {\n                opacity: 1;\n                width: 43%;\n                height: 43%;\n            }\n        }\n        \n        @keyframes rotate {\n            0% {\n                background-position: 0% 0%;\n            }\n            100% {\n                background-position: 100% 100%;\n            }\n        }\n        \n        .continue-text {\n            font-size: 12px;\n            text-transform: uppercase;\n            letter-spacing: 2px;\n        }\n        \n        .footer {\n            width: 100%;\n            text-align: center;\n            margin-top: clamp(10px, 2vh, 20px);\n            position: relative;\n        }\n        \n        .progress {\n            display: flex;\n            justify-content: center;\n            align-items: center;\n            gap: 15px;\n        }\n        \n        .progress-item {\n            width: 12px;\n            height: 12px;\n            border: 1px solid rgba(255, 255, 255, 0.5);\n            border-radius: 50%;\n        }\n        \n        .progress-item.active {\n            background-color: rgba(255, 255, 255, 0.5);\n        }\n\n        .diamond {\n            width: 10px;\n            height: 10px;\n            background-color: transparent;\n            border: 1px solid rgba(255, 255, 255, 0.5);\n            transform: rotate(45deg);\n            display: inline-flex; /* Changed from 'flex' to 'inline-flex' */\n            align-items: center;\n            justify-content: center;\n            margin-right: 8px; /* Adds spacing instead of margin-bottom */\n            vertical-align: middle; /* Aligns with text */\n        }\n        \n        .diamond-inner {\n            width: 4px;\n            height: 4px;\n            background-color: rgba(255, 255, 255, 0.5);\n        }\n        \n        .credit {\n            font-size: 10px;\n            color: #666;\n            text-transform: uppercase;\n            letter-spacing: 1px;\n        }\n        \n        /* Content wrapper to maintain consistent vertical centering */\n        .content-wrapper {\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            max-width: 100%;\n            padding-top: clamp(0px, 5vh, 60px);\n        }\n        \n        /* Smoother responsive approach with no sudden jumps */\n        @media (max-width: 768px) {\n            .nav-buttons {\n                gap: calc(15px + (30 - 15) * ((100vw - 320px) / (768 - 320)));\n            }\n            \n            .progress {\n                gap: calc(10px + (15 - 10) * ((100vw - 320px) / (768 - 320)));\n            }\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <div class=\"logo\">\n                <div>NOVA MATRIX</div>\n            </div>\n            <div class=\"progress\">\n                <div class=\"progress-item\"></div>\n                <div class=\"progress-item active\"></div>\n                <div class=\"progress-item\"></div>\n            </div>\n        </div>\n        \n        <div class=\"content-wrapper\">\n            <h1 class=\"main-title\">FEATURES</h1>\n            \n            <div class=\"feature-list\">\n                <p class=\"subtitle\">Nova Matrix offers powerful features for your data</p>\n                <ul>\n                    <li>\n                        <div class=\"diamond\"><div class=\"diamond-inner\"></div></div> Highly customizable styling and formatting\n                    </li>\n                    <li>\n                        <div class=\"diamond\"><div class=\"diamond-inner\"></div></div> Interactive expand/collapse functionality\n                    </li>\n                    <li>\n                        <div class=\"diamond\"><div class=\"diamond-inner\"></div></div> Advanced subtotal calculations\n                    </li>\n                    <li>\n                        <div class=\"diamond\"><div class=\"diamond-inner\"></div></div> Dynamic row and column sizing\n                    </li>\n                    <li>\n                        <div class=\"diamond\"><div class=\"diamond-inner\"></div></div> Smart context menu for quick actions\n                    </li>\n                </ul>\n            </div>            \n            \n            <div class=\"nav-buttons\">\n                <a href=\"#\" class=\"nav-button\" data-action=\"back\">\n                    <div class=\"button-orb-container\">\n                        <div class=\"button-orb\"></div>\n                    </div>\n                    <span class=\"continue-text\">Back</span>\n                </a>\n                <a href=\"#\" class=\"nav-button\" data-action=\"next\">\n                    <div class=\"button-orb-container\">\n                        <div class=\"button-orb\"></div>\n                    </div>\n                    <span class=\"continue-text\">Next</span>\n                </a>\n            </div>\n            \n            <div class=\"footer\">\n                <div class=\"credit\">Developed by Joshua Biondo</div>\n            </div>\n        </div>\n    </div>\n</body>\n</html>");
 
 /***/ }),
 
@@ -8568,8 +8558,8 @@ function getPropertyValue(slice, value, defaultValue) {
 
 
 
-const landingPage1HTML = (__webpack_require__(262)/* ["default"] */ .A);
-const landingPage2HTML = (__webpack_require__(855)/* ["default"] */ .A);
+const landingPage1HTML = (__webpack_require__(9262)/* ["default"] */ .A);
+const landingPage2HTML = (__webpack_require__(2855)/* ["default"] */ .A);
 const landingPage3HTML = (__webpack_require__(32)/* ["default"] */ .A);
 // CSS class constants
 const CSS_CLASSES = {
@@ -8609,9 +8599,6 @@ class Visual {
     landingPageElement;
     isLandingPageOn = false;
     landingPageRemoved = false;
-    hasMoreData = false;
-    isLoadingMore = false;
-    loadMoreButton;
     //=========================================================================
     // INITIALIZATION
     //=========================================================================
@@ -8672,6 +8659,50 @@ class Visual {
         // Add event listeners for context menu
         this.setupContextMenuEvents();
     }
+    handleLandingPage(options) {
+        // Show landing page if no data views or empty data
+        if (!options.dataViews || !options.dataViews[0]?.metadata?.columns?.length) {
+            if (!this.isLandingPageOn) {
+                this.isLandingPageOn = true;
+                // Clear previous content
+                while (this.target.firstChild) {
+                    this.target.removeChild(this.target.firstChild);
+                }
+                // Create landing page
+                const landingPageHTML = this.getLandingPageHTML();
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = landingPageHTML;
+                // Add landing page to the DOM
+                this.landingPageElement = tempDiv.firstChild;
+                this.target.appendChild(this.landingPageElement);
+                // Add event listener to the continue button
+                const continueButton = this.landingPageElement.querySelector('.continue-button');
+                if (continueButton) {
+                    continueButton.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        // Remove landing page
+                        if (this.landingPageElement && this.landingPageElement.parentNode) {
+                            this.landingPageElement.parentNode.removeChild(this.landingPageElement);
+                            this.isLandingPageOn = false;
+                            this.landingPageRemoved = true;
+                            this.createContainerElements();
+                        }
+                    });
+                }
+            }
+        }
+        else {
+            // Remove landing page if we have data
+            if (this.isLandingPageOn && !this.landingPageRemoved) {
+                this.landingPageRemoved = true;
+                if (this.landingPageElement && this.landingPageElement.parentNode) {
+                    this.landingPageElement.parentNode.removeChild(this.landingPageElement);
+                }
+                // Recreate the container elements for the actual visual
+                this.createContainerElements();
+            }
+        }
+    }
     getLandingPageHTML() {
         switch (this.currentLandingPage) {
             case 1:
@@ -8701,13 +8732,11 @@ class Visual {
         console.log("Has data:", hasData);
         if (!hasData) {
             console.log("No data, showing landing page");
-            // Show landing page
             this.showLandingPage();
-            return; // Exit early - nothing else to do when showing landing page
+            return; // Exit early
         }
         // If we get here, we have data
         console.log("Has data, showing visual");
-        // Hide landing page if it exists
         this.hideLandingPage();
         // Regular update logic
         this.lastOptions = options;
@@ -8734,11 +8763,6 @@ class Visual {
             // Check if we have matrix data
             if (!dataView.matrix)
                 return;
-            // Check if there's more data to load and update flags
-            this.hasMoreData = !!dataView.metadata?.segment;
-            if (options.operationKind === 1 /* powerbi.VisualDataChangeOperationKind.Append */) {
-                this.isLoadingMore = false; // Reset loading flag on successful append
-            }
             // Restore the expanded state from the static property
             if (Visual.savedExpandedState.size > 0) {
                 this.expandedRows = new Map(Visual.savedExpandedState);
@@ -8747,8 +8771,6 @@ class Visual {
             const measureName = this.getMeasureName(dataView);
             // Create matrix table
             this.createMatrixTable(matrix, measureName);
-            // Add "Load More" button if there's more data
-            this.updateLoadMoreButton();
             // Restore scroll position
             this.tableDiv.scrollTop = scrollTop;
             this.tableDiv.scrollLeft = scrollLeft;
@@ -9507,6 +9529,22 @@ class Visual {
     isExpanded(nodeId) {
         return this.expandedRows.get(nodeId) === true;
     }
+    initializeDefaultExpandedState(rows, level, parentId) {
+        if (!rows)
+            return;
+        for (const row of rows) {
+            const nodeId = parentId + this.getNodeId(row, level);
+            // Default: expand level 0, collapse others
+            const defaultExpanded = level === 0;
+            this.expandedRows.set(nodeId, defaultExpanded);
+            // Always recursively process children
+            if (row.children?.length > 0) {
+                this.initializeDefaultExpandedState(row.children, level + 1, nodeId);
+            }
+        }
+        // Save to static property
+        Visual.savedExpandedState = new Map(this.expandedRows);
+    }
     // Toggle expanded state of a node
     toggleExpanded(nodeId) {
         // Prevent action if this node is currently animating
@@ -10158,7 +10196,6 @@ class Visual {
         container.style.display = 'block'; // Explicitly set display
         container.style.visibility = 'visible'; // Ensure visibility
         // Insert the HTML
-        /* eslint-disable powerbi-visuals/no-inner-outer-html */
         container.innerHTML = this.getLandingPageHTML();
         // Store reference and add to DOM
         this.landingPageElement = container;
@@ -10170,6 +10207,31 @@ class Visual {
         this.isLandingPageOn = true;
         // Log to confirm landing page is shown
         console.log("Landing page element added to DOM:", this.landingPageElement);
+    }
+    createNewLandingPage() {
+        // Create container for landing page
+        const container = document.createElement('div');
+        container.className = 'landing-page-container';
+        container.style.width = '100%';
+        container.style.height = '100%';
+        container.style.overflow = 'hidden';
+        container.style.position = 'relative';
+        container.style.background = '#13141a';
+        // Start with opacity 0
+        container.style.opacity = '0';
+        // Insert the HTML
+        container.innerHTML = this.getLandingPageHTML();
+        // Store reference and add to DOM
+        this.landingPageElement = container;
+        this.target.appendChild(container);
+        // Add event listeners for navigation
+        this.setupLandingPageNavigation();
+        this.isLandingPageOn = true;
+        // Trigger fade in after a small delay
+        setTimeout(() => {
+            container.style.opacity = '1';
+            container.style.transition = 'opacity 0.5s ease';
+        }, 50);
     }
     setupLandingPageNavigation() {
         const nextButtons = this.landingPageElement.querySelectorAll('[data-action="next"]');
@@ -10262,68 +10324,6 @@ class Visual {
             this.currentLandingPage = 1;
             // Create container elements for the visual
             this.createContainerElements();
-        }
-    }
-    // Method to update the Load More button
-    updateLoadMoreButton() {
-        // Remove existing button if any
-        const existingButton = this.tableDiv.querySelector('.load-more-button');
-        if (existingButton) {
-            existingButton.remove();
-        }
-        // Add button if there's more data
-        if (this.hasMoreData) {
-            const loadMoreButton = document.createElement('button');
-            loadMoreButton.className = 'load-more-button';
-            loadMoreButton.textContent = 'Load More Data';
-            loadMoreButton.style.position = 'sticky';
-            loadMoreButton.style.bottom = '0';
-            loadMoreButton.style.left = '0';
-            loadMoreButton.style.width = '100%';
-            loadMoreButton.style.padding = '10px';
-            loadMoreButton.style.backgroundColor = '#0078d4';
-            loadMoreButton.style.color = 'white';
-            loadMoreButton.style.border = 'none';
-            loadMoreButton.style.cursor = 'pointer';
-            loadMoreButton.style.marginTop = '10px';
-            loadMoreButton.style.zIndex = '100';
-            loadMoreButton.style.textAlign = 'center';
-            loadMoreButton.style.fontFamily = this.formattingSettings.generalSettings.fontFamily.value;
-            // Disable button if already loading
-            if (this.isLoadingMore) {
-                loadMoreButton.disabled = true;
-                loadMoreButton.textContent = 'Loading...';
-                loadMoreButton.style.backgroundColor = '#cccccc';
-            }
-            loadMoreButton.addEventListener('click', () => {
-                this.loadMoreData();
-            });
-            this.tableDiv.appendChild(loadMoreButton);
-            this.loadMoreButton = loadMoreButton;
-        }
-    }
-    // Method to load more data
-    loadMoreData() {
-        if (this.hasMoreData && !this.isLoadingMore) {
-            this.isLoadingMore = true;
-            // Update button state
-            if (this.loadMoreButton) {
-                this.loadMoreButton.disabled = true;
-                this.loadMoreButton.textContent = 'Loading...';
-                this.loadMoreButton.style.backgroundColor = '#cccccc';
-            }
-            // Call fetchMoreData with aggregateSegments=true
-            const success = this.host.fetchMoreData(true);
-            if (!success) {
-                // Handle the case where fetching more data failed
-                console.error("Failed to fetch more data - might have hit memory limits");
-                this.isLoadingMore = false;
-                // Update button state
-                if (this.loadMoreButton) {
-                    this.loadMoreButton.textContent = 'Failed to load more (memory limit)';
-                    this.loadMoreButton.style.backgroundColor = '#ff0000';
-                }
-            }
         }
     }
 }
@@ -10436,6 +10436,16 @@ function groupValues(values) {
     return groups;
 }
 //# sourceMappingURL=dataViewTransform.js.map
+
+/***/ }),
+
+/***/ 9262:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   A: () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Nova Matrix - Welcome</title>\n    <style>\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n        \n        body {\n            font-family: 'Segoe UI', Arial, sans-serif;\n            background-color: #13141a;\n            color: #ffffff;\n            height: 100vh;\n            width: 100%;\n            overflow: hidden;\n            position: relative;\n        }\n        \n        /* Star background */\n        body:before {\n            content: '';\n            position: absolute;\n            width: 100%;\n            height: 100%;\n            background-image: radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px);\n            background-size: 50px 50px;\n            z-index: 0;\n            opacity: 0.3;\n        }\n        \n        .container {\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            justify-content: center;\n            height: 100%;\n            position: relative;\n            z-index: 1;\n            padding: 10;\n            overflow-y: auto;\n            min-height: 250;\n            gap: clamp(10px, 2.5vh, 25px);\n            transition: opacity 0.5s ease;\n            opacity: 1;\n        }\n\n        .container.fade-out {\n            opacity: 0;\n        }\n        \n        .header {\n            display: flex;\n            justify-content: space-between;\n            align-items: center;\n            width: 100%;\n            position: absolute;\n            top: 0;\n            padding: 10px 10px;\n        }\n        \n        .logo {\n            display: flex;\n            align-items: center;\n            font-size: 14px;\n            font-weight: 500;\n            color: #ffffff;\n        }\n        \n        .main-title {\n            font-size: clamp(12px, 5vw, 36px);\n            font-weight: bold;\n            letter-spacing: clamp(4px, 1vw, 8px);\n            text-align: center;\n            margin-bottom: clamp(5px, 1.5vh, 10px);\n            color: #ffffff;\n            text-transform: uppercase;\n        }\n        \n        .subtitle {\n            font-size: clamp(8px, 5vw, 14px);\n            letter-spacing: 2px;\n            text-align: center;\n            margin-bottom: clamp(5px, 2vh, 15px);\n            color: #b0b0b0;\n            text-transform: uppercase;\n        }\n        \n        .feature-list {\n            text-align: center;\n            max-width: 600px;\n            padding: 0 10px;\n        }\n        \n        .feature-list ul {\n            list-style: none;\n            margin-top: clamp(5px, 2vh, 15px);\n        }\n        \n        .feature-list li {\n            margin-bottom: clamp(5px, 2vh, 15px);\n            font-size: 14px;\n            color: #d0d0d0;\n        }\n        \n        .nav-buttons {\n            display: flex;\n            gap: clamp(15px, 4vw, 30px);\n            margin-top: clamp(5px, 2vh, 15px);\n        }\n        \n        .nav-button {\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            text-decoration: none;\n            color: #ffffff;\n            cursor: pointer;\n        }\n        \n        /* Button orbs */\n        .button-orb-container {\n            width: 100px;\n            height: 100px;\n            position: relative;\n            margin-bottom: clamp(5px, 2vh, 15px);\n        }\n        \n        .button-orb {\n            width: 75px;\n            height: 75px;\n            background: radial-gradient(circle, \n                rgba(255, 255, 255, 0.9) 15%, \n                rgba(255, 234, 130, 0.8) 30%, \n                rgba(255, 183, 101, 0.7) 45%, \n                rgba(255, 100, 80, 0.5) 60%,\n                transparent 75%);\n            border-radius: 50%;\n            position: absolute;\n            top: 50%;\n            left: 50%;\n            transform: translate(-50%, -50%);\n            box-shadow: \n                0 0 15px rgba(255, 234, 130, 0.4),\n                0 0 25px rgba(255, 183, 101, 0.2);\n            animation: buttonPulse 2s infinite alternate, rotate 15s infinite linear;\n            opacity: 0.9;\n        }\n        \n        .button-orb:before {\n            content: '';\n            position: absolute;\n            top: -15%;\n            left: -15%;\n            right: -15%;\n            bottom: -15%;\n            border-radius: 50%;\n            background: radial-gradient(circle, \n                transparent 60%, \n                rgba(255, 234, 130, 0.1) 70%, \n                rgba(255, 183, 101, 0.1) 80%, \n                transparent 100%);\n            z-index: -1;\n            animation: buttonGlow 3s infinite alternate;\n        }\n        \n        .button-orb:after {\n            content: '';\n            position: absolute;\n            width: 40%;\n            height: 40%;\n            top: 50%;\n            left: 50%;\n            transform: translate(-50%, -50%);\n            background: radial-gradient(circle, \n                rgba(255, 255, 255, 0.9) 0%, \n                rgba(255, 240, 180, 0.8) 50%, \n                transparent 100%);\n            border-radius: 50%;\n            box-shadow: 0 0 10px rgba(255, 240, 180, 0.5);\n            animation: buttonCoreGlow 1.5s infinite alternate;\n        }\n        \n        @keyframes buttonPulse {\n            0% {\n                transform: translate(-50%, -50%) scale(0.9);\n            }\n            100% {\n                transform: translate(-50%, -50%) scale(1.1);\n            }\n        }\n        \n        @keyframes buttonGlow {\n            0% {\n                opacity: 0.3;\n                box-shadow: 0 0 15px rgba(255, 234, 130, 0.2);\n            }\n            100% {\n                opacity: 0.6;\n                box-shadow: 0 0 25px rgba(255, 183, 101, 0.4);\n            }\n        }\n        \n        @keyframes buttonCoreGlow {\n            0% {\n                opacity: 0.7;\n                width: 36%;\n                height: 36%;\n            }\n            100% {\n                opacity: 1;\n                width: 43%;\n                height: 43%;\n            }\n        }\n        \n        @keyframes rotate {\n            0% {\n                background-position: 0% 0%;\n            }\n            100% {\n                background-position: 100% 100%;\n            }\n        }\n        \n        .continue-text {\n            font-size: 12px;\n            text-transform: uppercase;\n            letter-spacing: 2px;\n        }\n        \n        .footer {\n            width: 100%;\n            text-align: center;\n            margin-top: clamp(10px, 2vh, 20px);\n            position: relative;\n        }\n        \n        .progress {\n            display: flex;\n            justify-content: center;\n            align-items: center;\n            gap: 15px;\n        }\n        \n        .progress-item {\n            width: 12px;\n            height: 12px;\n            border: 1px solid rgba(255, 255, 255, 0.5);\n            border-radius: 50%;\n        }\n        \n        .progress-item.active {\n            background-color: rgba(255, 255, 255, 0.5);\n        }\n\n        .diamond {\n            width: 10px;\n            height: 10px;\n            background-color: transparent;\n            border: 1px solid rgba(255, 255, 255, 0.5);\n            transform: rotate(45deg);\n            display: inline-flex; /* Changed from 'flex' to 'inline-flex' */\n            align-items: center;\n            justify-content: center;\n            margin-right: 8px; /* Adds spacing instead of margin-bottom */\n            vertical-align: middle; /* Aligns with text */\n        }\n        \n        .diamond-inner {\n            width: 4px;\n            height: 4px;\n            background-color: rgba(255, 255, 255, 0.5);\n        }\n        \n        .credit {\n            font-size: 10px;\n            color: #666;\n            text-transform: uppercase;\n            letter-spacing: 1px;\n        }\n        \n        /* Content wrapper to maintain consistent vertical centering */\n        .content-wrapper {\n            display: flex;\n            flex-direction: column;\n            align-items: center;\n            max-width: 100%;\n            padding-top: clamp(0px, 5vh, 60px);\n        }\n        \n        /* Smoother responsive approach with no sudden jumps */\n        @media (max-width: 768px) {\n            .nav-buttons {\n                gap: calc(15px + (30 - 15) * ((100vw - 320px) / (768 - 320)));\n            }\n            \n            .progress {\n                gap: calc(10px + (15 - 10) * ((100vw - 320px) / (768 - 320)));\n            }\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <div class=\"logo\">\n                <div>NOVA MATRIX</div>\n            </div>\n            <div class=\"progress\">\n                <div class=\"progress-item active\"></div>\n                <div class=\"progress-item\"></div>\n                <div class=\"progress-item\"></div>\n            </div>\n        </div>\n        \n        <div class=\"content-wrapper\">\n            <h1 class=\"main-title\">WELCOME</h1>\n            \n            <div class=\"feature-list\">\n                <p class=\"subtitle\">Welcome to the Nova Matrix - A powerful matrix visualization tool</p>\n\n            </div>\n            \n            <div class=\"nav-buttons\">\n                <a href=\"#\" class=\"nav-button\" data-action=\"next\">\n                    <div class=\"button-orb-container\">\n                        <div class=\"button-orb\"></div>\n                    </div>\n                    <span class=\"continue-text\">Next</span>\n                </a>\n            </div>\n            \n            <div class=\"footer\">\n                <div class=\"credit\">Developed by Joshua Biondo</div>\n            </div>\n        </div>\n    </div>\n</body>\n</html>");
 
 /***/ }),
 
@@ -10908,7 +10918,7 @@ __webpack_require__.r(__webpack_exports__);
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry needs to be wrapped in an IIFE because it declares 'customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG' on top-level, which conflicts with the current library output.
+// This entry needs to be wrapped in an IIFE because it declares 'NovaGridMatrix_DEBUG' on top-level, which conflicts with the current library output.
 (() => {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -10918,8 +10928,8 @@ __webpack_require__.r(__webpack_exports__);
 
 var visualPlugin_powerbiKey = "powerbi";
 var visualPlugin_powerbi = window[visualPlugin_powerbiKey];
-var visualPlugin_customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG = {
-    name: 'customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG',
+var visualPlugin_NovaGridMatrix_DEBUG = {
+    name: 'NovaGridMatrix_DEBUG',
     displayName: 'NovaGrid',
     class: 'Visual',
     apiVersion: '5.11.0',
@@ -10940,13 +10950,13 @@ var visualPlugin_customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG = {
 if (typeof visualPlugin_powerbi !== "undefined") {
     visualPlugin_powerbi.visuals = visualPlugin_powerbi.visuals || {};
     visualPlugin_powerbi.visuals.plugins = visualPlugin_powerbi.visuals.plugins || {};
-    visualPlugin_powerbi.visuals.plugins["customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG"] = visualPlugin_customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG;
+    visualPlugin_powerbi.visuals.plugins["NovaGridMatrix_DEBUG"] = visualPlugin_NovaGridMatrix_DEBUG;
 }
-/* harmony default export */ const visualPlugin = (visualPlugin_customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG);
+/* harmony default export */ const visualPlugin = (visualPlugin_NovaGridMatrix_DEBUG);
 
 })();
 
-customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG = __webpack_exports__;
+NovaGridMatrix_DEBUG = __webpack_exports__;
 /******/ })()
 ;
 //# sourceMappingURL=https://localhost:8080/assets/visual.js.map

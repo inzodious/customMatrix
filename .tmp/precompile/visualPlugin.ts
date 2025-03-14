@@ -5,8 +5,8 @@ import VisualConstructorOptions = powerbiVisualsApi.extensibility.visual.VisualC
 import DialogConstructorOptions = powerbiVisualsApi.extensibility.visual.DialogConstructorOptions;
 var powerbiKey: any = "powerbi";
 var powerbi: any = window[powerbiKey];
-var customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG: IVisualPlugin = {
-    name: 'customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG',
+var NovaGridMatrix_DEBUG: IVisualPlugin = {
+    name: 'NovaGridMatrix_DEBUG',
     displayName: 'NovaGrid',
     class: 'Visual',
     apiVersion: '5.11.0',
@@ -27,6 +27,6 @@ var customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG: IVisualPlugin = {
 if (typeof powerbi !== "undefined") {
     powerbi.visuals = powerbi.visuals || {};
     powerbi.visuals.plugins = powerbi.visuals.plugins || {};
-    powerbi.visuals.plugins["customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG"] = customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG;
+    powerbi.visuals.plugins["NovaGridMatrix_DEBUG"] = NovaGridMatrix_DEBUG;
 }
-export default customMatrix3D2AF31BB00A42FC89209A2F7F87EB77_DEBUG;
+export default NovaGridMatrix_DEBUG;

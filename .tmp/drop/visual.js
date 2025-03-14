@@ -8558,6 +8558,7 @@ function getPropertyValue(slice, value, defaultValue) {
 
 
 
+// Import landing page HTML templates
 const landingPage1HTML = (__webpack_require__(9262)/* ["default"] */ .A);
 const landingPage2HTML = (__webpack_require__(2855)/* ["default"] */ .A);
 const landingPage3HTML = (__webpack_require__(32)/* ["default"] */ .A);
@@ -8585,6 +8586,7 @@ class Visual {
     // DOM elements
     target;
     tableDiv;
+    contextMenu;
     // State tracking
     formattingSettings;
     formattingSettingsService;
@@ -8595,6 +8597,11 @@ class Visual {
     animationTimeouts = new Map();
     cachedFormatString = "#,0.00";
     static savedExpandedState = new Map();
+    // Context menu state
+    activeNodeId = null;
+    activeLevel = null;
+    activeCell = null;
+    // Landing page state
     currentLandingPage = 1;
     landingPageElement;
     isLandingPageOn = false;
@@ -8610,7 +8617,7 @@ class Visual {
         this.createContainerElements();
     }
     createContainerElements() {
-        // Create main container div
+        // Create main container
         const container = document.createElement("div");
         container.className = CSS_CLASSES.VISUAL_CONTAINER;
         container.style.overflow = "hidden";
@@ -8622,12 +8629,15 @@ class Visual {
         this.tableDiv.style.position = "relative";
         container.appendChild(this.tableDiv);
         // Create context menu
+        this.createContextMenu();
+    }
+    createContextMenu() {
         const contextMenu = document.createElement("div");
         contextMenu.className = "custom-context-menu";
         contextMenu.style.display = "none";
         contextMenu.style.position = "absolute";
         contextMenu.style.zIndex = "1000";
-        // Add the Copy Value option first
+        // Add Copy Value option
         const copyItem = document.createElement("div");
         copyItem.className = "context-menu-item";
         copyItem.setAttribute("data-action", "copyValue");
@@ -8637,7 +8647,7 @@ class Visual {
         const separator = document.createElement("div");
         separator.className = "context-menu-separator";
         contextMenu.appendChild(separator);
-        // Add menu items for expand/collapse
+        // Add expand/collapse menu items
         const menuItems = [
             { id: "expandThis", text: "Expand this item" },
             { id: "collapseThis", text: "Collapse this item" },
@@ -8653,104 +8663,34 @@ class Visual {
             menuItem.textContent = item.text;
             contextMenu.appendChild(menuItem);
         });
-        // Add the context menu to the DOM once
         this.target.appendChild(contextMenu);
         this.contextMenu = contextMenu;
-        // Add event listeners for context menu
         this.setupContextMenuEvents();
     }
-    handleLandingPage(options) {
-        // Show landing page if no data views or empty data
-        if (!options.dataViews || !options.dataViews[0]?.metadata?.columns?.length) {
-            if (!this.isLandingPageOn) {
-                this.isLandingPageOn = true;
-                // Clear previous content
-                while (this.target.firstChild) {
-                    this.target.removeChild(this.target.firstChild);
-                }
-                // Create landing page
-                const landingPageHTML = this.getLandingPageHTML();
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = landingPageHTML;
-                // Add landing page to the DOM
-                this.landingPageElement = tempDiv.firstChild;
-                this.target.appendChild(this.landingPageElement);
-                // Add event listener to the continue button
-                const continueButton = this.landingPageElement.querySelector('.continue-button');
-                if (continueButton) {
-                    continueButton.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        // Remove landing page
-                        if (this.landingPageElement && this.landingPageElement.parentNode) {
-                            this.landingPageElement.parentNode.removeChild(this.landingPageElement);
-                            this.isLandingPageOn = false;
-                            this.landingPageRemoved = true;
-                            this.createContainerElements();
-                        }
-                    });
-                }
-            }
-        }
-        else {
-            // Remove landing page if we have data
-            if (this.isLandingPageOn && !this.landingPageRemoved) {
-                this.landingPageRemoved = true;
-                if (this.landingPageElement && this.landingPageElement.parentNode) {
-                    this.landingPageElement.parentNode.removeChild(this.landingPageElement);
-                }
-                // Recreate the container elements for the actual visual
-                this.createContainerElements();
-            }
-        }
-    }
-    getLandingPageHTML() {
-        switch (this.currentLandingPage) {
-            case 1:
-                return landingPage1HTML;
-            case 2:
-                return landingPage2HTML;
-            case 3:
-                return landingPage3HTML;
-            default:
-                return landingPage1HTML;
-        }
-    }
-    //=========================================================================
-    // CORE VISUAL METHODS
-    //=========================================================================
     //=========================================================================
     // CORE VISUAL METHODS
     //=========================================================================
     update(options) {
-        console.log("Update called, checking for data...");
         // Check if we have data
         const hasData = options.dataViews &&
-            options.dataViews[0] &&
-            options.dataViews[0].metadata &&
-            options.dataViews[0].metadata.columns &&
-            options.dataViews[0].metadata.columns.length > 0;
-        console.log("Has data:", hasData);
+            options.dataViews[0]?.metadata?.columns?.length > 0;
         if (!hasData) {
-            console.log("No data, showing landing page");
             this.showLandingPage();
-            return; // Exit early
+            return;
         }
-        // If we get here, we have data
-        console.log("Has data, showing visual");
         this.hideLandingPage();
-        // Regular update logic
+        this.updateVisualWithData(options);
+    }
+    updateVisualWithData(options) {
         this.lastOptions = options;
-        // Save scroll position
+        // Save scroll position & expanded state before clearing
         const scrollTop = this.tableDiv?.scrollTop || 0;
         const scrollLeft = this.tableDiv?.scrollLeft || 0;
-        // Save current expanded state before clearing
         if (this.expandedRows?.size > 0) {
             Visual.savedExpandedState = new Map(this.expandedRows);
         }
         // Clear previous content
-        while (this.tableDiv.firstChild) {
-            this.tableDiv.removeChild(this.tableDiv.firstChild);
-        }
+        this.tableDiv.innerHTML = '';
         // Validate data
         if (!options?.dataViews?.[0])
             return;
@@ -8758,12 +8698,10 @@ class Visual {
         this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(_settings__WEBPACK_IMPORTED_MODULE_1__/* .VisualFormattingSettingsModel */ .S, options.dataViews[0]);
         try {
             const dataView = options.dataViews[0];
-            // Cache the format string
             this.cachedFormatString = this.getFormatString(dataView);
-            // Check if we have matrix data
             if (!dataView.matrix)
                 return;
-            // Restore the expanded state from the static property
+            // Restore the expanded state
             if (Visual.savedExpandedState.size > 0) {
                 this.expandedRows = new Map(Visual.savedExpandedState);
             }
@@ -8799,11 +8737,6 @@ class Visual {
         }
         return "Amount"; // Default fallback
     }
-    getMeasureDynamically() {
-        if (!this.lastOptions?.dataViews?.[0])
-            return "Amount";
-        return this.getMeasureName(this.lastOptions.dataViews[0]);
-    }
     getFormatString(dataView) {
         // Try to get from matrix valueSources
         if (dataView.matrix?.valueSources?.[0]?.format) {
@@ -8817,6 +8750,11 @@ class Visual {
             }
         }
         return "#,0.00"; // Default fallback format
+    }
+    formatNumber(value, formatString) {
+        formatString = formatString || this.cachedFormatString;
+        const formatter = powerbi_visuals_utils_formattingutils__WEBPACK_IMPORTED_MODULE_2__/* .valueFormatter */ .G2.create({ format: formatString });
+        return formatter.format(value);
     }
     formatDateValue(value, format = "M/d/yyyy") {
         if (!value)
@@ -8882,11 +8820,6 @@ class Visual {
             }
         }
         return String(value);
-    }
-    formatNumber(value, formatString) {
-        formatString = formatString || this.cachedFormatString;
-        const formatter = powerbi_visuals_utils_formattingutils__WEBPACK_IMPORTED_MODULE_2__/* .valueFormatter */ .G2.create({ format: formatString });
-        return formatter.format(value);
     }
     // Calculate subtotal for a parent node and column
     calculateSubtotalForColumn(parentNode, columnIndex) {
@@ -8960,13 +8893,9 @@ class Visual {
         // Create table body
         const tbody = document.createElement("tbody");
         table.appendChild(tbody);
-        // Use saved expanded state if we have it
-        if (Visual.savedExpandedState.size > 0) {
-            this.expandedRows = new Map(Visual.savedExpandedState);
-        }
         // Initialize level 0 items as expanded if not already set
         if (matrix.rows.root.children) {
-            matrix.rows.root.children.forEach((row, idx) => {
+            matrix.rows.root.children.forEach((row) => {
                 const nodeId = this.getNodeId(row, 0);
                 if (!this.expandedRows.has(nodeId)) {
                     this.expandedRows.set(nodeId, true); // Level 0 default to expanded
@@ -9024,7 +8953,6 @@ class Visual {
             return;
         const tbody = table.querySelector('tbody');
         const columnWidth = this.formattingSettings.generalSettings.columnWidth.value;
-        const applySubtotalToLevel0 = true;
         rows.forEach((row, rowIndex) => {
             const nodeId = parentId + this.getNodeId(row, level);
             // Default to expanded for level 0 if not explicitly set
@@ -9057,7 +8985,7 @@ class Visual {
                 tr.classList.add(CSS_CLASSES.SUBTOTAL_ROW);
             }
             // Add row header
-            const rowHeader = this.createRowHeader(row, level, nodeId, isExpanded, isLevel0, true);
+            const rowHeader = this.createRowHeader(row, level, nodeId, isExpanded, isLevel0);
             tr.appendChild(rowHeader);
             // Add data cells
             if (row.children?.length > 0) {
@@ -9115,11 +9043,11 @@ class Visual {
             }
         }
         else {
-            th.textContent = this.getMeasureDynamically();
+            th.textContent = this.getMeasureName(this.lastOptions.dataViews[0]);
         }
         return th;
     }
-    createRowHeader(row, level, nodeId, isExpanded, isLevel0, applySubtotalToLevel0) {
+    createRowHeader(row, level, nodeId, isExpanded, isLevel0) {
         const rowHeader = document.createElement("th");
         rowHeader.className = CSS_CLASSES.ROW_HEADER;
         if (isLevel0) {
@@ -9157,7 +9085,7 @@ class Visual {
         headerContent.appendChild(label);
         rowHeader.appendChild(headerContent);
         // Apply formatting based on level
-        if (isLevel0 && applySubtotalToLevel0) {
+        if (isLevel0) {
             this.applyFormatting(rowHeader, 'subtotal');
         }
         else {
@@ -9187,7 +9115,6 @@ class Visual {
     createToggleButton(nodeId, isExpanded) {
         const toggleButton = document.createElement("span");
         toggleButton.className = "toggle-button";
-        // Use Unicode characters instead of icon classes
         toggleButton.textContent = isExpanded ? '▲' : '▼';
         toggleButton.style.cursor = "pointer";
         toggleButton.onclick = (event) => {
@@ -9255,9 +9182,7 @@ class Visual {
         }
         else {
             // Clear existing content
-            while (tfoot.firstChild) {
-                tfoot.removeChild(tfoot.firstChild);
-            }
+            tfoot.innerHTML = '';
         }
         this.addBlankRowBeforeTotal(tfoot, columns);
         // Create the grand total row
@@ -9344,9 +9269,8 @@ class Visual {
     // FORMATTING AND STYLING
     //=========================================================================
     applyTableFormatting(table) {
-        if (!this.formattingSettings) {
+        if (!this.formattingSettings)
             return;
-        }
         try {
             // Apply font family
             const fontFamily = this.formattingSettings.generalSettings.fontFamily.value;
@@ -9384,16 +9308,6 @@ class Visual {
         const settings = this.formattingSettings;
         if (!settings)
             return;
-        // Common properties to format
-        const props = [
-            'color',
-            'fontSize',
-            'backgroundColor',
-            'bold',
-            'italic',
-            'underline',
-            'alignment'
-        ];
         // Get the appropriate formatting settings based on type
         let formatSettings;
         switch (type) {
@@ -9418,7 +9332,7 @@ class Visual {
         if (globalFontFamily) {
             element.style.fontFamily = globalFontFamily;
         }
-        // Apply global font size (new code)
+        // Apply global font size
         const globalFontSize = settings.generalSettings.fontSize.value;
         if (globalFontSize) {
             element.style.fontSize = `${globalFontSize}pt`;
@@ -9483,23 +9397,47 @@ class Visual {
         table.style.setProperty('--border-color', borderColor);
         table.style.setProperty('--border-width', `${borderWidth}px`);
         table.style.setProperty('--border-style', 'solid');
-        // Fix consistent borders on sticky headers
-        if (borderSettings.show.value) {
-            const rowHeaders = table.querySelectorAll('th.row-header');
-            rowHeaders.forEach(header => {
-                const headerEl = header;
-                if (showVertical) {
-                    headerEl.style.borderRightWidth = `${borderWidth}px`;
-                    headerEl.style.borderLeftWidth = `${borderWidth}px`;
-                }
-                if (showHorizontal) {
-                    headerEl.style.borderTopWidth = `${borderWidth}px`;
-                    headerEl.style.borderBottomWidth = `${borderWidth}px`;
-                }
-                headerEl.style.borderColor = borderColor;
-                headerEl.style.borderStyle = 'solid';
-            });
-        }
+        // Apply specific border styles to row headers to fix animation issues
+        this.fixHeaderBorders();
+    }
+    fixHeaderBorders() {
+        if (!this.formattingSettings?.borderSettings?.show?.value)
+            return;
+        const borderSettings = this.formattingSettings.borderSettings;
+        const borderColor = borderSettings.color.value.value;
+        const borderWidth = borderSettings.width.value;
+        const showHorizontal = borderSettings.horizontalBorders.value;
+        const showVertical = borderSettings.verticalBorders.value;
+        // Target all row headers specifically
+        const rowHeaders = this.tableDiv.querySelectorAll('th.row-header');
+        rowHeaders.forEach(header => {
+            const headerEl = header;
+            // Clear any inline border styles first to avoid conflicts
+            headerEl.style.removeProperty('border');
+            headerEl.style.removeProperty('border-top');
+            headerEl.style.removeProperty('border-bottom');
+            headerEl.style.removeProperty('border-left');
+            headerEl.style.removeProperty('border-right');
+            // Then reapply proper border styles with !important
+            headerEl.style.cssText += `
+                border-color: ${borderColor} !important;
+                border-style: solid !important;
+                ${showVertical ? `
+                    border-left-width: ${borderWidth}px !important;
+                    border-right-width: ${borderWidth}px !important;
+                ` : `
+                    border-left-width: 0 !important;
+                    border-right-width: 0 !important;
+                `}
+                ${showHorizontal ? `
+                    border-top-width: ${borderWidth}px !important;
+                    border-bottom-width: ${borderWidth}px !important;
+                ` : `
+                    border-top-width: 0 !important;
+                    border-bottom-width: 0 !important;
+                `}
+            `;
+        });
     }
     //=========================================================================
     // EXPAND/COLLAPSE FUNCTIONALITY
@@ -9526,26 +9464,6 @@ class Visual {
         // Create a consistent node ID
         return `level_${level}_${value}`;
     }
-    isExpanded(nodeId) {
-        return this.expandedRows.get(nodeId) === true;
-    }
-    initializeDefaultExpandedState(rows, level, parentId) {
-        if (!rows)
-            return;
-        for (const row of rows) {
-            const nodeId = parentId + this.getNodeId(row, level);
-            // Default: expand level 0, collapse others
-            const defaultExpanded = level === 0;
-            this.expandedRows.set(nodeId, defaultExpanded);
-            // Always recursively process children
-            if (row.children?.length > 0) {
-                this.initializeDefaultExpandedState(row.children, level + 1, nodeId);
-            }
-        }
-        // Save to static property
-        Visual.savedExpandedState = new Map(this.expandedRows);
-    }
-    // Toggle expanded state of a node
     toggleExpanded(nodeId) {
         // Prevent action if this node is currently animating
         if (this.animatingNodes.has(nodeId) || this.animatingNodes.size > 0) {
@@ -9561,11 +9479,9 @@ class Visual {
         // Update toggle button appearance immediately
         const toggleButton = this.tableDiv.querySelector(`tr[data-node-id="${nodeId}"] .toggle-button`);
         if (toggleButton) {
-            // Toggle the text content based on the NEW state
-            const newExpandedState = !isExpanded;
-            toggleButton.textContent = newExpandedState ? '▲' : '▼';
+            toggleButton.textContent = !isExpanded ? '▲' : '▼';
         }
-        // Save state to static property for persistence
+        // Save state
         Visual.savedExpandedState = new Map(this.expandedRows);
         // Disable all toggle buttons during animation
         this.disableAllToggleButtons();
@@ -9575,128 +9491,11 @@ class Visual {
         }, 500);
         this.animationTimeouts.set(nodeId, timeout);
         if (isExpanded) {
-            // COLLAPSING
             this.animateCollapse(directChildren, nodeId);
         }
         else {
-            // EXPANDING
             this.animateExpand(directChildren, nodeId);
         }
-    }
-    contextMenu;
-    activeNodeId = null;
-    activeLevel = null;
-    activeCell = null;
-    setupContextMenuEvents() {
-        const tableDiv = this.tableDiv;
-        const contextMenu = this.contextMenu;
-        // Prevent default context menu on the table
-        tableDiv.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            // Hide any visible context menu
-            contextMenu.style.display = 'none';
-            // Find the clicked cell
-            const target = e.target;
-            const cell = target.closest('td, th');
-            if (cell) {
-                // Store the active cell
-                this.activeCell = cell;
-                // Get row info for expand/collapse
-                const row = cell.closest('tr');
-                if (row) {
-                    this.activeNodeId = row.getAttribute('data-node-id');
-                    this.activeLevel = parseInt(row.getAttribute('data-level') || '0', 10);
-                }
-                // Show context menu at mouse position
-                contextMenu.style.left = `${e.pageX}px`;
-                contextMenu.style.top = `${e.pageY}px`;
-                contextMenu.style.display = 'block';
-            }
-        });
-        // Handle clicks on menu items
-        contextMenu.addEventListener('click', (e) => {
-            const target = e.target;
-            if (target.classList.contains('context-menu-item')) {
-                const action = target.getAttribute('data-action');
-                if (action === 'copyValue') {
-                    this.copyValueToClipboard();
-                }
-                else if (this.activeNodeId) {
-                    // Handle expand/collapse actions
-                    this.handleContextMenuAction(action, this.activeNodeId, this.activeLevel);
-                }
-                // Hide menu after action
-                contextMenu.style.display = 'none';
-            }
-        });
-        // Hide menu when clicking elsewhere
-        document.addEventListener('click', () => {
-            contextMenu.style.display = 'none';
-        });
-    }
-    copyValueToClipboard() {
-        if (!this.activeCell)
-            return;
-        // Check if we have a raw numeric value
-        let textToCopy = '';
-        const rawValue = this.activeCell.getAttribute('data-raw-value');
-        if (rawValue !== null) {
-            // We have a raw number value, use it
-            textToCopy = rawValue;
-        }
-        else {
-            // Otherwise use the formatted text
-            textToCopy = this.activeCell.textContent || '';
-        }
-        try {
-            // Create a temporary textarea element that's properly visible/focused
-            const textArea = document.createElement('textarea');
-            textArea.value = textToCopy;
-            // Same positioning code as before...
-            textArea.style.position = 'absolute';
-            textArea.style.left = '0';
-            textArea.style.top = '0';
-            // ... rest of the styling
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            const successful = document.execCommand('copy');
-            if (successful) {
-                this.showToast('Clipboard secured! Mission accomplished.');
-            }
-            else {
-                this.showToast('Copy failed—clipboard said "not today." Try again!');
-            }
-            document.body.removeChild(textArea);
-        }
-        catch (err) {
-            this.showToast('Copy failed - browser restriction');
-            console.error('Copy failed:', err);
-        }
-    }
-    showToast(message) {
-        // Create toast element
-        const toast = document.createElement('div');
-        toast.className = 'copy-toast';
-        toast.textContent = message;
-        toast.style.position = 'fixed';
-        toast.style.bottom = '20px';
-        toast.style.left = '50%';
-        toast.style.transform = 'translateX(-50%)';
-        toast.style.backgroundColor = 'rgba(0,0,0,0.7)';
-        toast.style.color = 'white';
-        toast.style.padding = '8px 16px';
-        toast.style.borderRadius = '4px';
-        toast.style.zIndex = '2000';
-        toast.style.transition = 'opacity 0.3s';
-        document.body.appendChild(toast);
-        // Remove toast after delay
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => {
-                document.body.removeChild(toast);
-            }, 300);
-        }, 2000);
     }
     //=========================================================================
     // ANIMATION METHODS
@@ -9704,7 +9503,7 @@ class Visual {
     disableAllToggleButtons() {
         const allButtons = this.tableDiv.querySelectorAll('.toggle-button');
         allButtons.forEach((btn) => {
-            btn.style.cursor = "copy";
+            btn.style.cursor = "not-allowed";
             btn.style.opacity = "0.5";
             btn.setAttribute('data-animating', 'true');
         });
@@ -9714,30 +9513,41 @@ class Visual {
             this.cleanupAnimation(nodeId);
             return;
         }
+        // Save border styles before animation
+        rows.forEach(row => {
+            const borderData = {
+                borderTopWidth: row.style.borderTopWidth,
+                borderBottomWidth: row.style.borderBottomWidth,
+                borderLeftWidth: row.style.borderLeftWidth,
+                borderRightWidth: row.style.borderRightWidth,
+                borderColor: row.style.borderColor,
+                borderStyle: row.style.borderStyle
+            };
+            row.setAttribute('data-border-state', JSON.stringify(borderData));
+        });
         // Prepare rows for animation
         rows.forEach(row => {
-            // Setup for animation
             row.classList.remove('collapsed', 'collapsing-wave');
             row.style.height = '0';
             row.style.opacity = '0';
             row.style.overflow = 'hidden';
             row.style.transformOrigin = 'top';
-            row.style.transform = 'scaleY(0.3)'; // Starting transform
+            row.style.transform = 'scaleY(0.3)';
             // Set target height
             const naturalHeight = row.scrollHeight;
             row.style.setProperty('--row-height', `${naturalHeight}px`);
         });
         // Force a reflow
         void rows[0].offsetHeight;
-        // Apply animation with more pronounced staggered delay
+        // Apply animation with staggered delay
         rows.forEach((row, index) => {
-            // Increase delay between rows (from 20ms to 50ms)
-            row.style.animationDelay = `${index * 50}ms`;
+            row.style.animationDelay = `${index * 30}ms`;
             row.classList.add('expanding-wave');
         });
         // Listen for animation end on the last row
         const lastRow = rows[rows.length - 1];
         lastRow.addEventListener('animationend', () => {
+            this.restoreBorderStyles(rows);
             // Cleanup all styling
             rows.forEach(row => {
                 row.classList.remove('expanding-wave');
@@ -9747,6 +9557,7 @@ class Visual {
                 row.style.overflow = '';
                 row.style.transform = '';
             });
+            this.fixHeaderBorders(); // Fix borders after animation
             this.cleanupAnimation(nodeId);
         }, { once: true });
     }
@@ -9755,6 +9566,18 @@ class Visual {
             this.cleanupAnimation(nodeId);
             return;
         }
+        // Save border styles before animation
+        rows.forEach(row => {
+            const borderData = {
+                borderTopWidth: row.style.borderTopWidth,
+                borderBottomWidth: row.style.borderBottomWidth,
+                borderLeftWidth: row.style.borderLeftWidth,
+                borderRightWidth: row.style.borderRightWidth,
+                borderColor: row.style.borderColor,
+                borderStyle: row.style.borderStyle
+            };
+            row.setAttribute('data-border-state', JSON.stringify(borderData));
+        });
         // Prepare rows for animation
         rows.forEach(row => {
             row.classList.remove('expanding-wave', 'collapsed');
@@ -9763,18 +9586,18 @@ class Visual {
             const rowHeight = row.offsetHeight;
             row.style.setProperty('--row-height', `${rowHeight}px`);
             row.style.overflow = 'hidden';
-            // Force reflow
-            void row.offsetHeight;
         });
-        // Apply animation with more pronounced staggered delay
-        // Reverse the order for collapse, so items collapse from bottom to top
+        // Force a reflow
+        void rows[0].offsetHeight;
+        // Apply animation with staggered delay (reversed for collapse)
         rows.slice().reverse().forEach((row, index) => {
-            row.style.animationDelay = `${index * 50}ms`;
+            row.style.animationDelay = `${index * 30}ms`;
             row.classList.add('collapsing-wave');
         });
         // Listen for animation end
-        const lastRow = rows[0]; // First row will be the last to collapse with our reversed order
+        const lastRow = rows[0]; // First row will be the last to collapse
         lastRow.addEventListener('animationend', () => {
+            this.restoreBorderStyles(rows);
             // Hide rows after animation
             rows.forEach(row => {
                 row.classList.remove('collapsing-wave');
@@ -9782,8 +9605,37 @@ class Visual {
                 row.style.animationDelay = '';
                 row.style.transform = '';
             });
+            this.fixHeaderBorders(); // Fix borders after animation
             this.cleanupAnimation(nodeId);
         }, { once: true });
+    }
+    restoreBorderStyles(rows) {
+        rows.forEach(row => {
+            const borderDataStr = row.getAttribute('data-border-state');
+            if (borderDataStr) {
+                try {
+                    const borderData = JSON.parse(borderDataStr);
+                    // Restore border styles
+                    if (borderData.borderTopWidth)
+                        row.style.borderTopWidth = borderData.borderTopWidth;
+                    if (borderData.borderBottomWidth)
+                        row.style.borderBottomWidth = borderData.borderBottomWidth;
+                    if (borderData.borderLeftWidth)
+                        row.style.borderLeftWidth = borderData.borderLeftWidth;
+                    if (borderData.borderRightWidth)
+                        row.style.borderRightWidth = borderData.borderRightWidth;
+                    if (borderData.borderColor)
+                        row.style.borderColor = borderData.borderColor;
+                    if (borderData.borderStyle)
+                        row.style.borderStyle = borderData.borderStyle;
+                    // Clean up
+                    row.removeAttribute('data-border-state');
+                }
+                catch (e) {
+                    console.error('Error restoring border styles:', e);
+                }
+            }
+        });
     }
     cleanupAnimation(nodeId) {
         // Clear timeout
@@ -9826,61 +9678,127 @@ class Visual {
                     // Update toggle button
                     const childToggle = row.querySelector('.toggle-button');
                     if (childToggle) {
-                        childToggle.textContent = "▲"; // Collapsed state
+                        childToggle.textContent = "▼"; // Collapsed state
                     }
                     // Update state
                     this.expandedRows.set(rowId, false);
                 }
             });
         }
+        // Ensure all border formatting is correctly applied
+        this.fixHeaderBorders();
         // Save final state
         Visual.savedExpandedState = new Map(this.expandedRows);
     }
     //=========================================================================
-    // HELPER METHODS
+    // CONTEXT MENU HANDLING
     //=========================================================================
-    findAllDescendants(nodeId) {
-        const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]'));
-        const allDescendants = [];
-        // Helper function to recursively find descendants
-        const findDescendants = (id) => {
-            const children = allRows.filter(row => row.getAttribute('data-parent-id') === id);
-            children.forEach(child => {
-                allDescendants.push(child);
-                const childId = child.getAttribute('data-node-id');
-                if (childId) {
-                    findDescendants(childId);
+    setupContextMenuEvents() {
+        // Prevent default context menu on the table
+        this.tableDiv.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            // Hide any visible context menu
+            this.contextMenu.style.display = 'none';
+            // Find the clicked cell
+            const target = e.target;
+            const cell = target.closest('td, th');
+            if (cell) {
+                // Store the active cell
+                this.activeCell = cell;
+                // Get row info for expand/collapse
+                const row = cell.closest('tr');
+                if (row) {
+                    this.activeNodeId = row.getAttribute('data-node-id');
+                    this.activeLevel = parseInt(row.getAttribute('data-level') || '0', 10);
                 }
-            });
-        };
-        findDescendants(nodeId);
-        return allDescendants;
-    }
-    getAllDescendants(nodeId) {
-        const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]'));
-        const descendants = [];
-        // Get direct children
-        const directChildren = allRows.filter(row => row.getAttribute('data-parent-id') === nodeId);
-        descendants.push(...directChildren);
-        // Recursively add their descendants
-        directChildren.forEach(child => {
-            const childId = child.getAttribute('data-node-id');
-            if (childId) {
-                descendants.push(...this.getAllDescendants(childId));
+                // Show context menu at mouse position
+                this.contextMenu.style.left = `${e.pageX}px`;
+                this.contextMenu.style.top = `${e.pageY}px`;
+                this.contextMenu.style.display = 'block';
             }
         });
-        return descendants;
-    }
-    setChildrenCollapsed(parentId, children, level) {
-        if (!children)
-            return;
-        for (const child of children) {
-            const childId = parentId + this.getNodeId(child, level);
-            this.expandedRows.set(childId, false);
-            if (child.children?.length > 0) {
-                this.setChildrenCollapsed(childId, child.children, level + 1);
+        // Handle clicks on menu items
+        this.contextMenu.addEventListener('click', (e) => {
+            const target = e.target;
+            if (target.classList.contains('context-menu-item')) {
+                const action = target.getAttribute('data-action');
+                if (action === 'copyValue') {
+                    this.copyValueToClipboard();
+                }
+                else if (this.activeNodeId) {
+                    // Handle expand/collapse actions
+                    this.handleContextMenuAction(action, this.activeNodeId, this.activeLevel);
+                }
+                // Hide menu after action
+                this.contextMenu.style.display = 'none';
             }
+        });
+        // Hide menu when clicking elsewhere
+        document.addEventListener('click', () => {
+            this.contextMenu.style.display = 'none';
+        });
+    }
+    copyValueToClipboard() {
+        if (!this.activeCell)
+            return;
+        // Check if we have a raw numeric value
+        let textToCopy = '';
+        const rawValue = this.activeCell.getAttribute('data-raw-value');
+        if (rawValue !== null) {
+            // We have a raw number value, use it
+            textToCopy = rawValue;
         }
+        else {
+            // Otherwise use the formatted text
+            textToCopy = this.activeCell.textContent || '';
+        }
+        try {
+            // Create a temporary textarea element that's properly visible/focused
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            textArea.style.position = 'absolute';
+            textArea.style.left = '0';
+            textArea.style.top = '0';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            const successful = document.execCommand('copy');
+            if (successful) {
+                this.showToast('Copied to clipboard');
+            }
+            else {
+                this.showToast('Copy failed - try again');
+            }
+            document.body.removeChild(textArea);
+        }
+        catch (err) {
+            this.showToast('Copy failed - browser restriction');
+            console.error('Copy failed:', err);
+        }
+    }
+    showToast(message) {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = 'copy-toast';
+        toast.textContent = message;
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        toast.style.color = 'white';
+        toast.style.padding = '8px 16px';
+        toast.style.borderRadius = '4px';
+        toast.style.zIndex = '2000';
+        toast.style.transition = 'opacity 0.3s';
+        document.body.appendChild(toast);
+        // Remove toast after delay
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 300);
+        }, 2000);
     }
     handleContextMenuAction(action, nodeId, level) {
         if (!nodeId)
@@ -9890,39 +9808,33 @@ class Visual {
             return;
         switch (action) {
             case 'expandThis':
-                // Expand just this item if it's collapsed
-                if (!this.isExpanded(nodeId)) {
+                if (!this.expandedRows.get(nodeId)) {
                     this.toggleExpanded(nodeId);
                 }
                 break;
             case 'collapseThis':
-                // Collapse just this item if it's expanded
-                if (this.isExpanded(nodeId)) {
+                if (this.expandedRows.get(nodeId)) {
                     this.toggleExpanded(nodeId);
                 }
                 break;
             case 'expandLevel':
-                // Expand all nodes at this level
-                this.animateExpandCollapseLevel(level, true);
+                this.batchExpandCollapseByLevel(level, true);
                 break;
             case 'collapseLevel':
-                // Collapse all nodes at this level
-                this.animateExpandCollapseLevel(level, false);
+                this.batchExpandCollapseByLevel(level, false);
                 break;
             case 'expandAll':
-                // Expand all nodes
-                this.animateExpandCollapseAll(true);
+                this.batchExpandCollapseAll(true);
                 break;
             case 'collapseAll':
-                // Collapse all nodes
-                this.animateExpandCollapseAll(false);
+                this.batchExpandCollapseAll(false);
                 break;
         }
     }
-    animateExpandCollapseLevel(level, expand) {
-        // Find all rows at the specified level that have children (i.e., toggle buttons)
+    batchExpandCollapseByLevel(level, expand) {
+        // Find all rows at the specified level that have children
         const levelRows = Array.from(this.tableDiv.querySelectorAll(`tr[data-level="${level}"] .toggle-button`)).map(btn => btn.closest('tr'));
-        // Filter to only rows that need to change state (not already in desired state)
+        // Filter to only rows that need to change state
         const rowsToChange = levelRows.filter(row => {
             if (!row)
                 return false;
@@ -9931,56 +9843,11 @@ class Visual {
         });
         if (rowsToChange.length === 0)
             return;
-        // Disable all toggle buttons during animation
-        this.disableAllToggleButtons();
-        // Track animation state
-        const batchId = `level_${level}_${expand ? 'expand' : 'collapse'}_batch`;
-        this.animatingNodes.add(batchId);
-        // Set a safety timeout
-        const timeout = window.setTimeout(() => {
-            this.cleanupBatchAnimation(batchId, rowsToChange, expand);
-        }, 1000);
-        this.animationTimeouts.set(batchId, timeout);
-        // Process each row with small delays between them to create wave effect
-        rowsToChange.forEach((row, index) => {
-            const nodeId = row.getAttribute('data-node-id');
-            if (!nodeId)
-                return;
-            // Update toggle button appearance immediately
-            const toggleButton = row.querySelector('.toggle-button');
-            if (toggleButton) {
-                toggleButton.textContent = expand ? '▲' : '▼';
-            }
-            // Update the state in our map
-            this.expandedRows.set(nodeId, expand);
-            // Wait a small amount of time before processing each row
-            setTimeout(() => {
-                const directChildren = Array.from(this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`));
-                if (expand) {
-                    // Animate expansion
-                    this.animateRowsWithoutCleanup(directChildren, expand);
-                }
-                else {
-                    // Animate collapse
-                    this.animateRowsWithoutCleanup(directChildren, expand);
-                }
-                // If this is the last row, set up cleanup
-                if (index === rowsToChange.length - 1) {
-                    const lastChildren = directChildren[directChildren.length - 1];
-                    if (lastChildren) {
-                        lastChildren.addEventListener('animationend', () => {
-                            this.cleanupBatchAnimation(batchId, rowsToChange, expand);
-                        }, { once: true });
-                    }
-                }
-            }, index * 60); // Slightly longer delay between parent rows
-        });
-        // Save expanded state
-        Visual.savedExpandedState = new Map(this.expandedRows);
+        // Process rows batch
+        this.processBatchExpansion(`level_${level}_${expand ? 'expand' : 'collapse'}`, rowsToChange, expand);
     }
-    // New method for animated expand/collapse all
-    animateExpandCollapseAll(expand) {
-        // Get all rows with toggle buttons (rows that can be expanded/collapsed)
+    batchExpandCollapseAll(expand) {
+        // Get all rows with toggle buttons
         const allToggleRows = Array.from(this.tableDiv.querySelectorAll('tr .toggle-button')).map(btn => btn.closest('tr'));
         // Filter to only rows that need to change state
         const rowsToChange = allToggleRows.filter(row => {
@@ -9991,63 +9858,67 @@ class Visual {
         });
         if (rowsToChange.length === 0)
             return;
-        // Disable all toggle buttons during animation
-        this.disableAllToggleButtons();
-        // Track animation state
-        const batchId = `all_${expand ? 'expand' : 'collapse'}_batch`;
-        this.animatingNodes.add(batchId);
-        // Set a safety timeout
-        const timeout = window.setTimeout(() => {
-            this.cleanupBatchAnimation(batchId, rowsToChange, expand);
-        }, 2000);
-        this.animationTimeouts.set(batchId, timeout);
-        // Sort rows by level for better animation (top-to-bottom for expand, bottom-to-top for collapse)
+        // Sort rows by level for better animation
         rowsToChange.sort((a, b) => {
             const levelA = parseInt(a.getAttribute('data-level') || '0', 10);
             const levelB = parseInt(b.getAttribute('data-level') || '0', 10);
             return expand ? levelA - levelB : levelB - levelA;
         });
-        // Process each row with small delays between them
-        rowsToChange.forEach((row, index) => {
+        // Process all rows in batch
+        this.processBatchExpansion(`all_${expand ? 'expand' : 'collapse'}`, rowsToChange, expand);
+    }
+    processBatchExpansion(batchId, rows, expand) {
+        // Disable all toggle buttons
+        this.disableAllToggleButtons();
+        // Track animation state
+        this.animatingNodes.add(batchId);
+        // Set safety timeout
+        const timeout = window.setTimeout(() => {
+            this.cleanupBatchAnimation(batchId, rows, expand);
+        }, rows.length < 10 ? 1000 : 2000);
+        this.animationTimeouts.set(batchId, timeout);
+        // Process each row with small delays
+        rows.forEach((row, index) => {
             const nodeId = row.getAttribute('data-node-id');
             if (!nodeId)
                 return;
-            // Update toggle button appearance
+            // Update toggle button appearance immediately
             const toggleButton = row.querySelector('.toggle-button');
             if (toggleButton) {
                 toggleButton.textContent = expand ? '▲' : '▼';
             }
             // Update the state in our map
             this.expandedRows.set(nodeId, expand);
-            // Wait a small amount of time before processing each row
+            // Process each row with delay
             setTimeout(() => {
                 const directChildren = Array.from(this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`));
-                if (expand) {
-                    // Animate expansion
-                    this.animateRowsWithoutCleanup(directChildren, expand);
-                }
-                else {
-                    // Animate collapse
-                    this.animateRowsWithoutCleanup(directChildren, expand);
-                }
+                this.animateRowsBatch(directChildren, expand);
                 // If this is the last row, set up cleanup
-                if (index === rowsToChange.length - 1) {
-                    const lastChildren = directChildren[directChildren.length - 1];
-                    if (lastChildren) {
-                        lastChildren.addEventListener('animationend', () => {
-                            this.cleanupBatchAnimation(batchId, rowsToChange, expand);
-                        }, { once: true });
-                    }
+                if (index === rows.length - 1) {
+                    setTimeout(() => {
+                        this.cleanupBatchAnimation(batchId, rows, expand);
+                    }, 500);
                 }
-            }, index * 40); // Slightly smaller delay to keep total animation time reasonable
+            }, index * 40);
         });
         // Save expanded state
         Visual.savedExpandedState = new Map(this.expandedRows);
     }
-    // Helper method to animate rows without immediate cleanup
-    animateRowsWithoutCleanup(rows, isExpand) {
+    animateRowsBatch(rows, isExpand) {
         if (rows.length === 0)
             return;
+        // Save border styles
+        rows.forEach(row => {
+            const borderData = {
+                borderTopWidth: row.style.borderTopWidth,
+                borderBottomWidth: row.style.borderBottomWidth,
+                borderLeftWidth: row.style.borderLeftWidth,
+                borderRightWidth: row.style.borderRightWidth,
+                borderColor: row.style.borderColor,
+                borderStyle: row.style.borderStyle
+            };
+            row.setAttribute('data-border-state', JSON.stringify(borderData));
+        });
         if (isExpand) {
             // Prepare rows for expand animation
             rows.forEach(row => {
@@ -10064,7 +9935,7 @@ class Visual {
             void rows[0].offsetHeight;
             // Apply animation with staggered delay
             rows.forEach((row, index) => {
-                row.style.animationDelay = `${index * 50}ms`;
+                row.style.animationDelay = `${index * 30}ms`;
                 row.classList.add('expanding-wave');
             });
         }
@@ -10081,7 +9952,7 @@ class Visual {
             void rows[0].offsetHeight;
             // Apply animation with staggered delay (reversed for collapse)
             rows.slice().reverse().forEach((row, index) => {
-                row.style.animationDelay = `${index * 50}ms`;
+                row.style.animationDelay = `${index * 30}ms`;
                 row.classList.add('collapsing-wave');
             });
         }
@@ -10104,13 +9975,15 @@ class Visual {
             htmlBtn.style.opacity = "1";
             htmlBtn.removeAttribute('data-animating');
         });
-        // Clean up all rows
+        // Clean up all affected rows
         rows.forEach(row => {
             const nodeId = row.getAttribute('data-node-id');
             if (!nodeId)
                 return;
             // Get direct children
             const directChildren = Array.from(this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`));
+            // Restore border styles for each child
+            this.restoreBorderStyles(directChildren);
             // Remove animation classes and reset styles
             directChildren.forEach(child => {
                 child.classList.remove('expanding-wave', 'collapsing-wave');
@@ -10128,13 +10001,14 @@ class Visual {
                 }
             });
         });
-        // Call updateExpandedState to ensure UI is consistent
+        // Final state update and border fixing
         this.updateExpandedState();
+        this.fixHeaderBorders();
         // Save final state
         Visual.savedExpandedState = new Map(this.expandedRows);
     }
     updateExpandedState() {
-        // This function updates the UI to reflect the current expanded state
+        // Update the UI to reflect the current expanded state
         const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]'));
         allRows.forEach(row => {
             const nodeId = row.getAttribute('data-node-id');
@@ -10150,7 +10024,7 @@ class Visual {
                     else {
                         // If parent is expanded, show/hide based on this row's state
                         const isExpanded = this.expandedRows.get(nodeId) === true;
-                        // Only check direct children
+                        // Update direct children
                         const directChildren = Array.from(this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`));
                         directChildren.forEach(child => {
                             if (isExpanded) {
@@ -10163,7 +10037,7 @@ class Visual {
                     }
                 }
                 else {
-                    // Root level elements - just check their own state
+                    // Root level elements
                     const isExpanded = this.expandedRows.get(nodeId) === true;
                     // Update direct children
                     const directChildren = Array.from(this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`));
@@ -10179,36 +10053,45 @@ class Visual {
             }
         });
     }
-    showLandingPage() {
-        console.log(`Showing landing page ${this.currentLandingPage}`);
-        // Clear existing content
-        while (this.target.firstChild) {
-            this.target.removeChild(this.target.firstChild);
-        }
-        // Create container for landing page
-        const container = document.createElement('div');
-        container.className = 'landing-page-container';
-        container.style.width = '100%';
-        container.style.height = '100%';
-        container.style.overflow = 'hidden';
-        container.style.position = 'relative';
-        container.style.background = '#13141a';
-        container.style.display = 'block'; // Explicitly set display
-        container.style.visibility = 'visible'; // Ensure visibility
-        // Insert the HTML
-        container.innerHTML = this.getLandingPageHTML();
-        // Store reference and add to DOM
-        this.landingPageElement = container;
-        this.target.appendChild(container);
-        // Force a reflow/repaint
-        void container.offsetHeight;
-        // Add event listeners for navigation
-        this.setupLandingPageNavigation();
-        this.isLandingPageOn = true;
-        // Log to confirm landing page is shown
-        console.log("Landing page element added to DOM:", this.landingPageElement);
+    //=========================================================================
+    // HELPER METHODS
+    //=========================================================================
+    findAllDescendants(nodeId) {
+        const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]'));
+        const allDescendants = [];
+        // Helper function to recursively find descendants
+        const findDescendants = (id) => {
+            const children = allRows.filter(row => row.getAttribute('data-parent-id') === id);
+            children.forEach(child => {
+                allDescendants.push(child);
+                const childId = child.getAttribute('data-node-id');
+                if (childId) {
+                    findDescendants(childId);
+                }
+            });
+        };
+        findDescendants(nodeId);
+        return allDescendants;
     }
-    createNewLandingPage() {
+    setChildrenCollapsed(parentId, children, level) {
+        if (!children)
+            return;
+        for (const child of children) {
+            const childId = parentId + this.getNodeId(child, level);
+            this.expandedRows.set(childId, false);
+            if (child.children?.length > 0) {
+                this.setChildrenCollapsed(childId, child.children, level + 1);
+            }
+        }
+    }
+    //=========================================================================
+    // LANDING PAGE METHODS
+    //=========================================================================
+    showLandingPage() {
+        if (this.isLandingPageOn)
+            return;
+        // Clear existing content
+        this.target.innerHTML = '';
         // Create container for landing page
         const container = document.createElement('div');
         container.className = 'landing-page-container';
@@ -10217,8 +10100,6 @@ class Visual {
         container.style.overflow = 'hidden';
         container.style.position = 'relative';
         container.style.background = '#13141a';
-        // Start with opacity 0
-        container.style.opacity = '0';
         // Insert the HTML
         container.innerHTML = this.getLandingPageHTML();
         // Store reference and add to DOM
@@ -10227,11 +10108,28 @@ class Visual {
         // Add event listeners for navigation
         this.setupLandingPageNavigation();
         this.isLandingPageOn = true;
-        // Trigger fade in after a small delay
-        setTimeout(() => {
-            container.style.opacity = '1';
-            container.style.transition = 'opacity 0.5s ease';
-        }, 50);
+    }
+    hideLandingPage() {
+        if (!this.isLandingPageOn)
+            return;
+        // Remove landing page
+        if (this.landingPageElement?.parentNode) {
+            this.landingPageElement.parentNode.removeChild(this.landingPageElement);
+        }
+        this.isLandingPageOn = false;
+        this.landingPageRemoved = true;
+        // Reset to first page for next time
+        this.currentLandingPage = 1;
+        // Create container elements for the visual
+        this.createContainerElements();
+    }
+    getLandingPageHTML() {
+        switch (this.currentLandingPage) {
+            case 1: return landingPage1HTML;
+            case 2: return landingPage2HTML;
+            case 3: return landingPage3HTML;
+            default: return landingPage1HTML;
+        }
     }
     setupLandingPageNavigation() {
         const nextButtons = this.landingPageElement.querySelectorAll('[data-action="next"]');
@@ -10263,7 +10161,6 @@ class Visual {
             });
         }
     }
-    // Add this new method to handle transitions
     transitionToPage(newPageNumber) {
         // Get container element
         const container = this.landingPageElement.querySelector('.container');
@@ -10275,14 +10172,11 @@ class Visual {
         setTimeout(() => {
             // Update the current page
             this.currentLandingPage = newPageNumber;
-            // Create new container with updated content but still faded out
+            // Create new container with updated content
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = this.getLandingPageHTML();
             // Replace the old content
-            while (this.landingPageElement.firstChild) {
-                this.landingPageElement.removeChild(this.landingPageElement.firstChild);
-            }
-            // Add the new content
+            this.landingPageElement.innerHTML = '';
             while (tempDiv.firstChild) {
                 this.landingPageElement.appendChild(tempDiv.firstChild);
             }
@@ -10294,9 +10188,8 @@ class Visual {
                 void newContainer.offsetHeight;
                 newContainer.classList.remove('fade-out');
             }
-        }, 500); // Match this to your CSS transition duration
+        }, 500); // Match to CSS transition duration
     }
-    // Add this method for the finish button
     fadeOutAndHideLandingPage() {
         // Get container element
         const container = this.landingPageElement.querySelector('.container');
@@ -10309,22 +10202,7 @@ class Visual {
         // Wait for animation to complete before hiding
         setTimeout(() => {
             this.hideLandingPage();
-        }, 500); // Match this to your CSS transition duration
-    }
-    hideLandingPage() {
-        if (this.isLandingPageOn && this.landingPageElement) {
-            console.log("Hiding landing page");
-            // Remove landing page
-            if (this.landingPageElement.parentNode) {
-                this.landingPageElement.parentNode.removeChild(this.landingPageElement);
-            }
-            this.isLandingPageOn = false;
-            this.landingPageRemoved = true;
-            // Reset to first page for next time
-            this.currentLandingPage = 1;
-            // Create container elements for the visual
-            this.createContainerElements();
-        }
+        }, 500); // Match to CSS transition duration
     }
 }
 

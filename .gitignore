@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Build output
+.tmp/
+dist/
+*.pbiviz
+
+# Webpack bundle analysis
+webpack.statistics.*.html
+
+# Logs
+npm-debug.log*
+*.log
+
+# OS
+Thumbs.db
+.DS_Store

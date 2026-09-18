@@ -1,0 +1,41 @@
+table dim_icons
+	lineageTag: 699203bb-e676-5900-9082-6f555bcffc55
+
+	column icon_data
+		dataType: string
+		lineageTag: 7a255423-577e-7f0b-f463-e3c984c630fe
+		summarizeBy: none
+		sourceColumn: icon_data
+
+		annotation SummarizationSetBy = Automatic
+
+	column icon_name
+		dataType: string
+		lineageTag: bb91d654-1eb9-ceb6-3294-6d94fed31132
+		summarizeBy: none
+		sourceColumn: icon_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column icon_type
+		dataType: string
+		lineageTag: 249996ec-93b7-e5ea-fdd9-8334cd405139
+		summarizeBy: none
+		sourceColumn: icon_type
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_icons = m
+		mode: import
+		queryGroup: Dimension
+		source =
+				let
+				    Source = Sql.Database(p_sql_endpoint, p_lakehouse),
+				    dim_icons = Source{[Schema="dbo", Item="dim_icons"]}[Data]
+				in
+				    dim_icons
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

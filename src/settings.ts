@@ -67,7 +67,7 @@ class BorderSettings extends FormattingSettingsCard {
     color = new formattingSettings.ColorPicker({
         name: "color",
         displayName: "Border Color",
-        value: { value: "#FFFFF" },
+        value: { value: "#FFFFFF" },
         instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
     });
 

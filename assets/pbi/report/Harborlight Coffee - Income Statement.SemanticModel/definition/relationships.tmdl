@@ -1,0 +1,12 @@
+relationship 35f37e33-e51f-410b-8f51-f1e683d4ce58
+	fromColumn: fact_income_statement.month_end
+	toColumn: dim_calendar.date
+
+relationship bbf8f185-2348-4290-a5d3-4f9fd2c88a1e
+	fromColumn: fact_income_statement.location_id
+	toColumn: dim_locations.location_id
+
+relationship 7c2f4a19-83be-4d51-9e6a-2f5c81d0b463
+	fromColumn: fact_income_statement.line_item_key
+	toColumn: IncomeStatementLayout.line_item_key
+

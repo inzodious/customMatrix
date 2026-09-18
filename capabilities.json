@@ -529,11 +529,21 @@
                 "rows": {
                     "for": {
                         "in": "rows"
+                    },
+                    "dataReductionAlgorithm": {
+                        "window": {
+                            "count": 1000
+                        }
                     }
                 },
                 "columns": {
                     "for": {
                         "in": "columns"
+                    },
+                    "dataReductionAlgorithm": {
+                        "top": {
+                            "count": 100
+                        }
                     }
                 },
                 "values": {

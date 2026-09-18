@@ -1,245 +1,279 @@
+// =============================================================================
+// NovaGrid — CSS-grid render layer
+//
+// The row layer is <div>s in a CSS grid, not a <table>. That is deliberate:
+// per the CSS Transforms spec, `transform` does not apply to display:table-row,
+// and neither does `overflow`, while `height` acts only as a minimum. Animating
+// a <tr> therefore rendered as a fade plus a layout snap no matter what the
+// keyframes said. On div rows, height / transform / overflow all apply, so the
+// expand/collapse keyframes below render as written.
+//
+// Column alignment comes from one shared track list, --grid-cols, published on
+// .matrix-grid by applyGridTemplate(). Every row inherits it, so rows line up
+// without a table layout algorithm and without per-cell width styles.
+// =============================================================================
 
 .visual-container {
     width: 100%;
     height: 100%;
-    overflow: hidden; /* Change from auto to hidden */
-
+    overflow: hidden;
 }
 
 .table-container {
     width: 100%;
     height: 100%;
     overflow: auto;
-    position: relative; /* Add this */
+    position: relative;
 }
 
-.matrix-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+// ----------------------------------------------------------------- grid -----
+
+.matrix-grid {
+    // Shrink-wrap the tracks so horizontal scrolling works, but never leave a
+    // gap if the tracks are narrower than the viewport.
+    min-width: 100%;
+    width: max-content;
     font-family: "Segoe UI", sans-serif;
     font-size: 12px;
     text-rendering: geometricPrecision;
     -webkit-font-smoothing: antialiased;
-    
+
+    --border-color: #ffffff;
+    --border-width: 1px;
+    --border-style: solid;
 }
 
-.matrix-table thead {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    //background-color: #f4f4f4;
+.grid-row {
+    display: grid;
+    grid-template-columns: var(--grid-cols);
+    // transform-origin matters for the scaleY keyframes; set once here rather
+    // than inline on every row from TypeScript.
+    transform-origin: top;
 }
 
-.matrix-table th {
-    padding: 10px;
-    background-color: #f4f4f4;
-    text-align: center;
-    font-weight: 600;
-    position: sticky;
-    top: 0;
-    z-index: 5;
-}
-
-.matrix-table th.row-header {
-    left: 0;
-    position: sticky;
-    z-index: 15;
-}
-
-.matrix-table td {
+.grid-cell {
     padding: 10px;
     text-align: right;
+    box-sizing: border-box;
+    min-width: 0;          // let long values ellipsize instead of blowing tracks
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background-color: #ffffff;
 }
 
-.matrix-corner-cell {
+// Virtualization spacers: these stand in for the rows above and below the
+// rendered window so the scrollbar reflects the full row count. They must not
+// pick up .grid-cell padding or borders, or they would add height of their own.
+.grid-spacer {
+    padding: 0;
+    margin: 0;
+    border: 0;
+    grid-column: 1 / -1;
+}
+
+// --------------------------------------------------------------- sticky -----
+//
+// Stacking order, lowest to highest:
+//   data cells (auto) < row headers (20) < header row (30) < corner cell (40)
+
+.grid-header {
     position: sticky;
     top: 0;
-    left: 0;       // Ensure it stays aligned with the row header.
-    z-index: 10;   // Adjust z-index so it appears above scrolling cells.
-    background: inherit; // Optional: keep consistent background styling.
-  }
-  
+    z-index: 30;
+}
 
-.matrix-table .column-header {
+.grid-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 25;
+}
+
+.column-header {
     background-color: #e0e0e0;
-
+    text-align: center;
+    font-weight: 600;
 }
 
-.matrix-table .row-header {
+.row-header {
+    position: sticky;
+    left: 0;
+    z-index: 20;
     background-color: #e8e8e8;
-    // text-align: left !important;
+    text-align: left;
 }
 
-/* Update these selectors for better sticky behavior */
-.matrix-table th.column-header {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-}
-
-.matrix-table th.row-header {
-    position: sticky;
-    left: 0;
-    z-index: 5;
-}
-
-/* This won't be used due to our inline styles, but good for completeness */
-.matrix-table th.row-header.column-header {
+// The corner cell sits in the header row and the first column at once, so it
+// has to outrank both. This replaces the inline `!important` block that
+// createCornerCell() used to write.
+.corner-cell {
     position: sticky;
     top: 0;
     left: 0;
-    z-index: 10;
+    z-index: 40;
+    background-color: #e0e0e0;
 }
 
-/* Rest of the existing styles remain the same */
-.matrix-table .subtotal-cell {
+.grand-total-row {
+    .grid-cell {
+        background-color: #f4f4f4;
+    }
+    .grand-total-label {
+        text-align: left;
+    }
+}
+
+.subtotal-cell {
     font-weight: bold;
 }
 
+.blank-row .grid-cell {
+    padding: 0;
+}
+
+// -------------------------------------------------------------- toggles -----
+
+.row-header-content {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.row-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .toggle-button {
-  width: 16px;
-  height: 16px;
-  margin-right: 5px;
-  display: inline-block;
-  text-align: center;
-  font-size: 12px;
-  line-height: 16px;
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+    flex-shrink: 0;
+    display: inline-block;
+    text-align: center;
+    font-size: 12px;
+    line-height: 16px;
+    cursor: pointer;
 }
 
 .toggle-spacer {
     display: inline-block;
     width: 16px;
     margin-right: 5px;
+    flex-shrink: 0;
 }
 
-.matrix-table.hover-enabled tbody tr:hover {
-    background-color: rgba(0, 120, 212, 0.1) !important;
+.matrix-grid.hover-enabled .grid-body .grid-row:hover .grid-cell {
+    background-color: rgba(0, 120, 212, 0.1);
 }
 
-/* Border control styles - existing styles */
-.matrix-table.with-borders {
-    border-collapse: collapse;
-    
-    th, td {
-      border-style: var(--border-style, solid);
-      border-width: 0;
-      border-color: var(--border-color, #ffffff);
-    }
+// -------------------------------------------------------------- borders -----
+//
+// Borders live on the cells. On div rows they survive an animation, so the
+// post-animation `!important` rewrite pass (fixHeaderBorders) is gone.
+
+.matrix-grid.with-borders .grid-cell {
+    border-style: var(--border-style, solid);
+    border-width: 0;
+    border-color: var(--border-color, #ffffff);
 }
 
-.matrix-table.with-horizontal-borders {
-    th, td {
-      border-top-width: var(--border-width, 1px);
-      border-bottom-width: var(--border-width, 1px);
-    }
+.matrix-grid.with-horizontal-borders .grid-cell {
+    border-top-width: var(--border-width, 1px);
+    border-bottom-width: var(--border-width, 1px);
 }
 
-.matrix-table.with-vertical-borders {
-    th, td {
-      border-left-width: var(--border-width, 1px);
-      border-right-width: var(--border-width, 1px);
-    }
+.matrix-grid.with-vertical-borders .grid-cell {
+    border-left-width: var(--border-width, 1px);
+    border-right-width: var(--border-width, 1px);
 }
 
-matrix-table tfoot {
-    z-index: 5;
+// ----------------------------------------------------------- animations -----
+
+// NOTE: no `overflow: hidden` here. An ancestor with a clipping overflow
+// becomes the sticky containing context, which stopped .row-header inside
+// child rows from freezing during horizontal scroll while level-0 rows (which
+// never get this class) kept working. The wave classes below set overflow for
+// the duration of the animation, which is the only time it is needed.
+.expandable-row {
+    min-width: 0;
 }
 
-.matrix-table tfoot th, 
-.matrix-table tfoot td {
-    padding: 10px;
+.collapsed {
+    display: none !important;
 }
 
-.matrix-table tr {
-    transition: all 0.3s ease-out;
-  }
-  
-.matrix-table .expandable-row {
-overflow: hidden;
-}
-
-.matrix-table .collapsed {
-  display: none !important;
-  height: 0 !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-.matrix-table .expanding {
-animation: expand 0.3s ease-out forwards;
-}
-
-.matrix-table .collapsing {
-animation: collapse 0.3s ease-out forwards;
-}
-
-@keyframes expand {
-from { 
-    height: 0;
-    opacity: 0;
-}
-to { 
-    height: var(--row-height);
-    opacity: 1;
-}
-}
-
-@keyframes collapse {
-from { 
-    height: var(--row-height);
-    opacity: 1;
-}
-to { 
-    height: 0;
-    opacity: 0;
-    display: none;
-}
-}
+// The 30% overshoot keyframe is back from the pre-3c7d564 animation: it was
+// dropped when transforms were being discarded on <tr> anyway, and on div rows
+// it renders. Durations here MUST stay in step with ANIM in visual.ts, which
+// derives the animation safety timeout from them.
+// Expand is the slower of the two (0.32s) because at 0.2s it read as instant.
 
 @keyframes expandWave {
-  0% { 
-    height: 0;
-    opacity: 0;
-    transform: scaleY(0.3);
-  }
-  100% { 
-    height: var(--row-height);
-    opacity: 1;
-    transform: scaleY(1);
-  }
+    0% {
+        height: 0;
+        opacity: 0;
+        transform: scaleY(0.3) translateY(-10px);
+    }
+    30% {
+        height: calc(var(--row-height) * 1.05);
+        opacity: 0.7;
+        transform: scaleY(1.05) translateY(0);
+    }
+    100% {
+        height: var(--row-height);
+        opacity: 1;
+        transform: scaleY(1) translateY(0);
+    }
 }
 
 @keyframes collapseWave {
-  0% { 
-    height: var(--row-height);
-    opacity: 1;
-    transform: scaleY(1);
-  }
-  100% { 
-    height: 0;
-    opacity: 0;
-    transform: scaleY(0.3);
-  }
+    0% {
+        height: var(--row-height);
+        opacity: 1;
+        transform: scaleY(1) translateY(0);
+    }
+    30% {
+        height: calc(var(--row-height) * 0.95);
+        opacity: 0.7;
+        transform: scaleY(0.95) translateY(0);
+    }
+    100% {
+        height: 0;
+        opacity: 0;
+        transform: scaleY(0.3) translateY(-10px);
+    }
 }
 
-.matrix-table .expanding-wave {
-  animation: expandWave 0.3s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
-  transform-origin: top;
-  overflow: hidden;
-  will-change: height, opacity, transform;
-  pointer-events: none;
-  backface-visibility: hidden; /* Hardware acceleration hint */
+.expanding-wave {
+    animation: expandWave 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    transform-origin: top;
+    overflow: hidden;
+    will-change: height, opacity, transform;
+    pointer-events: none; /* Prevent clicks during animation */
+    backface-visibility: hidden; /* Hardware acceleration hint */
 }
 
-.matrix-table .collapsing-wave {
-  animation: collapseWave 0.3s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
-  transform-origin: top;
-  overflow: hidden;
-  will-change: height, opacity, transform;
-  pointer-events: none;
-  backface-visibility: hidden; /* Hardware acceleration hint */
+.collapsing-wave {
+    animation: collapseWave 0.22s ease-in forwards;
+    transform-origin: top;
+    overflow: hidden;
+    will-change: height, opacity, transform;
+    pointer-events: none; /* Prevent clicks during animation */
+    backface-visibility: hidden; /* Hardware acceleration hint */
 }
+
+// Respect the viewer's motion preference.
+@media (prefers-reduced-motion: reduce) {
+    .expanding-wave,
+    .collapsing-wave {
+        animation-duration: 0.01ms;
+        animation-delay: 0ms !important;
+    }
+}
+
+// --------------------------------------------------------- context menu -----
 
 .custom-context-menu {
     background-color: white;
@@ -267,27 +301,27 @@ to {
 }
 
 .load-more-button {
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 10px;
-  background-color: #0078d4;
-  color: white;
-  border: none;
-  cursor: pointer;
-  margin-top: 10px;
-  z-index: 100;
-  text-align: center;
-  font-family: inherit;
-  transition: background-color 0.3s ease;
-  
-  &:hover {
-      background-color: #106ebe;
-  }
-  
-  &:disabled {
-      background-color: #cccccc;
-      cursor: not-allowed;
-  }
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    background-color: #0078d4;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+    z-index: 100;
+    text-align: center;
+    font-family: inherit;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+        background-color: #106ebe;
+    }
+
+    &:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
 }

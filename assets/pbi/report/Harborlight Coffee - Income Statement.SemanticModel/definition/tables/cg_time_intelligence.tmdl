@@ -1,0 +1,55 @@
+table cg_time_intelligence
+	lineageTag: bddd741b-310a-d1c3-1996-622767f5cf81
+
+	calculationGroup
+		precedence: 10
+
+		calculationItem Current = SELECTEDMEASURE ()
+
+		calculationItem MTD = CALCULATE ( SELECTEDMEASURE (), DATESMTD ( dim_calendar[date] ) )
+
+		calculationItem QTD = CALCULATE ( SELECTEDMEASURE (), DATESQTD ( dim_calendar[date] ) )
+
+		calculationItem YTD = CALCULATE ( SELECTEDMEASURE (), DATESYTD ( dim_calendar[date] ) )
+
+		calculationItem PY = CALCULATE ( SELECTEDMEASURE (), SAMEPERIODLASTYEAR ( dim_calendar[date] ) )
+
+		calculationItem 'PY YTD' = CALCULATE ( SELECTEDMEASURE (), DATESYTD ( SAMEPERIODLASTYEAR ( dim_calendar[date] ) ) )
+
+		calculationItem YoY =
+				VAR Current_ = SELECTEDMEASURE ()
+				VAR Prior =
+				    CALCULATE ( SELECTEDMEASURE (), SAMEPERIODLASTYEAR ( dim_calendar[date] ) )
+				RETURN
+				IF ( NOT ISBLANK ( Current_ ) && NOT ISBLANK ( Prior ), Current_ - Prior )
+
+		calculationItem 'YoY %' =
+				VAR Current_ = SELECTEDMEASURE ()
+				VAR Prior =
+				    CALCULATE ( SELECTEDMEASURE (), SAMEPERIODLASTYEAR ( dim_calendar[date] ) )
+				RETURN
+				DIVIDE ( Current_ - Prior, Prior )
+
+			formatStringDefinition = "0.0%;-0.0%;0.0%"
+
+	column time_calculation
+		dataType: string
+		lineageTag: c2ae6ccd-789d-a4c2-bf8d-a49a1a69bb67
+		summarizeBy: none
+		sourceColumn: Name
+		sortByColumn: time_ordinal
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column time_ordinal
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 4eb25e55-16c8-2e46-9576-9882a4180d98
+		summarizeBy: none
+		sourceColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+

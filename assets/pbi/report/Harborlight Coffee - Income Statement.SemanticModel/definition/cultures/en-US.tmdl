@@ -1,0 +1,221 @@
+cultureInfo en-US
+
+	linguisticMetadata =
+			{
+			  "Version": "2.0.0",
+			  "Language": "en-US",
+			  "Entities": {
+			    "dim_locations.location_name": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "dim_locations",
+			          "ConceptualProperty": "location_name"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Location": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "dim_locations.region": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "dim_locations",
+			          "ConceptualProperty": "region"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Region": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "dim_locations.market_tier": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "dim_locations",
+			          "ConceptualProperty": "market_tier"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Tier": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "dim_locations.state": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "dim_locations",
+			          "ConceptualProperty": "state"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "State": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "incomestatementlayout.section": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "IncomeStatementLayout",
+			          "ConceptualProperty": "section"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Section": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "incomestatementlayout.category": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "IncomeStatementLayout",
+			          "ConceptualProperty": "category"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Category": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "incomestatementlayout.line_item": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "IncomeStatementLayout",
+			          "ConceptualProperty": "line_item"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Line Item": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "dim_calendar.year": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "dim_calendar",
+			          "ConceptualProperty": "year"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Year": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_measures_kpi.im_amount": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_measures_kpi",
+			          "ConceptualProperty": "im_amount"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Amount": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "dim_mode.mode": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "dim_mode",
+			          "ConceptualProperty": "mode"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Mode": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    }
+			  }
+			}
+		contentType: json
+

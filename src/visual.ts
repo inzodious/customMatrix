@@ -33,10 +33,70 @@ interface MatrixNode {
 }
 
 // CSS class constants
+// Animation timing. These must stay in step with the durations in visual.less:
+// .expanding-wave / .collapsing-wave. The safety timeout below is derived from
+// them rather than hardcoded, so a timing change cannot silently release the
+// animation lock while rows are still moving.
+// Virtualization. Below THRESHOLD rows the whole body is rendered, which keeps
+// ordinary reports on a simple path; above it only the scrolled-to window plus
+// OVERSCAN rows above and below exist in the DOM.
+// Where Power BI delivers a format string the user overrode in the report.
+// valueFormatter.getFormatString() reads this; getFormatStringByColumn() reads
+// column.format instead. Neither reads both, so resolveFormatString() does.
+const FORMAT_STRING_PROP: powerbi.DataViewObjectPropertyIdentifier = {
+    objectName: "general",
+    propertyName: "formatString",
+};
+
+const VIRTUAL = {
+    THRESHOLD: 150,
+    OVERSCAN: 12,
+    /** Fallback until a real row has been measured. */
+    ESTIMATED_ROW_HEIGHT: 37,
+};
+
+/** One row in the flat model: enough to build its DOM on demand. */
+interface RowEntry {
+    kind: 'data' | 'blank';
+    nodeId: string;
+    parentId: string;
+    level: number;
+    node: any;
+    hasChildren: boolean;
+    isLevel0: boolean;
+}
+
+const ANIM = {
+    EXPAND_MS: 280,
+    COLLAPSE_MS: 220,
+    STAGGER_MS: 22,
+    /**
+     * Total time the stagger may span, however many rows there are. Without a
+     * cap, "collapse all" over a screenful of rows multiplies the per-row delay
+     * by the row count and cascades tier by tier for seconds.
+     */
+    MAX_STAGGER_TOTAL_MS: 240,
+    /** Per-row delay, shrunk so the whole run fits inside MAX_STAGGER_TOTAL_MS. */
+    staggerFor(count: number): number {
+        if (count <= 1) return 0;
+        return Math.min(ANIM.STAGGER_MS, ANIM.MAX_STAGGER_TOTAL_MS / (count - 1));
+    },
+    /** Worst-case wall time for a staggered run over `count` rows. */
+    totalMs(count: number, isExpand: boolean): number {
+        const duration = isExpand ? ANIM.EXPAND_MS : ANIM.COLLAPSE_MS;
+        return duration + ANIM.staggerFor(count) * Math.max(0, count - 1) + 120;
+    }
+};
+
 const CSS_CLASSES = {
     VISUAL_CONTAINER: "visual-container",
     TABLE_CONTAINER: "table-container",
-    MATRIX_TABLE: "matrix-table",
+    MATRIX_GRID: "matrix-grid",
+    GRID_HEADER: "grid-header",
+    GRID_BODY: "grid-body",
+    GRID_FOOTER: "grid-footer",
+    GRID_ROW: "grid-row",
+    GRID_CELL: "grid-cell",
     HOVER_ENABLED: "hover-enabled",
     ROW_HEADER: "row-header",
     COLUMN_HEADER: "column-header",
@@ -81,6 +141,29 @@ export class Visual implements IVisual {
     private isLandingPageOn: boolean = false;
     private landingPageRemoved: boolean = false;
 
+    // Virtualization state. rowModel is every row in preorder; visibleRows is
+    // the subset whose ancestors are all expanded. The DOM mirrors a window
+    // into visibleRows, bracketed by two spacer divs that stand in for the
+    // rows above and below it so the scrollbar stays honest.
+    private rowModel: RowEntry[] = [];
+    private visibleRows: RowEntry[] = [];
+    private renderColumns: any[] = [];
+    /** Format string per leaf column, aligned with `row.values[j]`. */
+    private valueFormats: string[] = [];
+    private gridBody: HTMLElement = null;
+    private topSpacer: HTMLElement = null;
+    private bottomSpacer: HTMLElement = null;
+    private measuredRowHeight: number = 0;
+    private windowStart: number = 0;
+    private windowEnd: number = 0;
+    private scrollRafPending: boolean = false;
+    private onScroll: () => void = null;
+
+    // Incremental data fetching state (restored from 6b61ebe)
+    private hasMoreData: boolean = false;
+    private isLoadingMore: boolean = false;
+    private loadMoreButton: HTMLButtonElement;
+
     //=========================================================================
     // INITIALIZATION
     //=========================================================================
@@ -90,6 +173,9 @@ export class Visual implements IVisual {
         this.host = options.host;
         this.formattingSettingsService = new FormattingSettingsService();
         this.expandedRows = new Map<string, boolean>();
+        // Populate defaults so the Format pane works before any data arrives.
+        // update() returns early with no data, so this is otherwise never set.
+        this.formattingSettings = new VisualFormattingSettingsModel();
         this.createContainerElements();
     }
 
@@ -200,6 +286,12 @@ export class Visual implements IVisual {
             
             if (!dataView.matrix) return;
             
+            // Check if there's more data to load and update flags
+            this.hasMoreData = !!dataView.metadata?.segment;
+            if (options.operationKind === powerbi.VisualDataChangeOperationKind.Append) {
+                this.isLoadingMore = false; // Reset loading flag on successful append
+            }
+            
             // Restore the expanded state
             if (Visual.savedExpandedState.size > 0) {
                 this.expandedRows = new Map<string, boolean>(Visual.savedExpandedState);
@@ -211,6 +303,9 @@ export class Visual implements IVisual {
             // Create matrix table
             this.createMatrixTable(matrix, measureName);
             
+            // Add "Load More" button if there's more data
+            this.updateLoadMoreButton();
+            
             // Restore scroll position
             this.tableDiv.scrollTop = scrollTop;
             this.tableDiv.scrollLeft = scrollLeft;
@@ -221,6 +316,9 @@ export class Visual implements IVisual {
     }
 
     public getFormattingModel(): powerbi.visuals.FormattingModel {
+        if (!this.formattingSettings) {
+            this.formattingSettings = new VisualFormattingSettingsModel();
+        }
         return this.formattingSettingsService.buildFormattingModel(this.formattingSettings);
     }
 
@@ -264,6 +362,43 @@ export class Visual implements IVisual {
         }
         
         return "#,0.00"; // Default fallback format
+    }
+
+    /**
+     * Resolves one column's format, most specific first:
+     *   1. an override the user set in the report (column.objects)
+     *   2. the model's format string (column.format)
+     *   3. a type-derived default (dates, integers, years)
+     * Checking only one of these is why an overridden measure format could be
+     * silently ignored.
+     */
+    private resolveFormatString(column: powerbi.DataViewMetadataColumn): string {
+        if (!column) return this.cachedFormatString;
+
+        const override = valueFormatter.getFormatString(column, FORMAT_STRING_PROP, true);
+        if (override) return override;
+
+        return valueFormatter.getFormatStringByColumn(column) || this.cachedFormatString;
+    }
+
+    /**
+     * One format per leaf column. With several measures the leaf columns cycle
+     * through them, so measure #2 no longer inherits measure #1's format.
+     */
+    private buildValueFormats(dataView: DataView, columnCount: number): string[] {
+        const sources = dataView.matrix?.valueSources ?? [];
+        const formats: string[] = [];
+
+        for (let j = 0; j < columnCount; j++) {
+            const source = sources.length ? sources[j % sources.length] : null;
+            formats.push(source ? this.resolveFormatString(source) : this.cachedFormatString);
+        }
+        return formats;
+    }
+
+    /** Format for leaf column `j`, falling back to the cached measure format. */
+    private formatForColumn(j: number): string {
+        return this.valueFormats[j] || this.cachedFormatString;
     }
 
     private formatNumber(value: number, formatString?: string): string {
@@ -312,13 +447,13 @@ export class Visual implements IVisual {
         }
     }
 
-    private formatCellValue(value: any): string {
+    private formatCellValue(value: any, formatString?: string): string {
         if (value === null || value === undefined) {
             return "";
         }
-        
+
         if (typeof value === 'number') {
-            return this.formatNumber(value);
+            return this.formatNumber(value, formatString);
         }
         
         if (typeof value === 'object') {
@@ -326,8 +461,8 @@ export class Visual implements IVisual {
             if ('value' in value) {
                 const cellValue = value.value;
                 if (typeof cellValue === 'number') {
-                    return this.formatNumber(cellValue);
-                } else if (cellValue === null || cellValue === undefined || 
+                    return this.formatNumber(cellValue, formatString);
+                }else if (cellValue === null || cellValue === undefined || 
                         (typeof cellValue === 'object' && Object.keys(cellValue).length === 0)) {
                     return "";
                 } else {
@@ -408,9 +543,10 @@ export class Visual implements IVisual {
     //=========================================================================
 
     private createMatrixTable(matrix: powerbi.DataViewMatrix, measureName: string): void {
-        // Create table
-        const table = document.createElement("table");
-        table.className = CSS_CLASSES.MATRIX_TABLE;
+        // Create the grid container. Rows are <div>s, not <tr>s, so height /
+        // transform / overflow are legal on them and animations actually render.
+        const table = document.createElement("div");
+        table.className = CSS_CLASSES.MATRIX_GRID;
         
         this.tableDiv.appendChild(table);
         
@@ -422,13 +558,21 @@ export class Visual implements IVisual {
         // Process columns
         const { columns, columnFormats } = this.processColumns(matrix, measureName);
         
-        // Create table header
+        // One shared track definition drives every row, which is what keeps
+        // columns aligned without a table layout algorithm.
+        this.applyGridTemplate(table, columns.length);
+        
+        // Create grid header
         this.createTableHeader(table, columns, columnFormats);
         
-        // Create table body
-        const tbody = document.createElement("tbody");
+        // Create grid body
+        const tbody = document.createElement("div");
+        tbody.className = CSS_CLASSES.GRID_BODY;
         table.appendChild(tbody);
-        
+        this.gridBody = tbody;
+        this.renderColumns = columns;
+        this.valueFormats = this.buildValueFormats(this.lastOptions.dataViews[0], columns.length);
+
         // Initialize level 0 items as expanded if not already set
         if (matrix.rows.root.children) {
             matrix.rows.root.children.forEach((row) => {
@@ -438,11 +582,14 @@ export class Visual implements IVisual {
                 }
             });
         }
-        
-        // Render rows with current expanded state
+
+        // Flatten the tree, then render only the window that is on screen.
+        this.rowModel = [];
         if (matrix.rows.root.children) {
-            this.renderRowsWithSubtotals(table, matrix.rows.root.children, columns, 0, "");
+            this.buildRowModel(matrix.rows.root.children, 0, "");
         }
+        this.refreshRows();
+        this.attachScrollListener();
         
         // Calculate grand totals
         const grandTotals = this.calculateGrandTotals(matrix, columns);
@@ -455,6 +602,23 @@ export class Visual implements IVisual {
         
         // Save expanded state after table creation
         Visual.savedExpandedState = new Map(this.expandedRows);
+    }
+
+    /**
+     * Publishes the column tracks as a custom property on the grid container.
+     * Every row (header, body, footer) inherits it, so all rows stay aligned
+     * with a single source of truth instead of per-cell width styles.
+     */
+    private applyGridTemplate(grid: HTMLElement, columnCount: number): void {
+        const general = this.formattingSettings.generalSettings;
+        const rowHeaderWidth = general.rowHeaderWidth.value || 200;
+        const columnWidth = general.columnWidth.value || 100;
+        
+        grid.style.setProperty(
+            '--grid-cols',
+            `${rowHeaderWidth}px repeat(${columnCount}, ${columnWidth}px)`
+        );
+        grid.style.setProperty('--row-header-width', `${rowHeaderWidth}px`);
     }
 
     private processColumns(matrix: powerbi.DataViewMatrix, measureName: string): { columns: any[], columnFormats: string[] } {
@@ -479,9 +643,11 @@ export class Visual implements IVisual {
         return { columns, columnFormats };
     }
     
-    private createTableHeader(table: HTMLTableElement, columns: any[], columnFormats: string[]): void {
-        const thead = document.createElement("thead");
-        const headerRow = document.createElement("tr");
+    private createTableHeader(table: HTMLElement, columns: any[], columnFormats: string[]): void {
+        const thead = document.createElement("div");
+        thead.className = CSS_CLASSES.GRID_HEADER;
+        const headerRow = document.createElement("div");
+        headerRow.className = CSS_CLASSES.GRID_ROW;
         
         // Add corner cell
         const cornerCell = this.createCornerCell();
@@ -497,116 +663,232 @@ export class Visual implements IVisual {
         table.appendChild(thead);
     }
 
-    private renderRowsWithSubtotals(
-        table: HTMLTableElement, 
-        rows: any[], 
-        columns: any[], 
-        level: number = 0, 
-        parentId: string = ""
-    ): void {
+    /**
+     * Walks the matrix tree once and flattens it into `rowModel` in display
+     * order. Builds no DOM: what is actually rendered is decided later by
+     * computeVisibleRows() and renderVisibleWindow().
+     */
+    private buildRowModel(rows: any[], level: number = 0, parentId: string = ""): void {
         if (!rows?.length) return;
-        
-        const tbody = table.querySelector('tbody') as HTMLTableSectionElement;
-        const columnWidth = this.formattingSettings.generalSettings.columnWidth.value;
-        
+
+        const blankRowSettings = this.formattingSettings.blankRowSettings;
+        const blankRowsOn = blankRowSettings.enableBlankRows.value;
+
         rows.forEach((row, rowIndex) => {
             const nodeId = parentId + this.getNodeId(row, level);
-            
+
             // Default to expanded for level 0 if not explicitly set
             if (level === 0 && !this.expandedRows.has(nodeId)) {
                 this.expandedRows.set(nodeId, true);
             }
-            
-            // Get expanded state from our map, default to false for non-level-0
-            const isExpanded = this.expandedRows.get(nodeId) ?? false;
-            const isLevel0 = level === 0;
-            
-            // Create the table row
-            const tr = document.createElement("tr");
-            tr.setAttribute("data-node-id", nodeId);
-            tr.setAttribute("data-level", String(level));
-            
-            if (parentId) {
-                tr.setAttribute("data-parent-id", parentId);
+
+            const hasChildren = row.children?.length > 0;
+
+            this.rowModel.push({
+                kind: 'data',
+                nodeId,
+                parentId,
+                level,
+                node: row,
+                hasChildren,
+                isLevel0: level === 0,
+            });
+
+            if (hasChildren) {
+                this.buildRowModel(row.children, level + 1, nodeId);
             }
-            
-            if (level > 0) {
-                tr.classList.add("expandable-row");
-                
-                // Check if parent is expanded
-                const parentExpanded = this.expandedRows.get(parentId) ?? false;
-                
-                // Hide this row if parent is collapsed OR this level is not expanded by default
-                if (!parentExpanded) {
-                    tr.classList.add("collapsed");
-                }
+
+            // Separator after each level-0 group except the last.
+            if (blankRowsOn && level === 0 && rowIndex < rows.length - 1) {
+                this.rowModel.push({
+                    kind: 'blank',
+                    nodeId: nodeId + '__blank',
+                    parentId: '',
+                    level: 0,
+                    node: null,
+                    hasChildren: false,
+                    isLevel0: true,
+                });
             }
-            
-            if (isLevel0) {
-                tr.classList.add(CSS_CLASSES.LEVEL_0_ROW);
-            }
-            
-            if (row.children?.length > 0) {
-                tr.classList.add(CSS_CLASSES.SUBTOTAL_ROW);
-            }
-            
-            // Add row header
-            const rowHeader = this.createRowHeader(row, level, nodeId, isExpanded, isLevel0);
-            tr.appendChild(rowHeader);
-            
-            // Add data cells
-            if (row.children?.length > 0) {
-                this.addSubtotalCells(tr, row, columns, isLevel0, columnWidth);
-            } else if (row.values) {
-                this.addDataCells(tr, row, columns, columnWidth);
-            }
-            
-            tbody.appendChild(tr);
-            
-            // If this node has children, always render them
-            if (row.children?.length > 0) {
-                // Set initial collapsed state for children based on parent
-                if (!isExpanded) {
-                    this.setChildrenCollapsed(nodeId, row.children, level + 1);
-                }
-                
-                this.renderRowsWithSubtotals(table, row.children, columns, level + 1, nodeId);
-            }
-            
-            // Add blank row if needed
-            this.addBlankRowIfNeeded(tbody, columns, rowIndex, rows.length, row, level);
         });
+    }
+
+    /**
+     * Narrows rowModel to the rows whose ancestors are all expanded. Because
+     * the model is in preorder, one pass suffices: when a collapsed parent is
+     * seen, everything deeper than it is skipped until we surface again.
+     */
+    private computeVisibleRows(): void {
+        const visible: RowEntry[] = [];
+        let hiddenBelowLevel = Number.POSITIVE_INFINITY;
+
+        for (const entry of this.rowModel) {
+            if (entry.level > hiddenBelowLevel) continue;   // inside a collapsed subtree
+            hiddenBelowLevel = Number.POSITIVE_INFINITY;    // surfaced again
+
+            visible.push(entry);
+
+            if (entry.hasChildren && this.expandedRows.get(entry.nodeId) !== true) {
+                hiddenBelowLevel = entry.level;
+            }
+        }
+
+        this.visibleRows = visible;
+    }
+
+    /** Builds the DOM for one model entry. */
+    private createRowElement(entry: RowEntry): HTMLElement {
+        if (entry.kind === 'blank') {
+            return this.createBlankRow();
+        }
+
+        const columnWidth = this.formattingSettings.generalSettings.columnWidth.value;
+        const isExpanded = this.expandedRows.get(entry.nodeId) ?? false;
+
+        const tr = document.createElement("div");
+        tr.className = CSS_CLASSES.GRID_ROW;
+        tr.setAttribute("data-node-id", entry.nodeId);
+        tr.setAttribute("data-level", String(entry.level));
+
+        if (entry.parentId) {
+            tr.setAttribute("data-parent-id", entry.parentId);
+        }
+
+        if (entry.level > 0) {
+            tr.classList.add("expandable-row");
+        }
+
+        if (entry.isLevel0) {
+            tr.classList.add(CSS_CLASSES.LEVEL_0_ROW);
+        }
+
+        if (entry.hasChildren) {
+            tr.classList.add(CSS_CLASSES.SUBTOTAL_ROW);
+        }
+
+        const rowHeader = this.createRowHeader(
+            entry.node, entry.level, entry.nodeId, isExpanded, entry.isLevel0);
+        tr.appendChild(rowHeader);
+
+        if (entry.hasChildren) {
+            this.addSubtotalCells(tr, entry.node, this.renderColumns, entry.isLevel0, columnWidth);
+        } else if (entry.node.values) {
+            this.addDataCells(tr, entry.node, this.renderColumns, columnWidth);
+        }
+
+        return tr;
+    }
+
+    /**
+     * Renders the slice of visibleRows around the current scroll offset, with
+     * a spacer above and below standing in for the rows that are not rendered.
+     * Below VIRTUAL.THRESHOLD rows the slice is simply everything.
+     */
+    private renderVisibleWindow(): void {
+        if (!this.gridBody) return;
+
+        const total = this.visibleRows.length;
+        const rowHeight = this.measuredRowHeight || VIRTUAL.ESTIMATED_ROW_HEIGHT;
+
+        let start = 0;
+        let end = total;
+
+        if (total > VIRTUAL.THRESHOLD) {
+            const viewport = this.tableDiv.clientHeight || 600;
+            const scrollTop = this.tableDiv.scrollTop || 0;
+            start = Math.max(0, Math.floor(scrollTop / rowHeight) - VIRTUAL.OVERSCAN);
+            const visibleCount = Math.ceil(viewport / rowHeight) + VIRTUAL.OVERSCAN * 2;
+            end = Math.min(total, start + visibleCount);
+        }
+
+        this.windowStart = start;
+        this.windowEnd = end;
+
+        // Rebuild the window. Rows carry per-cell inline formatting, so reusing
+        // nodes across a scroll would mean re-running applyFormatting on each
+        // anyway; replacing them keeps the bookkeeping honest.
+        while (this.gridBody.firstChild) {
+            this.gridBody.removeChild(this.gridBody.firstChild);
+        }
+
+        this.topSpacer = document.createElement('div');
+        this.topSpacer.className = 'grid-spacer';
+        this.topSpacer.style.height = `${start * rowHeight}px`;
+        this.gridBody.appendChild(this.topSpacer);
+
+        const fragment = document.createDocumentFragment();
+        for (let i = start; i < end; i++) {
+            fragment.appendChild(this.createRowElement(this.visibleRows[i]));
+        }
+        this.gridBody.appendChild(fragment);
+
+        this.bottomSpacer = document.createElement('div');
+        this.bottomSpacer.className = 'grid-spacer';
+        this.bottomSpacer.style.height = `${Math.max(0, total - end) * rowHeight}px`;
+        this.gridBody.appendChild(this.bottomSpacer);
+
+        // Measure a real row once so the spacer maths stops guessing.
+        if (!this.measuredRowHeight) {
+            const firstRow = this.gridBody.querySelector(
+                `.${CSS_CLASSES.GRID_ROW}[data-node-id]`) as HTMLElement;
+            const h = firstRow ? firstRow.offsetHeight : 0;
+            if (h > 0) {
+                this.measuredRowHeight = h;
+                if (total > VIRTUAL.THRESHOLD) {
+                    this.renderVisibleWindow();   // redo with the real height
+                    return;
+                }
+            }
+        }
+
+        // Rows built here are brand new DOM, so they carry none of the user's
+        // cell formatting until it is applied. This has to happen on EVERY
+        // render -- expand, collapse and scroll all land here -- or interacting
+        // with the visual silently resets cells to the stylesheet default while
+        // a resize (which rebuilds from scratch) keeps them formatted.
+        this.formatCellsByType(this.gridBody);
+    }
+
+    /** Recomputes visibility and repaints the window. */
+    private refreshRows(): void {
+        this.computeVisibleRows();
+        this.renderVisibleWindow();
+    }
+
+    private attachScrollListener(): void {
+        if (this.onScroll) {
+            this.tableDiv.removeEventListener('scroll', this.onScroll);
+        }
+        this.onScroll = () => {
+            if (this.visibleRows.length <= VIRTUAL.THRESHOLD) return;
+            if (this.scrollRafPending) return;
+            this.scrollRafPending = true;
+            window.requestAnimationFrame(() => {
+                this.scrollRafPending = false;
+                this.renderVisibleWindow();   // formats the new window itself
+            });
+        };
+        this.tableDiv.addEventListener('scroll', this.onScroll);
     }
 
     //=========================================================================
     // CELL AND ELEMENT CREATION
     //=========================================================================
 
-    private createCornerCell(): HTMLTableHeaderCellElement {
-        const cornerCell = document.createElement("th");
-        cornerCell.className = `${CSS_CLASSES.ROW_HEADER} ${CSS_CLASSES.COLUMN_HEADER}`;
-        cornerCell.setAttribute("style", 
-            "position: sticky !important; " + 
-            "top: 0 !important; " + 
-            "left: 0 !important; " + 
-            "z-index: 1000 !important; " + 
-            "background-color: #e0e0e0;"
-        );
+    private createCornerCell(): HTMLElement {
+        const cornerCell = document.createElement("div");
+        // Stickiness and stacking order are handled entirely in visual.less now.
+        cornerCell.className = `${CSS_CLASSES.GRID_CELL} ${CSS_CLASSES.ROW_HEADER} ${CSS_CLASSES.COLUMN_HEADER} corner-cell`;
 
         this.applyFormatting(cornerCell, 'columnHeader');
         return cornerCell;
     }
     
-    private createColumnHeader(column: any, format: string): HTMLTableHeaderCellElement {
-        const th = document.createElement("th");
-        th.className = CSS_CLASSES.COLUMN_HEADER;
+    private createColumnHeader(column: any, format: string): HTMLElement {
+        const th = document.createElement("div");
+        th.className = `${CSS_CLASSES.GRID_CELL} ${CSS_CLASSES.COLUMN_HEADER}`;
         
-        // Apply column width
-        const columnWidth = this.formattingSettings.generalSettings.columnWidth.value;
-        if (columnWidth) {
-            th.style.minWidth = `${columnWidth}px`;
-            th.style.width = `${columnWidth}px`;
-        }
+        // Width comes from the grid template, not per-cell styles.
         
         // Apply formatting
         this.applyFormatting(th, 'columnHeader');
@@ -632,20 +914,15 @@ export class Visual implements IVisual {
         nodeId: string, 
         isExpanded: boolean,
         isLevel0: boolean
-    ): HTMLTableHeaderCellElement {
-        const rowHeader = document.createElement("th");
-        rowHeader.className = CSS_CLASSES.ROW_HEADER;
+    ): HTMLElement {
+        const rowHeader = document.createElement("div");
+        rowHeader.className = `${CSS_CLASSES.GRID_CELL} ${CSS_CLASSES.ROW_HEADER}`;
         
         if (isLevel0) {
             rowHeader.classList.add(CSS_CLASSES.LEVEL_0_HEADER);
         }
         
-        // Apply row header width
-        const rowHeaderWidth = this.formattingSettings.generalSettings.rowHeaderWidth.value;
-        if (rowHeaderWidth) {
-            rowHeader.style.minWidth = `${rowHeaderWidth}px`;
-            rowHeader.style.width = `${rowHeaderWidth}px`;
-        }
+        // Width comes from the grid template, not per-cell styles.
         
         // Create header content
         const headerContent = document.createElement("div");
@@ -723,24 +1000,20 @@ export class Visual implements IVisual {
     }
 
     private addDataCells(
-        tr: HTMLTableRowElement, 
+        tr: HTMLElement, 
         row: any,
         columns: any[], 
         columnWidth: number
     ): void {
         columns.forEach((_, j) => {
-            const td = document.createElement("td");
-            td.className = CSS_CLASSES.DATA_CELL;
+            const td = document.createElement("div");
+            td.className = `${CSS_CLASSES.GRID_CELL} ${CSS_CLASSES.DATA_CELL}`;
             
-            // Apply column width
-            if (columnWidth) {
-                td.style.minWidth = `${columnWidth}px`;
-                td.style.width = `${columnWidth}px`;
-            }
+            // Width comes from the grid template, not per-cell styles.
             
-            // Get cell value and format it
+            // Get cell value and format it with this column's format string
             const value = row.values[j];
-            td.textContent = this.formatCellValue(value);
+            td.textContent = this.formatCellValue(value, this.formatForColumn(j));
             
             // Store the raw value as a data attribute
             if (value && typeof value.value === 'number') {
@@ -752,31 +1025,29 @@ export class Visual implements IVisual {
     }
 
     private addSubtotalCells(
-        tr: HTMLTableRowElement, 
+        tr: HTMLElement, 
         row: MatrixNode, 
         columns: any[], 
         isLevel0: boolean,
         columnWidth: number
     ): void {
         columns.forEach((_, j) => {
-            const td = document.createElement("td");
-            td.className = `${CSS_CLASSES.DATA_CELL} ${CSS_CLASSES.SUBTOTAL_CELL}`;
+            const td = document.createElement("div");
+            td.className = `${CSS_CLASSES.GRID_CELL} ${CSS_CLASSES.DATA_CELL} ${CSS_CLASSES.SUBTOTAL_CELL}`;
             
             if (isLevel0) {
                 td.classList.add(CSS_CLASSES.LEVEL_0_SUBTOTAL);
             }
             
-            // Apply column width
-            if (columnWidth) {
-                td.style.minWidth = `${columnWidth}px`;
-                td.style.width = `${columnWidth}px`;
-            }
+            // Width comes from the grid template, not per-cell styles.
             
             // Calculate subtotal
             const subtotal = this.calculateSubtotalForColumn(row, j);
             
             // Only display non-zero subtotals
-            td.textContent = subtotal !== 0 ? this.formatNumber(subtotal) : "";
+            td.textContent = subtotal !== 0
+                ? this.formatNumber(subtotal, this.formatForColumn(j))
+                : "";
             
             // Apply alignment from subtotal settings for subtotal cells
             const alignment = this.formattingSettings.subtotalFormatSettings.alignment?.value?.value;
@@ -788,7 +1059,7 @@ export class Visual implements IVisual {
         });
     }
 
-    private addGrandTotalRow(table: HTMLTableElement, columns: any[], totals: number[]): void {
+    private addGrandTotalRow(table: HTMLElement, columns: any[], totals: number[]): void {
         const settings = this.formattingSettings;
         
         // Check if grand total is enabled
@@ -797,43 +1068,40 @@ export class Visual implements IVisual {
         }
         
         // Get the footer or create one if it doesn't exist
-        let tfoot = table.querySelector('tfoot');
+        let tfoot = table.querySelector(`.${CSS_CLASSES.GRID_FOOTER}`) as HTMLElement;
         if (!tfoot) {
-            tfoot = document.createElement('tfoot');
+            tfoot = document.createElement('div');
+            tfoot.className = CSS_CLASSES.GRID_FOOTER;
             table.appendChild(tfoot);
         } else {
             // Clear existing content
-            tfoot.innerHTML = '';
+            while (tfoot.firstChild) {
+                tfoot.removeChild(tfoot.firstChild);
+            }
         }
         
         this.addBlankRowBeforeTotal(tfoot, columns);
 
-        // Create the grand total row
-        const tr = document.createElement('tr');
-        tr.className = CSS_CLASSES.GRAND_TOTAL_ROW;
-        
-        // Set the row to be sticky to the bottom
-        tr.style.position = 'sticky';
-        tr.style.bottom = '0';
-        tr.style.zIndex = '5';
+        // Create the grand total row. Sticky-bottom behavior lives in visual.less.
+        const tr = document.createElement('div');
+        tr.className = `${CSS_CLASSES.GRID_ROW} ${CSS_CLASSES.GRAND_TOTAL_ROW}`;
         
         // Create the label cell
-        const labelCell = document.createElement('th');
+        const labelCell = document.createElement('div');
+        labelCell.className = `${CSS_CLASSES.GRID_CELL} ${CSS_CLASSES.ROW_HEADER} grand-total-label`;
         labelCell.textContent = settings.grandTotalSettings.label.value || 'Grand Total';
-        labelCell.style.position = 'sticky';
-        labelCell.style.left = '0';
-        labelCell.style.zIndex = '6'; // Higher than the row to ensure it stays on top
         tr.appendChild(labelCell);
         
         // Create the total cells
         totals.forEach((total, i) => {
-            const td = document.createElement('td');
-            td.textContent = this.formatNumber(total);
+            const td = document.createElement('div');
+            td.className = `${CSS_CLASSES.GRID_CELL} ${CSS_CLASSES.DATA_CELL}`;
+            td.textContent = this.formatNumber(total, this.formatForColumn(i));
             tr.appendChild(td);
         });
         
         // Apply formatting to each cell in the grand total row
-        const cells = tr.querySelectorAll('th, td');
+        const cells = tr.querySelectorAll(`.${CSS_CLASSES.GRID_CELL}`);
         cells.forEach(cell => {
             this.applyFormatting(cell as HTMLElement, 'grandTotal');
         });
@@ -842,84 +1110,46 @@ export class Visual implements IVisual {
         tfoot.appendChild(tr);
     }
 
-    private addBlankRowIfNeeded(
-        tbody: HTMLTableSectionElement, 
-        columns: any[], 
-        currentIndex: number, 
-        totalRows: number, 
-        currentRow: MatrixNode,
-        level: number
-    ): void {
+    /** Builds a separator row. Used by the row model and by the grand-total footer. */
+    private createBlankRow(): HTMLElement {
         const blankRowSettings = this.formattingSettings.blankRowSettings;
-        
-        // Only add blank rows if the setting is enabled and this is a level 0 row (not the last one)
-        if (!blankRowSettings.enableBlankRows.value || level !== 0 || currentIndex >= totalRows - 1) {
-            return;
-        }
-        
-        // Create blank row
-        const blankRow = document.createElement("tr");
-        blankRow.className = CSS_CLASSES.BLANK_ROW;
-        
+
+        const blankRow = document.createElement("div");
+        blankRow.className = `${CSS_CLASSES.GRID_ROW} ${CSS_CLASSES.BLANK_ROW}`;
+
         // Set the height if specified
         const rowHeight = blankRowSettings.height.value;
         if (rowHeight > 0) {
             blankRow.style.height = `${rowHeight}px`;
         }
-        
-        // Create a cell that spans all columns
-        const blankCell = document.createElement("td");
-        blankCell.colSpan = columns.length + 1; // +1 for row header column
-        
+
+        // Create a cell that spans all columns (grid equivalent of colSpan)
+        const blankCell = document.createElement("div");
+        blankCell.className = CSS_CLASSES.GRID_CELL;
+        blankCell.style.gridColumn = "1 / -1";
+
         // Apply background color from settings
         const bgColor = blankRowSettings.backgroundColor.value.value;
         if (bgColor) {
             blankCell.style.backgroundColor = bgColor;
         }
-        
-        // Add the cell to the row and the row to the table
+
         blankRow.appendChild(blankCell);
-        tbody.appendChild(blankRow);
+        return blankRow;
     }
     
-    private addBlankRowBeforeTotal(tfoot: HTMLTableSectionElement, columns: any[]): void {
-        const blankRowSettings = this.formattingSettings.blankRowSettings;
-        
-        // Only add blank row if the setting is enabled
-        if (!blankRowSettings.enableBlankRows.value) {
+    private addBlankRowBeforeTotal(tfoot: HTMLElement, columns: any[]): void {
+        if (!this.formattingSettings.blankRowSettings.enableBlankRows.value) {
             return;
         }
-        
-        // Create blank row
-        const blankRow = document.createElement("tr");
-        blankRow.className = CSS_CLASSES.BLANK_ROW;
-        
-        // Set the height if specified
-        const rowHeight = blankRowSettings.height.value;
-        if (rowHeight > 0) {
-            blankRow.style.height = `${rowHeight}px`;
-        }
-        
-        // Create a cell that spans all columns
-        const blankCell = document.createElement("td");
-        blankCell.colSpan = columns.length + 1; // +1 for row header column
-        
-        // Apply background color from settings
-        const bgColor = blankRowSettings.backgroundColor.value.value;
-        if (bgColor) {
-            blankCell.style.backgroundColor = bgColor;
-        }
-        
-        // Add the cell to the row and the row to the table footer
-        blankRow.appendChild(blankCell);
-        tfoot.appendChild(blankRow);
+        tfoot.appendChild(this.createBlankRow());
     }
 
     //=========================================================================
     // FORMATTING AND STYLING
     //=========================================================================
 
-    private applyTableFormatting(table: HTMLTableElement): void {
+    private applyTableFormatting(table: HTMLElement): void {
         if (!this.formattingSettings) return;
         
         try {
@@ -940,14 +1170,14 @@ export class Visual implements IVisual {
         }
     }
 
-    private formatCellsByType(table: HTMLTableElement): void {
+    private formatCellsByType(table: HTMLElement): void {
         // Use CSS selectors to get different cell types
-        const regularCells = table.querySelectorAll('td.data-cell:not(.subtotal-cell):not(.level-0-subtotal)');
-        const subtotalCells = table.querySelectorAll('td.subtotal-cell, td.level-0-subtotal');
-        const regularRowHeaders = table.querySelectorAll('tr:not(.subtotal-row) > th.row-header');
-        const subtotalRowHeaders = table.querySelectorAll('tr.subtotal-row > th.row-header');
-        const columnHeaderCells = table.querySelectorAll('th.column-header:not(.row-header)');
-        const cornerCell = table.querySelector('th.row-header.column-header');
+        const regularCells = table.querySelectorAll('.data-cell:not(.subtotal-cell):not(.level-0-subtotal)');
+        const subtotalCells = table.querySelectorAll('.subtotal-cell, .level-0-subtotal');
+        const regularRowHeaders = table.querySelectorAll('.grid-row:not(.subtotal-row) > .row-header:not(.column-header)');
+        const subtotalRowHeaders = table.querySelectorAll('.grid-row.subtotal-row > .row-header:not(.column-header)');
+        const columnHeaderCells = table.querySelectorAll('.column-header:not(.row-header)');
+        const cornerCell = table.querySelector('.row-header.column-header');
     
         // Apply formatting to each cell type
         regularCells.forEach(cell => this.applyFormatting(cell as HTMLElement, 'data'));
@@ -1015,7 +1245,7 @@ export class Visual implements IVisual {
             // Alignment - special handling for grand total labels
             if (formatSettings.alignment?.value?.value !== undefined) {
                 // Special handling for grand total label cell
-                if (type === 'grandTotal' && element.tagName === 'TH') {
+                if (type === 'grandTotal' && element.classList.contains(CSS_CLASSES.ROW_HEADER)) {
                     element.style.textAlign = 'left';
                 } else {
                     element.style.textAlign = formatSettings.alignment.value.value.toString();
@@ -1024,7 +1254,7 @@ export class Visual implements IVisual {
         }
     }
 
-    private applyGlobalBorders(table: HTMLTableElement): void {
+    private applyGlobalBorders(table: HTMLElement): void {
         const borderSettings = this.formattingSettings.borderSettings;
         
         if (!borderSettings?.show?.value) {
@@ -1061,51 +1291,8 @@ export class Visual implements IVisual {
         table.style.setProperty('--border-width', `${borderWidth}px`);
         table.style.setProperty('--border-style', 'solid');
         
-        // Apply specific border styles to row headers to fix animation issues
-        this.fixHeaderBorders();
-    }
-
-    private fixHeaderBorders(): void {
-        if (!this.formattingSettings?.borderSettings?.show?.value) return;
-        
-        const borderSettings = this.formattingSettings.borderSettings;
-        const borderColor = borderSettings.color.value.value;
-        const borderWidth = borderSettings.width.value;
-        const showHorizontal = borderSettings.horizontalBorders.value;
-        const showVertical = borderSettings.verticalBorders.value;
-        
-        // Target all row headers specifically
-        const rowHeaders = this.tableDiv.querySelectorAll('th.row-header');
-        rowHeaders.forEach(header => {
-            const headerEl = header as HTMLElement;
-            
-            // Clear any inline border styles first to avoid conflicts
-            headerEl.style.removeProperty('border');
-            headerEl.style.removeProperty('border-top');
-            headerEl.style.removeProperty('border-bottom');
-            headerEl.style.removeProperty('border-left');
-            headerEl.style.removeProperty('border-right');
-            
-            // Then reapply proper border styles with !important
-            headerEl.style.cssText += `
-                border-color: ${borderColor} !important;
-                border-style: solid !important;
-                ${showVertical ? `
-                    border-left-width: ${borderWidth}px !important;
-                    border-right-width: ${borderWidth}px !important;
-                ` : `
-                    border-left-width: 0 !important;
-                    border-right-width: 0 !important;
-                `}
-                ${showHorizontal ? `
-                    border-top-width: ${borderWidth}px !important;
-                    border-bottom-width: ${borderWidth}px !important;
-                ` : `
-                    border-top-width: 0 !important;
-                    border-bottom-width: 0 !important;
-                `}
-            `;
-        });
+        // No fixHeaderBorders() here any more: borders on <div> rows survive the
+        // animation, so the !important rewrite pass it existed to undo is gone.
     }
 
     //=========================================================================
@@ -1141,43 +1328,84 @@ export class Visual implements IVisual {
         if (this.animatingNodes.has(nodeId) || this.animatingNodes.size > 0) {
             return;
         }
-        
+
         // Mark this node as animating
         this.animatingNodes.add(nodeId);
-        
+
         // Get current expanded state and update it
         const isExpanded = this.expandedRows.get(nodeId) ?? false;
         this.expandedRows.set(nodeId, !isExpanded);
-        
-        // Get direct children for animation
-        const directChildren = Array.from(
-            this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`)
-        ) as HTMLElement[];
-        
-        // Update toggle button appearance immediately
-        const toggleButton = this.tableDiv.querySelector(`tr[data-node-id="${nodeId}"] .toggle-button`) as HTMLElement;
+
+        // Collapsing a node also collapses everything beneath it, so reopening
+        // it does not spill a whole subtree back out at once.
+        if (isExpanded) {
+            for (const entry of this.descendantEntries(nodeId)) {
+                this.expandedRows.set(entry.nodeId, false);
+            }
+        }
+
+        // Save state
+        Visual.savedExpandedState = new Map(this.expandedRows);
+
+        // Disable all toggle buttons during animation
+        this.disableAllToggleButtons();
+
+        let animatingRows: HTMLElement[];
+
+        if (isExpanded) {
+            // Collapsing: the rows are on screen now. Animate them out first,
+            // then drop them from the model's visible set.
+            animatingRows = this.renderedDescendants(nodeId);
+        } else {
+            // Expanding: the rows do not exist yet under virtualization, so
+            // render them first and then animate what actually landed.
+            this.refreshRows();
+            animatingRows = this.renderedDescendants(nodeId);
+        }
+
+        // Update toggle button appearance (after any re-render, so the button
+        // we touch is the one currently in the DOM).
+        const toggleButton = this.tableDiv.querySelector(
+            `.grid-row[data-node-id="${nodeId}"] .toggle-button`) as HTMLElement;
         if (toggleButton) {
             toggleButton.textContent = !isExpanded ? '▲' : '▼';
         }
-        
-        // Save state
-        Visual.savedExpandedState = new Map(this.expandedRows);
-        
-        // Disable all toggle buttons during animation
-        this.disableAllToggleButtons();
-        
-        // Set safety timeout
+
+        // Safety timeout, sized to the actual staggered run so it cannot fire
+        // while rows are still animating.
         const timeout = window.setTimeout(() => {
             this.cleanupAnimation(nodeId);
-        }, 500);
-        
+        }, ANIM.totalMs(animatingRows.length, !isExpanded));
+
         this.animationTimeouts.set(nodeId, timeout);
-        
+
         if (isExpanded) {
-            this.animateCollapse(directChildren, nodeId);
+            this.animateCollapse(animatingRows, nodeId);
         } else {
-            this.animateExpand(directChildren, nodeId);
+            this.animateExpand(animatingRows, nodeId);
         }
+    }
+
+    /** Model-driven: every descendant entry of `nodeId`, at any depth. */
+    private descendantEntries(nodeId: string): RowEntry[] {
+        const out: RowEntry[] = [];
+        const index = this.rowModel.findIndex(e => e.nodeId === nodeId);
+        if (index < 0) return out;
+
+        const rootLevel = this.rowModel[index].level;
+        for (let i = index + 1; i < this.rowModel.length; i++) {
+            const entry = this.rowModel[i];
+            if (entry.level <= rootLevel) break;      // left the subtree
+            out.push(entry);
+        }
+        return out;
+    }
+
+    /** The subset of `nodeId`'s direct children that are currently rendered. */
+    private renderedDescendants(nodeId: string): HTMLElement[] {
+        return Array.from(
+            this.tableDiv.querySelectorAll(`.grid-row[data-parent-id="${nodeId}"]`)
+        ) as HTMLElement[];
     }
 
     //=========================================================================
@@ -1199,58 +1427,35 @@ export class Visual implements IVisual {
             return;
         }
         
-        // Save border styles before animation
-        rows.forEach(row => {
-            const borderData = {
-                borderTopWidth: row.style.borderTopWidth,
-                borderBottomWidth: row.style.borderBottomWidth,
-                borderLeftWidth: row.style.borderLeftWidth,
-                borderRightWidth: row.style.borderRightWidth,
-                borderColor: row.style.borderColor,
-                borderStyle: row.style.borderStyle
-            };
-            row.setAttribute('data-border-state', JSON.stringify(borderData));
-        });
-        
-        // Prepare rows for animation
+        // Rows are <div>s now, so height / transform / overflow all apply and the
+        // keyframes render as written. No border save/restore is needed: borders
+        // on a div row survive the animation instead of being dropped by the
+        // table layout, which is what fixHeaderBorders() used to paper over.
         rows.forEach(row => {
             row.classList.remove('collapsed', 'collapsing-wave');
-            row.style.height = '0';
-            row.style.opacity = '0';
-            row.style.overflow = 'hidden';
-            row.style.transformOrigin = 'top';
-            row.style.transform = 'scaleY(0.3)';
-            
-            // Set target height
-            const naturalHeight = row.scrollHeight;
-            row.style.setProperty('--row-height', `${naturalHeight}px`);
+            // Measure the natural height to animate toward.
+            row.style.setProperty('--row-height', `${row.scrollHeight}px`);
         });
         
         // Force a reflow
         void rows[0].offsetHeight;
         
         // Apply animation with staggered delay
+        const stagger = ANIM.staggerFor(rows.length);
         rows.forEach((row, index) => {
-            row.style.animationDelay = `${index * 30}ms`;
+            row.style.animationDelay = `${index * stagger}ms`;
             row.classList.add('expanding-wave');
         });
         
         // Listen for animation end on the last row
         const lastRow = rows[rows.length - 1];
         lastRow.addEventListener('animationend', () => {
-            this.restoreBorderStyles(rows);
-            
-            // Cleanup all styling
             rows.forEach(row => {
                 row.classList.remove('expanding-wave');
                 row.style.animationDelay = '';
-                row.style.height = '';
-                row.style.opacity = '';
-                row.style.overflow = '';
-                row.style.transform = '';
+                row.style.removeProperty('--row-height');
             });
-            
-            this.fixHeaderBorders(); // Fix borders after animation
+
             this.cleanupAnimation(nodeId);
         }, { once: true });
     }
@@ -1261,81 +1466,38 @@ export class Visual implements IVisual {
             return;
         }
         
-        // Save border styles before animation
-        rows.forEach(row => {
-            const borderData = {
-                borderTopWidth: row.style.borderTopWidth,
-                borderBottomWidth: row.style.borderBottomWidth,
-                borderLeftWidth: row.style.borderLeftWidth,
-                borderRightWidth: row.style.borderRightWidth,
-                borderColor: row.style.borderColor,
-                borderStyle: row.style.borderStyle
-            };
-            row.setAttribute('data-border-state', JSON.stringify(borderData));
-        });
-        
-        // Prepare rows for animation
+        // Capture the current height so the collapse keyframe has somewhere to
+        // animate from. See animateExpand for why no border bookkeeping is needed.
         rows.forEach(row => {
             row.classList.remove('expanding-wave', 'collapsed');
-            row.style.transformOrigin = 'top';
-            
-            // Set initial state
-            const rowHeight = row.offsetHeight;
-            row.style.setProperty('--row-height', `${rowHeight}px`);
-            row.style.overflow = 'hidden';
+            row.style.setProperty('--row-height', `${row.offsetHeight}px`);
         });
         
         // Force a reflow
         void rows[0].offsetHeight;
         
         // Apply animation with staggered delay (reversed for collapse)
+        const stagger = ANIM.staggerFor(rows.length);
         rows.slice().reverse().forEach((row, index) => {
-            row.style.animationDelay = `${index * 30}ms`;
+            row.style.animationDelay = `${index * stagger}ms`;
             row.classList.add('collapsing-wave');
         });
         
         // Listen for animation end
         const lastRow = rows[0]; // First row will be the last to collapse
         lastRow.addEventListener('animationend', () => {
-            this.restoreBorderStyles(rows);
-            
             // Hide rows after animation
             rows.forEach(row => {
                 row.classList.remove('collapsing-wave');
                 row.classList.add('collapsed');
                 row.style.animationDelay = '';
-                row.style.transform = '';
+                row.style.removeProperty('--row-height');
             });
-            
-            this.fixHeaderBorders(); // Fix borders after animation
+
             this.cleanupAnimation(nodeId);
         }, { once: true });
     }
     
-    private restoreBorderStyles(rows: HTMLElement[]): void {
-        rows.forEach(row => {
-            const borderDataStr = row.getAttribute('data-border-state');
-            if (borderDataStr) {
-                try {
-                    const borderData = JSON.parse(borderDataStr);
-                    
-                    // Restore border styles
-                    if (borderData.borderTopWidth) row.style.borderTopWidth = borderData.borderTopWidth;
-                    if (borderData.borderBottomWidth) row.style.borderBottomWidth = borderData.borderBottomWidth;
-                    if (borderData.borderLeftWidth) row.style.borderLeftWidth = borderData.borderLeftWidth;
-                    if (borderData.borderRightWidth) row.style.borderRightWidth = borderData.borderRightWidth;
-                    if (borderData.borderColor) row.style.borderColor = borderData.borderColor;
-                    if (borderData.borderStyle) row.style.borderStyle = borderData.borderStyle;
-                    
-                    // Clean up
-                    row.removeAttribute('data-border-state');
-                } catch (e) {
-                    console.error('Error restoring border styles:', e);
-                }
-            }
-        });
-    }
-
     private cleanupAnimation(nodeId: string): void {
         // Clear timeout
         const timeout = this.animationTimeouts.get(nodeId);
@@ -1343,9 +1505,13 @@ export class Visual implements IVisual {
             window.clearTimeout(timeout);
             this.animationTimeouts.delete(nodeId);
         }
-        
+
         // Remove from animating set
         this.animatingNodes.delete(nodeId);
+
+        // Repaint from the model. After a collapse this is what actually drops
+        // the hidden rows out of the DOM.
+        this.refreshRows();
         
         // Re-enable all toggle buttons
         const allButtons = this.tableDiv.querySelectorAll('.toggle-button');
@@ -1356,48 +1522,8 @@ export class Visual implements IVisual {
             htmlBtn.removeAttribute('data-animating');
         });
         
-        // Get current expanded state
-        const isExpanded = this.expandedRows.get(nodeId) ?? false;
-        
-        // Make sure all direct children have the correct visibility
-        const directChildren = Array.from(
-            this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`)
-        ) as HTMLElement[];
-        
-        directChildren.forEach(child => {
-            if (isExpanded) {
-                child.classList.remove('collapsed');
-            } else {
-                child.classList.add('collapsed');
-            }
-        });
-        
-        // If this was a collapse, also collapse all descendants
-        if (!isExpanded) {
-            // Mark all descendants as collapsed in the state
-            const allDescendants = this.findAllDescendants(nodeId);
-            allDescendants.forEach(row => {
-                const rowId = row.getAttribute('data-node-id');
-                if (rowId) {
-                    // Update the UI
-                    row.classList.add('collapsed');
-                    
-                    // Update toggle button
-                    const childToggle = row.querySelector('.toggle-button') as HTMLElement;
-                    if (childToggle) {
-                        childToggle.textContent = "▼"; // Collapsed state
-                    }
-                    
-                    // Update state
-                    this.expandedRows.set(rowId, false);
-                }
-            });
-        }
-        
-        // Ensure all border formatting is correctly applied
-        this.fixHeaderBorders();
-        
-        // Save final state
+        // Visibility now comes from the row model, which refreshRows() has
+        // already repainted, so there is no DOM bookkeeping left to do here.
         Visual.savedExpandedState = new Map(this.expandedRows);
     }
 
@@ -1415,14 +1541,14 @@ export class Visual implements IVisual {
             
             // Find the clicked cell
             const target = e.target as HTMLElement;
-            const cell = target.closest('td, th') as HTMLElement;
+            const cell = target.closest('.grid-cell') as HTMLElement;
             
             if (cell) {
                 // Store the active cell
                 this.activeCell = cell;
                 
                 // Get row info for expand/collapse
-                const row = cell.closest('tr') as HTMLElement;
+                const row = cell.closest('.grid-row') as HTMLElement;
                 if (row) {
                     this.activeNodeId = row.getAttribute('data-node-id');
                     this.activeLevel = parseInt(row.getAttribute('data-level') || '0', 10);
@@ -1567,179 +1693,105 @@ export class Visual implements IVisual {
     }
 
     private batchExpandCollapseByLevel(level: number, expand: boolean): void {
-        // Find all rows at the specified level that have children
-        const levelRows = Array.from(
-            this.tableDiv.querySelectorAll(`tr[data-level="${level}"] .toggle-button`)
-        ).map(btn => (btn as HTMLElement).closest('tr')) as HTMLElement[];
-        
-        // Filter to only rows that need to change state
-        const rowsToChange = levelRows.filter(row => {
-            if (!row) return false;
-            const nodeId = row.getAttribute('data-node-id');
-            return nodeId && this.expandedRows.get(nodeId) !== expand;
-        });
-        
-        if (rowsToChange.length === 0) return;
-        
-        // Process rows batch
-        this.processBatchExpansion(
-            `level_${level}_${expand ? 'expand' : 'collapse'}`, 
-            rowsToChange, 
-            expand
-        );
+        const targets = this.rowModel.filter(e =>
+            e.kind === 'data' && e.hasChildren && e.level === level &&
+            this.expandedRows.get(e.nodeId) !== expand);
+
+        this.processBatchExpansion(`level_${level}_${expand ? 'expand' : 'collapse'}`, targets, expand);
     }
-    
+
     private batchExpandCollapseAll(expand: boolean): void {
-        // Get all rows with toggle buttons
-        const allToggleRows = Array.from(
-            this.tableDiv.querySelectorAll('tr .toggle-button')
-        ).map(btn => (btn as HTMLElement).closest('tr')) as HTMLElement[];
-        
-        // Filter to only rows that need to change state
-        const rowsToChange = allToggleRows.filter(row => {
-            if (!row) return false;
-            const nodeId = row.getAttribute('data-node-id');
-            return nodeId && this.expandedRows.get(nodeId) !== expand;
-        });
-        
-        if (rowsToChange.length === 0) return;
-        
-        // Sort rows by level for better animation
-        rowsToChange.sort((a, b) => {
-            const levelA = parseInt(a.getAttribute('data-level') || '0', 10);
-            const levelB = parseInt(b.getAttribute('data-level') || '0', 10);
-            return expand ? levelA - levelB : levelB - levelA;
-        });
-        
-        // Process all rows in batch
-        this.processBatchExpansion(
-            `all_${expand ? 'expand' : 'collapse'}`,
-            rowsToChange,
-            expand
-        );
+        const targets = this.rowModel.filter(e =>
+            e.kind === 'data' && e.hasChildren &&
+            this.expandedRows.get(e.nodeId) !== expand);
+
+        // Shallowest first when expanding, deepest first when collapsing, so
+        // the wave reads outward / inward rather than at random.
+        targets.sort((a, b) => expand ? a.level - b.level : b.level - a.level);
+
+        this.processBatchExpansion(`all_${expand ? 'expand' : 'collapse'}`, targets, expand);
     }
-    
-    private processBatchExpansion(batchId: string, rows: HTMLElement[], expand: boolean): void {
-        // Disable all toggle buttons
+
+    /**
+     * Applies an expand/collapse to many nodes at once. State is updated on the
+     * model first, the window is repainted, and only the rows that actually
+     * landed in the DOM get animated -- under virtualization most will not be
+     * on screen, and animating rows nobody can see is wasted work.
+     */
+    private processBatchExpansion(batchId: string, targets: RowEntry[], expand: boolean): void {
+        if (targets.length === 0) return;
+
         this.disableAllToggleButtons();
-        
-        // Track animation state
         this.animatingNodes.add(batchId);
-        
-        // Set safety timeout
-        const timeout = window.setTimeout(() => {
-            this.cleanupBatchAnimation(batchId, rows, expand);
-        }, rows.length < 10 ? 1000 : 2000);
-        
-        this.animationTimeouts.set(batchId, timeout);
-        
-        // Process each row with small delays
-        rows.forEach((row, index) => {
-            const nodeId = row.getAttribute('data-node-id');
-            if (!nodeId) return;
-            
-            // Update toggle button appearance immediately
-            const toggleButton = row.querySelector('.toggle-button') as HTMLElement;
-            if (toggleButton) {
-                toggleButton.textContent = expand ? '▲' : '▼';
-            }
-            
-            // Update the state in our map
-            this.expandedRows.set(nodeId, expand);
-            
-            // Process each row with delay
-            setTimeout(() => {
-                const directChildren = Array.from(
-                    this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`)
-                ) as HTMLElement[];
-                
-                this.animateRowsBatch(directChildren, expand);
-                
-                // If this is the last row, set up cleanup
-                if (index === rows.length - 1) {
-                    setTimeout(() => {
-                        this.cleanupBatchAnimation(batchId, rows, expand);
-                    }, 500);
-                }
-            }, index * 40);
-        });
-        
-        // Save expanded state
+
+        // Update state for every target.
+        for (const entry of targets) {
+            this.expandedRows.set(entry.nodeId, expand);
+        }
         Visual.savedExpandedState = new Map(this.expandedRows);
+
+        if (expand) {
+            // Rows must exist before they can be animated in.
+            this.refreshRows();
+        }
+
+        // Animate whatever is on screen beneath the affected nodes.
+        const onScreen: HTMLElement[] = [];
+        for (const entry of targets) {
+            onScreen.push(...this.renderedDescendants(entry.nodeId));
+        }
+        this.animateRowsBatch(onScreen, expand);
+
+        const timeout = window.setTimeout(() => {
+            this.cleanupBatchAnimation(batchId, onScreen, expand);
+        }, ANIM.totalMs(onScreen.length, expand));
+
+        this.animationTimeouts.set(batchId, timeout);
     }
-    
+
     private animateRowsBatch(rows: HTMLElement[], isExpand: boolean): void {
         if (rows.length === 0) return;
-        
-        // Save border styles
-        rows.forEach(row => {
-            const borderData = {
-                borderTopWidth: row.style.borderTopWidth,
-                borderBottomWidth: row.style.borderBottomWidth,
-                borderLeftWidth: row.style.borderLeftWidth,
-                borderRightWidth: row.style.borderRightWidth,
-                borderColor: row.style.borderColor,
-                borderStyle: row.style.borderStyle
-            };
-            row.setAttribute('data-border-state', JSON.stringify(borderData));
-        });
-        
+
+        const stagger = ANIM.staggerFor(rows.length);
+
         if (isExpand) {
-            // Prepare rows for expand animation
+            // As in animateExpand, the keyframes own height/opacity/transform
+            // now that rows are divs.
             rows.forEach(row => {
                 row.classList.remove('collapsed', 'collapsing-wave');
-                row.style.height = '0';
-                row.style.opacity = '0';
-                row.style.overflow = 'hidden';
-                row.style.transformOrigin = 'top';
-                row.style.transform = 'scaleY(0.3)';
-                
-                const naturalHeight = row.scrollHeight;
-                row.style.setProperty('--row-height', `${naturalHeight}px`);
+                row.style.setProperty('--row-height', `${row.scrollHeight}px`);
             });
-            
-            // Force a reflow
-            void rows[0].offsetHeight;
-            
-            // Apply animation with staggered delay
+
+            void rows[0].offsetHeight;   // force a reflow
+
             rows.forEach((row, index) => {
-                row.style.animationDelay = `${index * 30}ms`;
+                row.style.animationDelay = `${index * stagger}ms`;
                 row.classList.add('expanding-wave');
             });
         } else {
-            // Prepare rows for collapse animation
             rows.forEach(row => {
                 row.classList.remove('expanding-wave', 'collapsed');
-                row.style.transformOrigin = 'top';
-                
-                const rowHeight = row.offsetHeight;
-                row.style.setProperty('--row-height', `${rowHeight}px`);
-                row.style.overflow = 'hidden';
+                row.style.setProperty('--row-height', `${row.offsetHeight}px`);
             });
-            
-            // Force a reflow
-            void rows[0].offsetHeight;
-            
-            // Apply animation with staggered delay (reversed for collapse)
+
+            void rows[0].offsetHeight;   // force a reflow
+
             rows.slice().reverse().forEach((row, index) => {
-                row.style.animationDelay = `${index * 30}ms`;
+                row.style.animationDelay = `${index * stagger}ms`;
                 row.classList.add('collapsing-wave');
             });
         }
     }
-    
-    // Cleanup for batch operations
+
     private cleanupBatchAnimation(batchId: string, rows: HTMLElement[], wasExpanding: boolean): void {
-        // Clear timeout
         const timeout = this.animationTimeouts.get(batchId);
         if (timeout) {
             window.clearTimeout(timeout);
             this.animationTimeouts.delete(batchId);
         }
-        
-        // Remove from animating set
+
         this.animatingNodes.delete(batchId);
-        
+
         // Re-enable all toggle buttons
         const allButtons = this.tableDiv.querySelectorAll('.toggle-button');
         allButtons.forEach((btn) => {
@@ -1748,139 +1800,24 @@ export class Visual implements IVisual {
             htmlBtn.style.opacity = "1";
             htmlBtn.removeAttribute('data-animating');
         });
-        
-        // Clean up all affected rows
+
         rows.forEach(row => {
-            const nodeId = row.getAttribute('data-node-id');
-            if (!nodeId) return;
-            
-            // Get direct children
-            const directChildren = Array.from(
-                this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`)
-            ) as HTMLElement[];
-            
-            // Restore border styles for each child
-            this.restoreBorderStyles(directChildren);
-            
-            // Remove animation classes and reset styles
-            directChildren.forEach(child => {
-                child.classList.remove('expanding-wave', 'collapsing-wave');
-                child.style.animationDelay = '';
-                child.style.height = '';
-                child.style.opacity = '';
-                child.style.overflow = '';
-                child.style.transform = '';
-                
-                // Set final class based on expanded state
-                if (wasExpanding) {
-                    child.classList.remove('collapsed');
-                } else {
-                    child.classList.add('collapsed');
-                }
-            });
+            row.classList.remove('expanding-wave', 'collapsing-wave');
+            row.style.animationDelay = '';
+            row.style.removeProperty('--row-height');
         });
-        
-        // Final state update and border fixing
-        this.updateExpandedState();
-        this.fixHeaderBorders();
-        
-        // Save final state
+
+        // Repaint from the model; after a collapse this is what removes the
+        // hidden rows from the DOM.
+        this.refreshRows();
         Visual.savedExpandedState = new Map(this.expandedRows);
-    }
-    
-    private updateExpandedState(): void {
-        // Update the UI to reflect the current expanded state
-        const allRows = Array.from(
-            this.tableDiv.querySelectorAll('tr[data-node-id]')
-        ) as HTMLElement[];
-        
-        allRows.forEach(row => {
-            const nodeId = row.getAttribute('data-node-id');
-            const parentId = row.getAttribute('data-parent-id');
-            
-            if (nodeId) {
-                // For non-root elements, check if parent is expanded
-                if (parentId) {
-                    const parentExpanded = this.expandedRows.get(parentId) === true;
-                    
-                    if (!parentExpanded) {
-                        // If parent is collapsed, hide this row
-                        row.classList.add('collapsed');
-                    } else {
-                        // If parent is expanded, show/hide based on this row's state
-                        const isExpanded = this.expandedRows.get(nodeId) === true;
-                        
-                        // Update direct children
-                        const directChildren = Array.from(
-                            this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`)
-                        ) as HTMLElement[];
-                        
-                        directChildren.forEach(child => {
-                            if (isExpanded) {
-                                child.classList.remove('collapsed');
-                            } else {
-                                child.classList.add('collapsed');
-                            }
-                        });
-                    }
-                } else {
-                    // Root level elements
-                    const isExpanded = this.expandedRows.get(nodeId) === true;
-                    
-                    // Update direct children
-                    const directChildren = Array.from(
-                        this.tableDiv.querySelectorAll(`tr[data-parent-id="${nodeId}"]`)
-                    ) as HTMLElement[];
-                    
-                    directChildren.forEach(child => {
-                        if (isExpanded) {
-                            child.classList.remove('collapsed');
-                        } else {
-                            child.classList.add('collapsed');
-                        }
-                    });
-                }
-            }
-        });
     }
 
     //=========================================================================
     // HELPER METHODS
     //=========================================================================
 
-    private findAllDescendants(nodeId: string): HTMLElement[] {
-        const allRows = Array.from(this.tableDiv.querySelectorAll('tr[data-node-id]')) as HTMLElement[];
-        const allDescendants: HTMLElement[] = [];
-        
-        // Helper function to recursively find descendants
-        const findDescendants = (id: string): void => {
-            const children = allRows.filter(row => row.getAttribute('data-parent-id') === id);
-            
-            children.forEach(child => {
-                allDescendants.push(child);
-                const childId = child.getAttribute('data-node-id');
-                if (childId) {
-                    findDescendants(childId);
-                }
-            });
-        };
-        
-        findDescendants(nodeId);
-        return allDescendants;
-    }
 
-    private setChildrenCollapsed(parentId: string, children: any[], level: number): void {
-        if (!children) return;
-        
-        for (const child of children) {
-            const childId = parentId + this.getNodeId(child, level);
-            this.expandedRows.set(childId, false);
-            
-            if (child.children?.length > 0) {
-                this.setChildrenCollapsed(childId, child.children, level + 1);
-            }
-        }
-    }
 
     //=========================================================================
     // LANDING PAGE METHODS
@@ -2025,5 +1962,81 @@ export class Visual implements IVisual {
         setTimeout(() => {
             this.hideLandingPage();
         }, 500); // Match to CSS transition duration
+    }
+
+    //=========================================================================
+    // INCREMENTAL DATA FETCHING
+    //=========================================================================
+
+    // Method to update the Load More button
+    private updateLoadMoreButton(): void {
+        // Remove existing button if any
+        const existingButton = this.tableDiv.querySelector('.load-more-button');
+        if (existingButton) {
+            existingButton.remove();
+        }
+        
+        // Add button if there's more data
+        if (this.hasMoreData) {
+            const loadMoreButton = document.createElement('button');
+            loadMoreButton.className = 'load-more-button';
+            loadMoreButton.textContent = 'Load More Data';
+            loadMoreButton.style.position = 'sticky';
+            loadMoreButton.style.bottom = '0';
+            loadMoreButton.style.left = '0';
+            loadMoreButton.style.width = '100%';
+            loadMoreButton.style.padding = '10px';
+            loadMoreButton.style.backgroundColor = '#0078d4';
+            loadMoreButton.style.color = 'white';
+            loadMoreButton.style.border = 'none';
+            loadMoreButton.style.cursor = 'pointer';
+            loadMoreButton.style.marginTop = '10px';
+            loadMoreButton.style.zIndex = '100';
+            loadMoreButton.style.textAlign = 'center';
+            loadMoreButton.style.fontFamily = this.formattingSettings.generalSettings.fontFamily.value;
+            
+            // Disable button if already loading
+            if (this.isLoadingMore) {
+                loadMoreButton.disabled = true;
+                loadMoreButton.textContent = 'Loading...';
+                loadMoreButton.style.backgroundColor = '#cccccc';
+            }
+            
+            loadMoreButton.addEventListener('click', () => {
+                this.loadMoreData();
+            });
+            
+            this.tableDiv.appendChild(loadMoreButton);
+            this.loadMoreButton = loadMoreButton;
+        }
+    }
+
+    // Method to load more data
+    private loadMoreData(): void {
+        if (this.hasMoreData && !this.isLoadingMore) {
+            this.isLoadingMore = true;
+            
+            // Update button state
+            if (this.loadMoreButton) {
+                this.loadMoreButton.disabled = true;
+                this.loadMoreButton.textContent = 'Loading...';
+                this.loadMoreButton.style.backgroundColor = '#cccccc';
+            }
+            
+            // Call fetchMoreData with aggregateSegments=true
+            const success = this.host.fetchMoreData(true);
+            
+            if (!success) {
+                // Handle the case where fetching more data failed
+                console.error("Failed to fetch more data - might have hit memory limits");
+                this.isLoadingMore = false;
+                
+                // Update button state
+                if (this.loadMoreButton) {
+                    this.loadMoreButton.textContent = 'Failed to load more (memory limit)';
+                    this.loadMoreButton.style.backgroundColor = '#ff0000';
+                }
+            }
+        }
     }
 }

@@ -1,0 +1,145 @@
+table IncomeStatementLayout
+	lineageTag: b21652b9-6562-4d16-a7ed-114a2315abfb
+
+	column line_item_key
+		dataType: string
+		isHidden
+		isKey
+		lineageTag: 58daa979-f1fd-463f-9599-654554a04fdc
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [line_item_key]
+
+		annotation SummarizationSetBy = Automatic
+
+	column section
+		dataType: string
+		lineageTag: 4b6c0526-7a5e-4f1f-87a7-77dd9eadaac8
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [section]
+		sortByColumn: section_order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column section_order
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 6762a7ea-eeb2-44a0-a610-988608e47efd
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [section_order]
+
+		annotation SummarizationSetBy = Automatic
+
+	column category
+		dataType: string
+		lineageTag: a9566b53-4499-41c8-ae54-af174c63d0de
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [category]
+		sortByColumn: category_order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column category_order
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 169b48bf-6f92-49c4-abf0-4ecf040f8af1
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [category_order]
+
+		annotation SummarizationSetBy = Automatic
+
+	column line_item
+		dataType: string
+		lineageTag: cd9e0e4d-805e-486a-b9e7-a491d7b29393
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [line_item]
+		sortByColumn: line_item_order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column line_item_order
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: bb78f058-7dfa-46a2-afe4-9f98aea5c93e
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [line_item_order]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition IncomeStatementLayout = calculated
+		mode: import
+		source =
+				DATATABLE (
+				    "line_item_key", STRING,
+				    "section", STRING,
+				    "section_order", INTEGER,
+				    "category", STRING,
+				    "category_order", INTEGER,
+				    "line_item", STRING,
+				    "line_item_order", INTEGER,
+				    {
+				    { "rev_drip_coffee", "Revenue", 1, "Beverage Sales", 1, "Drip Coffee", 1 },
+				    { "rev_espresso_drinks", "Revenue", 1, "Beverage Sales", 1, "Espresso Drinks", 2 },
+				    { "rev_cold_brew", "Revenue", 1, "Beverage Sales", 1, "Cold Brew & Iced Coffee", 3 },
+				    { "rev_specialty_seasonal", "Revenue", 1, "Beverage Sales", 1, "Specialty & Seasonal Beverages", 4 },
+				    { "rev_tea", "Revenue", 1, "Beverage Sales", 1, "Tea Sales", 5 },
+				    { "rev_pastries", "Revenue", 1, "Food Sales", 2, "Pastries & Baked Goods", 6 },
+				    { "rev_sandwiches", "Revenue", 1, "Food Sales", 2, "Sandwiches & Wraps", 7 },
+				    { "rev_breakfast", "Revenue", 1, "Food Sales", 2, "Breakfast Items", 8 },
+				    { "rev_snacks", "Revenue", 1, "Food Sales", 2, "Snacks & Grab-and-Go", 9 },
+				    { "rev_whole_bean", "Revenue", 1, "Retail Sales", 3, "Whole Bean Coffee Bags", 10 },
+				    { "rev_brew_equipment", "Revenue", 1, "Retail Sales", 3, "Brewing Equipment & Accessories", 11 },
+				    { "rev_merchandise", "Revenue", 1, "Retail Sales", 3, "Merchandise & Apparel", 12 },
+				    { "rev_gift_cards", "Revenue", 1, "Retail Sales", 3, "Gift Card Redemptions", 13 },
+				    { "rev_catering", "Revenue", 1, "Other Income", 4, "Catering Revenue", 14 },
+				    { "rev_wholesale", "Revenue", 1, "Other Income", 4, "Wholesale & Bulk Sales", 15 },
+				    { "exp_coffee_beans", "Cost of Goods Sold", 2, "Cost of Goods Sold", 5, "Coffee Beans", 16 },
+				    { "exp_dairy", "Cost of Goods Sold", 2, "Cost of Goods Sold", 5, "Dairy & Milk Alternatives", 17 },
+				    { "exp_syrups", "Cost of Goods Sold", 2, "Cost of Goods Sold", 5, "Syrups & Flavorings", 18 },
+				    { "exp_food_ingredients", "Cost of Goods Sold", 2, "Cost of Goods Sold", 5, "Food & Bakery Ingredients", 19 },
+				    { "exp_packaging", "Cost of Goods Sold", 2, "Cost of Goods Sold", 5, "Packaging & Disposables", 20 },
+				    { "exp_retail_cogs", "Cost of Goods Sold", 2, "Cost of Goods Sold", 5, "Retail Merchandise COGS", 21 },
+				    { "exp_barista_wages", "Operating Expenses", 3, "Labor", 6, "Barista Wages", 22 },
+				    { "exp_shift_lead_wages", "Operating Expenses", 3, "Labor", 6, "Shift Lead Wages", 23 },
+				    { "exp_store_manager_salary", "Operating Expenses", 3, "Labor", 6, "Store Manager Salary", 24 },
+				    { "exp_payroll_taxes", "Operating Expenses", 3, "Labor", 6, "Payroll Taxes", 25 },
+				    { "exp_employee_benefits", "Operating Expenses", 3, "Labor", 6, "Employee Benefits", 26 },
+				    { "exp_overtime", "Operating Expenses", 3, "Labor", 6, "Overtime Pay", 27 },
+				    { "exp_rent", "Operating Expenses", 3, "Occupancy", 7, "Rent", 28 },
+				    { "exp_utilities", "Operating Expenses", 3, "Occupancy", 7, "Utilities", 29 },
+				    { "exp_property_insurance", "Operating Expenses", 3, "Occupancy", 7, "Property Insurance", 30 },
+				    { "exp_cam", "Operating Expenses", 3, "Occupancy", 7, "Common Area Maintenance", 31 },
+				    { "exp_property_tax", "Operating Expenses", 3, "Occupancy", 7, "Property Tax", 32 },
+				    { "exp_marketing", "Operating Expenses", 3, "Operating Costs", 8, "Marketing & Advertising", 33 },
+				    { "exp_pos_software", "Operating Expenses", 3, "Operating Costs", 8, "POS & Software Subscriptions", 34 },
+				    { "exp_equipment_maintenance", "Operating Expenses", 3, "Operating Costs", 8, "Equipment Maintenance & Repairs", 35 },
+				    { "exp_cleaning", "Operating Expenses", 3, "Operating Costs", 8, "Cleaning & Janitorial", 36 },
+				    { "exp_cc_fees", "Operating Expenses", 3, "Operating Costs", 8, "Credit Card Processing Fees", 37 },
+				    { "exp_office_supplies", "Operating Expenses", 3, "Operating Costs", 8, "Office Supplies", 38 },
+				    { "exp_waste_removal", "Operating Expenses", 3, "Operating Costs", 8, "Waste Removal", 39 },
+				    { "exp_corporate_overhead", "Operating Expenses", 3, "General & Administrative", 9, "Corporate Overhead Allocation", 40 },
+				    { "exp_training", "Operating Expenses", 3, "General & Administrative", 9, "Training & Development", 41 },
+				    { "exp_general_liability_ins", "Operating Expenses", 3, "General & Administrative", 9, "General Liability Insurance", 42 },
+				    { "exp_bank_fees", "Operating Expenses", 3, "General & Administrative", 9, "Bank & Merchant Fees", 43 },
+				    { "exp_depreciation", "Operating Expenses", 3, "General & Administrative", 9, "Depreciation & Amortization", 44 },
+				    { "exp_professional_fees", "Operating Expenses", 3, "General & Administrative", 9, "Professional Fees (Legal/Accounting)", 45 }
+				    }
+				)
+
+	annotation PBI_ResultType = Table
+

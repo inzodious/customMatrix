@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Harborlight Coffee - Income Statement"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "62efb11b-63a6-47ba-911e-a36d0d64df2d"
+  }
+}

@@ -1,0 +1,38 @@
+table _measures_kpi
+	lineageTag: d80c1401-3211-7628-40eb-e5830616f638
+
+	measure kpi_blank = BLANK()
+		formatString: 0
+		lineageTag: 6d42225d-7d87-6f1e-5dc7-f60ebc27019e
+
+	measure im_amount = SUM ( fact_income_statement[amount] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: Income Statement
+		lineageTag: aa9a4777-60de-4e8f-923b-cf516ea0e743
+
+	measure im_location_count = DISTINCTCOUNT ( dim_locations[location_id] )
+		formatString: #,0
+		displayFolder: Income Statement
+		lineageTag: e02e602b-76ff-413d-ac42-3e4b886b3724
+
+	column placeholder
+		dataType: string
+		isHidden
+		lineageTag: d31fbbe7-5103-5554-5b25-9f135d9c34c2
+		summarizeBy: none
+		sourceColumn: placeholder
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _measures_kpi = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows({}, type table [placeholder = text])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

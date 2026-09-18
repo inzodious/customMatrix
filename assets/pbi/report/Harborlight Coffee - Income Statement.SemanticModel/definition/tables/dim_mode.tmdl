@@ -1,0 +1,249 @@
+table dim_mode
+	lineageTag: d430903d-a166-508b-895a-11bae999a92e
+
+	column mode
+		dataType: string
+		lineageTag: d826ae54-9a52-5c1a-94c1-4f692b55491f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [mode]
+		sortByColumn: mode_order
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column mode_order
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f34accdf-95ef-5885-ae21-baf040139b72
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [mode_order]
+
+		annotation SummarizationSetBy = Automatic
+
+	column page_background
+		dataType: string
+		isHidden
+		lineageTag: cbde7645-ce60-534c-aa43-3bb69072ac0a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [page_background]
+
+		annotation SummarizationSetBy = Automatic
+
+	column visual_background
+		dataType: string
+		isHidden
+		lineageTag: 0f0891a7-4c1f-5068-beb1-4842a309f245
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [visual_background]
+
+		annotation SummarizationSetBy = Automatic
+
+	column border_color
+		dataType: string
+		isHidden
+		lineageTag: d00be467-393a-5bf1-89ac-c3f6eb14b9f7
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [border_color]
+
+		annotation SummarizationSetBy = Automatic
+
+	column text_color
+		dataType: string
+		isHidden
+		lineageTag: 15d7f8f1-4dfc-5411-8219-fef71b8c60b2
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [text_color]
+
+		annotation SummarizationSetBy = Automatic
+
+	column text_muted
+		dataType: string
+		isHidden
+		lineageTag: 5ecfc6c0-9785-5f6c-9018-83ad22615330
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [text_muted]
+
+		annotation SummarizationSetBy = Automatic
+
+	column header_background
+		dataType: string
+		isHidden
+		lineageTag: cc21511f-17e3-533f-9307-3a9a1d8821d8
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [header_background]
+
+		annotation SummarizationSetBy = Automatic
+
+	column header_text
+		dataType: string
+		isHidden
+		lineageTag: 4a1db713-18ac-5e2a-a1ef-e1a861b75b9a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [header_text]
+
+		annotation SummarizationSetBy = Automatic
+
+	column row_header_background
+		dataType: string
+		isHidden
+		lineageTag: c9f3fca3-f151-5fa5-ba80-a074860bcd37
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [row_header_background]
+
+		annotation SummarizationSetBy = Automatic
+
+	column row_header_text
+		dataType: string
+		isHidden
+		lineageTag: 8eee7d66-344c-5b20-bafe-4cf4221ec112
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [row_header_text]
+
+		annotation SummarizationSetBy = Automatic
+
+	column value_text
+		dataType: string
+		isHidden
+		lineageTag: 8da811b2-8ca5-5ec7-bbba-5fc99952c86f
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [value_text]
+
+		annotation SummarizationSetBy = Automatic
+
+	column subtotal_background
+		dataType: string
+		isHidden
+		lineageTag: 7a9c314c-3b5c-5234-8e44-e1502319eac8
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [subtotal_background]
+
+		annotation SummarizationSetBy = Automatic
+
+	column subtotal_text
+		dataType: string
+		isHidden
+		lineageTag: e464395b-5577-5638-a983-53b9d6fcd401
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [subtotal_text]
+
+		annotation SummarizationSetBy = Automatic
+
+	column grid_line_color
+		dataType: string
+		isHidden
+		lineageTag: db3b97c8-ecb6-5170-8b60-ed3628404c29
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [grid_line_color]
+
+		annotation SummarizationSetBy = Automatic
+
+	column accent_color
+		dataType: string
+		isHidden
+		lineageTag: 6988f378-747c-5e06-9601-7a9ab7d8f8cc
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [accent_color]
+
+		annotation SummarizationSetBy = Automatic
+
+	column positive_color
+		dataType: string
+		isHidden
+		lineageTag: f456377b-1fe3-5fc9-85b0-0c9dd2b149f5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [positive_color]
+
+		annotation SummarizationSetBy = Automatic
+
+	column negative_color
+		dataType: string
+		isHidden
+		lineageTag: e80d3d56-6109-5e45-b860-bb79c3ce7f88
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [negative_color]
+
+		annotation SummarizationSetBy = Automatic
+
+	column rail_background
+		dataType: string
+		isHidden
+		lineageTag: 79f30903-68d8-57a2-a7dc-7d8c394a73b0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [rail_background]
+
+		annotation SummarizationSetBy = Automatic
+
+	column button_background
+		dataType: string
+		isHidden
+		lineageTag: 0f183a36-58a9-5263-a5d4-75717fa473de
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [button_background]
+
+		annotation SummarizationSetBy = Automatic
+
+	column button_text
+		dataType: string
+		isHidden
+		lineageTag: c29bdddb-5860-55cb-83cc-96adc093c6f8
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [button_text]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_mode = calculated
+		mode: import
+		source =
+				DATATABLE (
+				    "mode", STRING,
+				    "mode_order", INTEGER,
+				    "page_background", STRING,
+				    "rail_background", STRING,
+				    "visual_background", STRING,
+				    "border_color", STRING,
+				    "text_color", STRING,
+				    "text_muted", STRING,
+				    "header_background", STRING,
+				    "header_text", STRING,
+				    "row_header_background", STRING,
+				    "row_header_text", STRING,
+				    "value_text", STRING,
+				    "subtotal_background", STRING,
+				    "subtotal_text", STRING,
+				    "grid_line_color", STRING,
+				    "accent_color", STRING,
+				    "button_background", STRING,
+				    "button_text", STRING,
+				    "positive_color", STRING,
+				    "negative_color", STRING,
+				    {
+				    { "Light", 1, "#F5EEE3", "#EFE7DA", "#FFFBF4", "#DCC9AE", "#3B2A20", "#7A6553", "#4E342E", "#F7F1E8", "#EFE2D0", "#3B2A20", "#3B2A20", "#E4D5BE", "#2E1F17", "#DCC9AE", "#B5703A", "#4E342E", "#F7F1E8", "#3F6B4A", "#9B3521" },
+				    { "Dark", 2, "#241C17", "#2A2019", "#2F241D", "#4A3A2E", "#F0E6DA", "#BCA792", "#4A382C", "#F7EFE4", "#3A2C23", "#F0E6DA", "#F0E6DA", "#45352A", "#FFF6EA", "#4A3A2E", "#E0A96D", "#C08A3E", "#241C17", "#8FBF9A", "#F0907A" }
+				    }
+				)
+
+	annotation PBI_ResultType = Table
+

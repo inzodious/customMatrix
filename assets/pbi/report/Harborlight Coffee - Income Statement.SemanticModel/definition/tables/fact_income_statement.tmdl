@@ -1,0 +1,54 @@
+table fact_income_statement
+	lineageTag: 4330c7cd-b236-44b4-8c58-3ee7e7d82a95
+
+	column location_id
+		dataType: string
+		lineageTag: 3397dcb4-cba0-48e8-b8e1-05dda0cdcc09
+		summarizeBy: none
+		sourceColumn: location_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_end
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 58e6fddb-fd09-4dd8-8d28-786ea2e1f009
+		summarizeBy: none
+		sourceColumn: month_end
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column line_item_key
+		dataType: string
+		lineageTag: 7b4ceb11-a0b3-46cb-a681-3f27fbd0b7f4
+		summarizeBy: none
+		sourceColumn: line_item_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column amount
+		dataType: double
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		lineageTag: 820af274-6597-4aa5-8210-96a02e8d79e8
+		summarizeBy: sum
+		sourceColumn: amount
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_income_statement = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Source = Csv.Document(File.Contents(p_data_folder & "fact_income_statement.csv"), [Delimiter=",", Columns=4, Encoding=65001, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"location_id", type text}, {"month_end", type date}, {"line_item_key", type text}, {"amount", type number}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

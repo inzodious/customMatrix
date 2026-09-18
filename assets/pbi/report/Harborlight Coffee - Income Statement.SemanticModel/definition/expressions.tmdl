@@ -1,0 +1,24 @@
+expression p_sql_endpoint = "b73eqkjbgjketlotxne7hx6yby-65zof76ufmqularcwoh3duc554.datawarehouse.fabric.microsoft.com" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 9eec8571-97f7-4e07-d807-cb723f4b05c1
+	queryGroup: Parameters
+
+	annotation PBI_ResultType = Text
+
+expression p_lakehouse = "lh_gold" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 31e30f61-ce68-e087-41d0-6ba6c93ecabb
+	queryGroup: Parameters
+
+	annotation PBI_ResultType = Text
+
+expression p_start_date = #date(2023, 1, 1) meta [IsParameterQuery=true, Type="Date", IsParameterQueryRequired=true]
+	lineageTag: dcc304df-c711-36af-2a0c-b60964fdbaf6
+	queryGroup: Parameters
+
+	annotation PBI_ResultType = Date
+
+expression p_data_folder = "C:\Users\JoshuaBiondo\Documents\customMatrix\assets\pbi\data\" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 8d21429a-5c52-42fd-b463-86e81bf81289
+	queryGroup: Parameters
+
+	annotation PBI_ResultType = Text
+

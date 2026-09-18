@@ -1,0 +1,344 @@
+table _measures_format
+	lineageTag: 8f0102f0-d5c7-64fd-fab3-b5226cc8f393
+
+	measure fmt_blank = ""
+		lineageTag: e6dc6e95-c9a2-463e-4695-f8975929a625
+
+	measure fmt_last_refresh =
+			"Last refreshed: "
+			    & FORMAT ( MAX ( dim_last_refresh[last_refresh] ), "yyyy-mm-dd hh:mm AM/PM" )
+		lineageTag: 72f1258b-5e02-de60-926e-b3929a6d644d
+
+	measure fmt_time_calculation = SELECTEDVALUE ( cg_time_intelligence[time_calculation], "Current" )
+		lineageTag: e8364d43-537d-9f44-b07b-f7195642e9e7
+
+	measure fmt_date_range =
+			VAR MinDate = CALCULATE ( MIN ( dim_calendar[date] ), ALLSELECTED ( dim_calendar ) )
+			VAR MaxDate = CALCULATE ( MAX ( dim_calendar[date] ), ALLSELECTED ( dim_calendar ) )
+			RETURN
+			FORMAT ( MinDate, "mmm d, yyyy" ) & " \u2013 " & FORMAT ( MaxDate, "mmm d, yyyy" )
+		lineageTag: 7ae2f381-6296-9b2a-8882-01d1200d160a
+
+	measure fmt_report_date =
+			FORMAT (
+			    CALCULATE ( MAX ( dim_calendar[date] ), ALLSELECTED ( dim_calendar ) ),
+			    "ddd, mmmm d, yyyy"
+			)
+		lineageTag: 27cc8278-f48e-d2b5-843a-0a8db07caa7e
+
+	measure fmt_background_wave_design = ```
+			
+			VAR NL = UNICHAR(10)
+			
+			VAR zhtml =
+			"<div style='
+			width:100vw;
+			height:100vh;
+			background:
+			  radial-gradient(circle, rgba(189,195,199,0.5) 1px, transparent 1px),
+			  radial-gradient(circle, rgba(189,195,199,0.25) 1px, transparent 1px);
+			background-size: 32px 32px, 32px 32px;
+			background-position: 0 0, 16px 16px;
+			animation: wave 6s ease-in-out infinite;
+			'>" & NL &
+			
+			"<style>" & NL &
+			"@keyframes wave {" & NL &
+			"  0%   { background-position: 0 0, 16px 16px; }" & NL &
+			"  50%  { background-position: 0 20px, 16px 36px; }" & NL &
+			"  100% { background-position: 0 0, 16px 16px; }" & NL &
+			"}" & NL &
+			"</style>" & NL &
+			
+			"</div>"
+			
+			RETURN zhtml
+			
+			```
+		lineageTag: 2f7d127a-a4ee-4ec1-8453-5f04f0cb5a7f
+
+	measure fmt_kpi_definitions =
+			VAR NL = UNICHAR ( 10 )
+			VAR Head =
+			    "<div class='gl'>" & NL &
+			    "<div class='gl-grid'>" & NL
+			VAR C1 =
+			    "<div class='gl-card'>" & NL &
+			    "<div class='gl-sec'>Population &amp; Utilization</div><dl>" & NL &
+			    "<dt>Population</dt><dd>Covered lives for the org over the selected period. Where a parent org rolls up its children, the parent's population is the sum of the children.</dd>" & NL &
+			    "<dt>Cases</dt><dd>Distinct EAP and Work-Life case files opened in the selected period. Excludes deleted files and files flagged not to appear in utilization reporting.</dd>" & NL &
+			    "<dt>Cases Closed</dt><dd>Cases whose close date falls in the selected period. A case opened in one quarter and closed in the next counts in each measure's own period.</dd>" & NL &
+			    "<dt>Case Utilization %</dt><dd>Cases &divide; Population, annualized.</dd>" & NL &
+			    "<dt>Services Utilized</dt><dd>Cases + Employer Service Participants + Serviced Traffic. The broadest count of people the program touched.</dd>" & NL &
+			    "<dt>Program Utilization %</dt><dd>Services Utilized &divide; Population, annualized. Always at or above Case Utilization %.</dd>" & NL &
+			    "<dt>Annualization</dt><dd>12 &divide; the number of months in view. A single quarter is scaled &times;4 so a part-year view is comparable to a full year.</dd>" & NL &
+			    "</dl></div>" & NL
+			VAR C2 =
+			    "<div class='gl-card alt'>" & NL &
+			    "<div class='gl-sec'>Employer Services</div><dl>" & NL &
+			    "<dt>Participants</dt><dd>People attending an employer-service event: organizational consultation, information and referral, training, health fair, or critical incident support.</dd>" & NL &
+			    "<dt>Org Service Events</dt><dd>Count of employer-service events delivered, as opposed to the number of people who attended them.</dd>" & NL &
+			    "<dt>Serviced Traffic</dt><dd>Real-time contacts that were serviced without opening a case file.</dd>" & NL &
+			    "<dt>Formal Management Referral</dt><dd>Cases that arrived as a supervisor referral rather than as a self-referral.</dd>" & NL &
+			    "<dt>Critical Incident Responses</dt><dd>Critical incident events delivered on site or virtually.</dd>" & NL &
+			    "<dt>Management &amp; Policy Consultation</dt><dd>Advisory contacts with org leadership or HR that are counted as events, not as cases.</dd>" & NL &
+			    "</dl></div>" & NL
+			VAR C3 =
+			    "<div class='gl-card warm'>" & NL &
+			    "<div class='gl-sec'>Access &amp; Delivery</div><dl>" & NL &
+			    "<dt>Access Point</dt><dd>The channel the participant first came through: toll-free phone, mobile live chat, short code, real-time scheduling, Textcoach, dCBT, Mindstream, digital pathways, onsite counseling, and so on.</dd>" & NL &
+			    "<dt>Modality</dt><dd>How the service was actually delivered once the case opened.</dd>" & NL &
+			    "<dt>Discipline</dt><dd>Clinical discipline of the provider who handled the case.</dd>" & NL &
+			    "<dt>Speed to Care</dt><dd>Average elapsed days from case open to first counseling session. Lower is better.</dd>" & NL &
+			    "<dt>Sessions Used</dt><dd>Counseling sessions consumed against the case's authorization.</dd>" & NL &
+			    "<dt>Sessions per Case</dt><dd>Sessions Used &divide; Cases, over the same filter.</dd>" & NL &
+			    "</dl></div>" & NL
+			VAR C4 =
+			    "<div class='gl-card'>" & NL &
+			    "<div class='gl-sec'>Participants &amp; Concerns</div><dl>" & NL &
+			    "<dt>Member Classification</dt><dd>Employee, Family Member, or Retiree, taken from the primary client file on the case.</dd>" & NL &
+			    "<dt>Age, Gender Identity, Marital Status</dt><dd>Self-reported participant attributes from the primary client file. Declined-to-answer is reported rather than hidden, so the buckets add to 100%.</dd>" & NL &
+			    "<dt>Primary Presenting Concern</dt><dd>The single leading issue recorded at intake. One per case, so the shares add to 100% of cases.</dd>" & NL &
+			    "<dt>Case Resolution</dt><dd>Where the case ultimately landed: resolved in the EAP, addressed in the EAP, referred to a community-based resource, or referred to the group health plan.</dd>" & NL &
+			    "<dt>Member State</dt><dd>Participant's state of residence, not the org's headquarters.</dd>" & NL &
+			    "</dl></div>" & NL
+			VAR C5 =
+			    "<div class='gl-card alt'>" & NL &
+			    "<div class='gl-sec'>Investment &amp; ROI</div><dl>" & NL &
+			    "<dt>PEPM Rate</dt><dd>Contracted per-employee-per-month fee for the org.</dd>" & NL &
+			    "<dt>Annual Investment</dt><dd>PEPM &times; Population &times; 12.</dd>" & NL &
+			    "<dt>Cost per Case</dt><dd>Annual Investment &divide; annualized Cases. Falls as utilization rises.</dd>" & NL &
+			    "<dt>Modelled Total Savings</dt><dd>Modelled savings from the ROI results set. A model output, not booked savings.</dd>" & NL &
+			    "<dt>ROI Ratio</dt><dd>Modelled Total Savings &divide; Annual Investment, read as x to 1.</dd>" & NL &
+			    "</dl></div>" & NL
+			VAR C6 =
+			    "<div class='gl-card warm'>" & NL &
+			    "<div class='gl-sec'>Reading This Report</div><dl>" & NL &
+			    "<dt>Percentages are share of cases</dt><dd>Every demographic and presenting-concern percentage is a share of cases in the current filter, never a share of population.</dd>" & NL &
+			    "<dt>Report Month drives the period</dt><dd>All time-based measures run off the shared calendar. Cases are dated by their open date unless the metric name says otherwise.</dd>" & NL &
+			    "<dt>Parent and child orgs</dt><dd>A parent selected on its own includes its children. A child selected on its own shows only its own activity.</dd>" & NL &
+			    "<dt>Blank is not zero</dt><dd>Blank means nothing was reported for that combination. A displayed 0 means a reported value of zero.</dd>" & NL &
+			    "<dt>Utilization above 100%</dt><dd>Possible and not an error - it means an annualized count of services exceeded the covered population, usually on a small or newly implemented group.</dd>" & NL &
+			    "</dl></div>" & NL
+			RETURN
+			Head & C1 & C2 & C3 & C4 & C5 & C6 & "</div></div>"
+		lineageTag: f39c2dee-5bd5-40b3-9c1c-71a0ff9b2072
+
+	measure fmt_html_visual_css =
+			
+			VAR NL = UNICHAR ( 10 )
+			RETURN
+			"<style>" & NL &
+			"  .ur-wrap { font-family: 'Segoe UI', sans-serif; color: #1F2933; }" & NL &
+			"  .ur-wrap * { box-sizing: border-box; }" & NL &
+			"  .ur-title { font-size: 13px; font-weight: 600; text-transform: uppercase;" & NL &
+			"              letter-spacing: 0.05em; color: #171C73; margin: 0 0 0.35rem 0; }" & NL &
+			"  .ur-value { font-size: 28px; font-weight: 700; line-height: 1.1; color: #171C73; }" & NL &
+			"  .ur-sub { font-size: 11px; color: #6B7280; margin-top: 0.2rem; }" & NL &
+			"  .ur-pill { display: inline-flex; align-items: center; padding: 0.15rem 0.6rem;" & NL &
+			"             border-radius: 9999px; font-size: 12px; font-weight: 500;" & NL &
+			"             background: rgba(23,28,115,0.08); color: #171C73; white-space: nowrap; }" & NL &
+			"  .ur-accent { width: 5px; border-radius: 9999px; background: #FDD44F; }" & NL &
+			"  .gl { font-family: 'Segoe UI', sans-serif; color: #1F2933; padding: 2px 6px 10px 6px; }" & NL &
+			"  .gl * { box-sizing: border-box; }" & NL &
+			"  .gl-head { border-bottom: 2px solid #FDD44F; padding-bottom: 7px; margin-bottom: 12px; }" & NL &
+			"  .gl-h1 { font-size: 19px; font-weight: 700; color: #171C73; }" & NL &
+			"  .gl-h2 { font-size: 11.5px; color: #6B7280; margin-top: 2px; }" & NL &
+			"  .gl-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));" & NL &
+			"             gap: 11px; align-items: start; }" & NL &
+			"  .gl-card { background: #FFFFFF; border: 1px solid #E3E8EF; border-left: 4px solid #171C73;" & NL &
+			"             border-radius: 6px; padding: 9px 12px 11px 12px; }" & NL &
+			"  .gl-card.alt { border-left-color: #0583F2; }" & NL &
+			"  .gl-card.warm { border-left-color: #F2BB13; }" & NL &
+			"  .gl-sec { font-size: 11.5px; font-weight: 700; text-transform: uppercase;" & NL &
+			"            letter-spacing: 0.06em; color: #171C73; margin-bottom: 5px; }" & NL &
+			"  .gl dl { margin: 0; }" & NL &
+			"  .gl dt { font-size: 11.5px; font-weight: 600; color: #171C73; margin-top: 7px; }" & NL &
+			"  .gl dd { font-size: 10.5px; line-height: 1.45; color: #4B5563; margin: 1px 0 0 0; }" & NL &
+			"  .gl code { font-family: Consolas, monospace; font-size: 9.5px; background: #F3F4F6;" & NL &
+			"             padding: 0 3px; border-radius: 3px; color: #032CA6; }" & NL &
+			"</style>"
+		lineageTag: 55aeec38-e2f6-1051-c395-30e473016425
+
+	measure fmt_location = SELECTEDVALUE ( dim_locations[location_name], "All" )
+		lineageTag: 8f252b57-2585-4361-9486-d8e9a8b01eee
+
+	measure fmt_region = SELECTEDVALUE ( dim_locations[region], "All" )
+		lineageTag: 7be669de-2519-44f4-943c-b172f575b89c
+
+	measure fmt_state = SELECTEDVALUE ( dim_locations[state], "All" )
+		lineageTag: 1cd3d182-ea1e-4d97-ba4f-cad3dd541af0
+
+	measure fmt_market_tier = SELECTEDVALUE ( dim_locations[market_tier], "All" )
+		lineageTag: 087060b8-791a-4c74-acf9-7ed85ba75f21
+
+	measure fmt_applied_filters = ```
+			
+			    VAR _hdrBg = [fmt_mode_header_background]
+			    VAR _accent = [fmt_mode_accent_color]
+			    VAR _hdrText = [fmt_mode_header_text]
+			    VAR _pillText = [fmt_mode_header_text]
+			    VAR vReportDate = [fmt_report_date] 
+			    VAR vGroup = [fmt_region] 
+			    VAR vIndustry = [fmt_state] 
+			    VAR vClient = [fmt_location] 
+			    VAR vStatus = [fmt_market_tier]
+			    VAR vRunGroup = "All"
+			
+			    VAR PillBaseStyle = "display: inline-flex; align-items: center; padding: 0.15rem 0.6rem; /* Reduced vertical padding */ border-radius: 9999px; font-size: 12px; /* Set font size */ line-height: 1; /* Adjusted line height */ font-weight: 500; white-space: nowrap; " 
+			    VAR PillColors = "background-color: rgba(255, 255, 255, 0.2); color: " & _pillText & ";"
+			    VAR PillStyle = PillBaseStyle & PillColors
+			
+			    VAR ReportDatePill = IF( NOT ISBLANK(vReportDate) && LOWER(vReportDate) <> "all", " <span style=""" & PillStyle & """ title=""Report Date: " & vReportDate & """><strong style=""margin-right: 0.25rem;"">Report Date:</strong><span>" & vReportDate & "</span></span>", "" )
+			    VAR GroupPill = IF( NOT ISBLANK(vGroup) && LOWER(vGroup) <> "all", " <span style=""" & PillStyle & """ title=""Region: " & vGroup & """><strong style=""margin-right: 0.25rem;"">Region:</strong><span>" & vGroup & "</span></span>", "" )
+			    VAR IndustryPill = IF( NOT ISBLANK(vIndustry) && LOWER(vIndustry) <> "all", " <span style=""" & PillStyle & """ title=""State: " & vIndustry & """><strong style=""margin-right: 0.25rem;"">State:</strong><span>" & vIndustry & "</span></span>", "" )
+			    VAR ClientPill = IF( NOT ISBLANK(vClient) && LOWER(vClient) <> "all", " <span style=""" & PillStyle & """ title=""Location: " & vClient & """><strong style=""margin-right: 0.25rem;"">Location:</strong><span>" & vClient & "</span></span>", "" )
+			    VAR StatusPill = IF( NOT ISBLANK(vStatus) && LOWER(vStatus) <> "all", " <span style=""" & PillStyle & """ title=""Tier: " & vStatus & """><strong style=""margin-right: 0.25rem;"">Tier:</strong><span>" & vStatus & "</span></span>", "" )
+			    VAR RunGroupPill = IF( NOT ISBLANK(vRunGroup) && LOWER(vRunGroup) <> "all", " <span style=""" & PillStyle & """ title=""Run Group " & vRunGroup & """><strong style=""margin-right: 0.25rem;"">Run Group</strong><span>" & vRunGroup & "</span></span>", "" )
+			
+			    VAR HtmlContent = "
+			    <div style="" /* Main container - Should be placed in an HTML Content visual */
+			        background-color: " & _hdrBg & "; /* Set desired header dark blue background */
+			        padding: 0.2rem 0.5rem; /* Reduced vertical padding */ 
+			        font-family: 'Segoe UI', sans-serif; /* Set font family */
+			        display: flex; 
+			        align-items: center; /* Align items vertically in the center */
+			        box-sizing: border-box; 
+			        /* REMOVED height: 100%; */
+			        overflow: hidden; /* Hide overflow to prevent expansion */
+			    "">
+			        <div style="" /* Yellow Accent Bar */
+			            width: 5px; 
+			            background-color: " & _accent & "; /* Yellow accent */
+			            border-radius: 9999px; 
+			            margin-right: 0.75rem; /* Space between bar and content */
+			            align-self: stretch; /* Make bar fill height */
+			        ""></div>
+			
+			        <div style="" /* Inner container for label and pills */
+			            background-color: transparent; 
+			            display: flex; 
+			            flex-direction: column; 
+			            flex-grow: 1; 
+			            min-width: 0; 
+			            justify-content: center; 
+			        "">
+			            <h2 style="" /* Applied Filters Label */
+			                background-color: transparent;
+			                font-size: 12px; /* Set font size */
+			                line-height: 1.2; /* Adjusted line height */
+			                font-weight: 600; 
+			                color: " & _hdrText & "; /* White text for contrast on dark blue */
+			                text-transform: uppercase; 
+			                letter-spacing: 0.05em; 
+			                margin: 0 0 0.15rem 0; /* Reduced margin-bottom */
+			                white-space: nowrap; 
+			                overflow: hidden;
+			                text-overflow: ellipsis;
+			            "">
+			                Applied Filters:
+			            </h2>
+			            <div style="" /* Container for the pills */
+			                background-color: transparent;
+			                display: flex; 
+			                flex-wrap: wrap; 
+			                gap: 0.25rem; /* Reduced gap (~4px) */
+			                min-width: 0; 
+			                line-height: 1; /* Control line height for wrapping */
+			            "">
+			                " 
+			                & ReportDatePill 
+			                & GroupPill 
+			                & IndustryPill 
+			                & ClientPill 
+			                & StatusPill 
+			                & RunGroupPill & "
+			            </div>
+			        </div>
+			    </div>
+			    "
+			    RETURN HtmlContent
+			```
+		lineageTag: 4b3e2134-7c6a-47f2-9b1d-7a3a9f537a6b
+
+	measure fmt_mode = SELECTEDVALUE ( dim_mode[mode], "Light" )
+		lineageTag: f5fcd662-372b-567b-9edd-0492b2d7db08
+
+	measure fmt_mode_page_background = SELECTEDVALUE ( dim_mode[page_background], "#F5EEE3" )
+		lineageTag: e8454fb0-5f56-5d22-9324-059f4e9ac7a4
+
+	measure fmt_mode_visual_background = SELECTEDVALUE ( dim_mode[visual_background], "#FFFBF4" )
+		lineageTag: 5ad574c6-e82b-5ae6-89df-fdb54f48b674
+
+	measure fmt_mode_border_color = SELECTEDVALUE ( dim_mode[border_color], "#DCC9AE" )
+		lineageTag: db568fa9-07f3-540f-bb8d-fa5eb77e4fb1
+
+	measure fmt_mode_text_color = SELECTEDVALUE ( dim_mode[text_color], "#3B2A20" )
+		lineageTag: 2a3b4faa-772e-54e7-96d9-42827827b35f
+
+	measure fmt_mode_text_muted = SELECTEDVALUE ( dim_mode[text_muted], "#7A6553" )
+		lineageTag: 73c00daf-2bab-5599-8a61-a5451f65a14f
+
+	measure fmt_mode_header_background = SELECTEDVALUE ( dim_mode[header_background], "#4E342E" )
+		lineageTag: 710ef7b3-e83a-5828-94dd-24051eea9aab
+
+	measure fmt_mode_header_text = SELECTEDVALUE ( dim_mode[header_text], "#F7F1E8" )
+		lineageTag: 12c0d579-dc70-5692-83c0-bf50c8f4ea10
+
+	measure fmt_mode_row_header_background = SELECTEDVALUE ( dim_mode[row_header_background], "#EFE2D0" )
+		lineageTag: a4d1bec9-c11a-5913-816b-5d245d302a17
+
+	measure fmt_mode_row_header_text = SELECTEDVALUE ( dim_mode[row_header_text], "#3B2A20" )
+		lineageTag: 588eb8ca-b022-5c92-b05b-f5e49329e021
+
+	measure fmt_mode_value_text = SELECTEDVALUE ( dim_mode[value_text], "#3B2A20" )
+		lineageTag: f09f22d4-c221-5312-91d6-cc8ed603b563
+
+	measure fmt_mode_subtotal_background = SELECTEDVALUE ( dim_mode[subtotal_background], "#E4D5BE" )
+		lineageTag: b3a92836-ea52-51df-8bbb-cb0db6058146
+
+	measure fmt_mode_subtotal_text = SELECTEDVALUE ( dim_mode[subtotal_text], "#2E1F17" )
+		lineageTag: bf08bce7-5d5e-5acf-b4ee-6f7e068ad99b
+
+	measure fmt_mode_grid_line_color = SELECTEDVALUE ( dim_mode[grid_line_color], "#DCC9AE" )
+		lineageTag: 24a9e427-7167-5e70-a4f4-f2de32616943
+
+	measure fmt_mode_accent_color = SELECTEDVALUE ( dim_mode[accent_color], "#B5703A" )
+		lineageTag: 25e03fa5-9907-543e-bb90-a93f2938acf0
+
+	measure fmt_mode_positive_color = SELECTEDVALUE ( dim_mode[positive_color], "#3F6B4A" )
+		lineageTag: f98d055e-03e4-5469-a89c-558b33651b2d
+
+	measure fmt_mode_negative_color = SELECTEDVALUE ( dim_mode[negative_color], "#9B3521" )
+		lineageTag: 1add9f3e-e2e7-5830-91e8-74408632f794
+
+	measure fmt_mode_rail_background = SELECTEDVALUE ( dim_mode[rail_background], "#EFE7DA" )
+		lineageTag: d093c7d2-bc03-562e-962f-7b6cba72ad7f
+
+	measure fmt_mode_button_background = SELECTEDVALUE ( dim_mode[button_background], "#4E342E" )
+		lineageTag: 6065aa9e-e58d-5f48-b843-6969ff468e55
+
+	measure fmt_mode_button_text = SELECTEDVALUE ( dim_mode[button_text], "#F7F1E8" )
+		lineageTag: 63c31d05-bef4-536c-af83-3cb4d94908b2
+
+	column placeholder
+		dataType: string
+		isHidden
+		lineageTag: 2bcc29f7-95aa-ac27-2e49-c2fe64fa1864
+		summarizeBy: none
+		sourceColumn: placeholder
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _measures_format = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows({}, type table [placeholder = text])
+				in
+				    Source
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

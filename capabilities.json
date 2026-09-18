@@ -1,5 +1,4 @@
 {
-
     "dataRoles": [
         {
             "displayName": "Rows",
@@ -22,6 +21,13 @@
             "displayName": "General",
             "description": "General settings",
             "properties": {
+                "formatString": {
+                    "type": {
+                        "formatting": {
+                            "formatString": true
+                        }
+                    }
+                },
                 "fontFamily": {
                     "displayName": "Font Family",
                     "description": "Default font family for all text",
@@ -554,7 +560,6 @@
             }
         }
     ],
-
     "supportsLandingPage": true,
     "supportsEmptyDataView": true,
     "privileges": []

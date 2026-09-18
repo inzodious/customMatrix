@@ -46,9 +46,6 @@
 .grid-row {
     display: grid;
     grid-template-columns: var(--grid-cols);
-    // transform-origin matters for the scaleY keyframes; set once here rather
-    // than inline on every row from TypeScript.
-    transform-origin: top;
 }
 
 .grid-cell {
@@ -204,27 +201,27 @@
     display: none !important;
 }
 
-// The 30% overshoot keyframe is back from the pre-3c7d564 animation: it was
-// dropped when transforms were being discarded on <tr> anyway, and on div rows
-// it renders. Durations here MUST stay in step with ANIM in visual.ts, which
-// derives the animation safety timeout from them.
-// Expand is the slower of the two (0.32s) because at 0.2s it read as instant.
+// The 30% overshoot keyframe is back from the pre-3c7d564 animation, but it
+// overshoots on HEIGHT rather than transform. Animating `transform` on the row
+// makes it the containing block for the sticky .row-header inside it, which
+// un-freezes the row-header column for the length of the animation -- the row
+// then slides its data cells under the frozen column. Height and opacity are
+// both legal on a div row and neither creates a containing block.
+// Durations here MUST stay in step with ANIM in visual.ts, which derives the
+// animation safety timeout from them.
 
 @keyframes expandWave {
     0% {
         height: 0;
         opacity: 0;
-        transform: scaleY(0.3) translateY(-10px);
     }
     30% {
         height: calc(var(--row-height) * 1.05);
         opacity: 0.7;
-        transform: scaleY(1.05) translateY(0);
     }
     100% {
         height: var(--row-height);
         opacity: 1;
-        transform: scaleY(1) translateY(0);
     }
 }
 
@@ -232,36 +229,37 @@
     0% {
         height: var(--row-height);
         opacity: 1;
-        transform: scaleY(1) translateY(0);
     }
     30% {
         height: calc(var(--row-height) * 0.95);
         opacity: 0.7;
-        transform: scaleY(0.95) translateY(0);
     }
     100% {
         height: 0;
         opacity: 0;
-        transform: scaleY(0.3) translateY(-10px);
     }
 }
 
 .expanding-wave {
     animation: expandWave 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    transform-origin: top;
-    overflow: hidden;
-    will-change: height, opacity, transform;
+    // `clip`, NOT `hidden`. Both clip, but `hidden` makes this row a scroll
+    // container, and position:sticky resolves against the nearest scroll
+    // container -- so the .row-header inside would stick to this row instead
+    // of to .table-container and slide off-screen with the content.
+    // `clip` is explicitly not a scroll container, so sticky still works.
+    overflow: clip;
+    // Deliberately NOT will-change: transform / backface-visibility. Both make
+    // this row a stacking context and a containing block, which un-sticks the
+    // .row-header inside it for the length of the animation.
+    will-change: height, opacity;
     pointer-events: none; /* Prevent clicks during animation */
-    backface-visibility: hidden; /* Hardware acceleration hint */
 }
 
 .collapsing-wave {
     animation: collapseWave 0.22s ease-in forwards;
-    transform-origin: top;
-    overflow: hidden;
-    will-change: height, opacity, transform;
+    overflow: clip;   // see .expanding-wave: `hidden` would break sticky
+    will-change: height, opacity;
     pointer-events: none; /* Prevent clicks during animation */
-    backface-visibility: hidden; /* Hardware acceleration hint */
 }
 
 // Respect the viewer's motion preference.

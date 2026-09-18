@@ -346,39 +346,92 @@ export class Visual implements IVisual {
     }
 
     private getFormatString(dataView: DataView): string {
-        // Try to get from matrix valueSources
-        if (dataView.matrix?.valueSources?.[0]?.format) {
-            return dataView.matrix.valueSources[0].format;
+        const candidates: powerbi.DataViewMetadataColumn[] = [];
+
+        const firstSource = dataView.matrix?.valueSources?.[0];
+        if (firstSource) candidates.push(firstSource);
+
+        // The measure's own metadata column, which often carries .format when
+        // the value source does not.
+        const valueColumn = dataView.metadata?.columns?.find(col =>
+            col.roles && (col.roles.values || col.roles.value || col.roles.measures || col.roles.measure));
+        if (valueColumn) candidates.push(valueColumn);
+
+        // Same tiered precedence as resolveFormatString().
+        for (const candidate of candidates) {
+            const override = valueFormatter.getFormatString(candidate, FORMAT_STRING_PROP, true);
+            if (override) return override;
         }
-        
-        // Try to get from metadata columns with 'values' role
-        if (dataView.metadata?.columns) {
-            const valueColumn = dataView.metadata.columns.find(col => 
-                col.roles && (col.roles.values || col.roles.value || col.roles.measures || col.roles.measure));
-                
-            if (valueColumn?.format) {
-                return valueColumn.format;
-            }
+        for (const candidate of candidates) {
+            if (candidate.format) return candidate.format;
         }
-        
+        for (const candidate of candidates) {
+            const byType = valueFormatter.getFormatStringByColumn(candidate);
+            if (byType) return byType;
+        }
+
         return "#,0.00"; // Default fallback format
     }
 
     /**
-     * Resolves one column's format, most specific first:
-     *   1. an override the user set in the report (column.objects)
-     *   2. the model's format string (column.format)
-     *   3. a type-derived default (dates, integers, years)
-     * Checking only one of these is why an overridden measure format could be
-     * silently ignored.
+     * Finds the metadata column that really describes a value source.
+     *
+     * `matrix.valueSources` entries do not always carry the model's format
+     * string; the fuller record lives in `dataView.metadata.columns`. Matching
+     * on queryName (falling back to displayName) recovers it.
      */
-    private resolveFormatString(column: powerbi.DataViewMetadataColumn): string {
+    private matchMetadataColumn(
+        source: powerbi.DataViewMetadataColumn,
+        dataView: DataView
+    ): powerbi.DataViewMetadataColumn {
+        const columns = dataView?.metadata?.columns;
+        if (!source || !columns) return null;
+
+        if (source.queryName) {
+            const byQuery = columns.find(c => c.queryName === source.queryName);
+            if (byQuery) return byQuery;
+        }
+        return columns.find(c => c.displayName === source.displayName) || null;
+    }
+
+    /**
+     * Resolves one column's format string, most specific first. A measure's
+     * model format can arrive in any of these depending on the model, so
+     * checking only one is why a currency measure rendered as #,0.00:
+     *
+     *   1. objects.general.formatString on the value source  (report override;
+     *      Power BI only populates it because capabilities declares it)
+     *   2. .format on the value source                       (model format)
+     *   3. the same two on the matching dataView.metadata.columns entry,
+     *      which is often the only one carrying .format
+     *   4. a type-derived default (dates, integers, years)
+     */
+    private resolveFormatString(
+        column: powerbi.DataViewMetadataColumn,
+        dataView?: DataView
+    ): string {
         if (!column) return this.cachedFormatString;
 
-        const override = valueFormatter.getFormatString(column, FORMAT_STRING_PROP, true);
-        if (override) return override;
+        const candidates: powerbi.DataViewMetadataColumn[] = [column];
+        const matched = dataView ? this.matchMetadataColumn(column, dataView) : null;
+        if (matched && matched !== column) candidates.push(matched);
 
-        return valueFormatter.getFormatStringByColumn(column) || this.cachedFormatString;
+        // Precedence runs across ALL candidates one tier at a time, not tier by
+        // tier within each candidate -- otherwise a model .format on the value
+        // source would beat a report override living on the metadata column.
+        for (const candidate of candidates) {
+            const override = valueFormatter.getFormatString(candidate, FORMAT_STRING_PROP, true);
+            if (override) return override;
+        }
+        for (const candidate of candidates) {
+            if (candidate.format) return candidate.format;
+        }
+        for (const candidate of candidates) {
+            const byType = valueFormatter.getFormatStringByColumn(candidate);
+            if (byType) return byType;
+        }
+
+        return this.cachedFormatString;
     }
 
     /**
@@ -391,7 +444,9 @@ export class Visual implements IVisual {
 
         for (let j = 0; j < columnCount; j++) {
             const source = sources.length ? sources[j % sources.length] : null;
-            formats.push(source ? this.resolveFormatString(source) : this.cachedFormatString);
+            formats.push(source
+                ? this.resolveFormatString(source, dataView)
+                : this.cachedFormatString);
         }
         return formats;
     }

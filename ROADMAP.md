@@ -107,10 +107,29 @@ The big one. Unblocks both known blockers. **Complete as of 2026-09-17.**
 
   This is very likely the real reason `bf3d941` reverted the whole feature a week after `6b61ebe` landed. Note that [schema.capabilities.json](node_modules/powerbi-visuals-api/schema.capabilities.json) permits all four algorithms on both axes, so neither the schema nor `pbiviz package` catches this — only the service does.
 
+### Field-test fixes (2026-09-17)
+
+Five bugs found by running the visual against a live report, after Phase 1 landed. All five were invisible to the jsdom suites as they stood; each now has coverage.
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| Visual failed to load with a field in Columns | `dataReductionAlgorithm.window` was declared on **both** axes; only the primary may use it | columns use `top: { count: 100 }` |
+| Cells shaded after a resize, white after any interaction | `refreshRows()` builds brand-new DOM, but formatting was only applied on initial build and on scroll | `renderVisibleWindow()` formats the window it just built, so every path formats |
+| Expand/collapse painfully slow; collapse-all cascaded tier by tier | stagger was a flat 45 ms per row, so 40 rows meant 1,755 ms of delay before the last one moved | `ANIM.staggerFor()` shrinks the per-row delay to fit `MAX_STAGGER_TOTAL_MS` (240 ms) |
+| Only level-0 row headers froze on horizontal scroll; values slid under the others | `.expandable-row { overflow: hidden }` is set on every row below level 0, and a clipping ancestor becomes the sticky containing context | overflow removed from `.expandable-row`; the wave classes still clip during the animation, which is the only time it is needed |
+| Expand/collapse momentarily revealed rows under the frozen headers | **two causes, fixed in two passes.** First the keyframes animated `transform` (plus `will-change: transform` / `backface-visibility`), which makes the row a containing block. Removing those was not enough: the wave classes also set `overflow: hidden`, which makes the animating row a *scroll container*, and sticky resolves against the nearest scroll container | keyframes animate `height` + `opacity` only (zero `transform` left in the compiled CSS), and the wave classes use `overflow: clip`, which clips without creating a scroll container |
+| A measure's format string ignored | resolution read `column.format` only. A format overridden in the report arrives as `objects.general.formatString`, which `valueFormatter.getFormatString()` reads and `getFormatStringByColumn()` does not | `resolveFormatString()` checks override → `column.format` → type default |
+
+A `sticky-guard` suite now reads the compiled CSS and fails if any class that can sit between `.row-header` and `.table-container` reintroduces a scroll container or a containing block. It was checked against all three historical forms of the bug and catches each.
+
+Three of these share a root cause worth remembering: **`position: sticky` is silently disabled by an ancestor that clips (`overflow: hidden`) or that establishes a containing block (`transform`, `will-change: transform`, `backface-visibility`).** Nothing errors; the element just stops sticking. One bug was the steady-state version (`.expandable-row`), the other the during-animation version (the keyframes).
+
+---
+
 ### Phase 2 — Data correctness
 
 - [ ] Use **leaf** columns for the column axis. `processColumns` ([visual.ts:466](src/visual.ts#L466)) takes only `matrix.columns.root.children` (level 0), so a 2-level column hierarchy misaligns every cell — `row.values[j]` is indexed by leaf column.
-- [ ] Per-column format strings and distinct measure headers. Multiple measures currently all render the same header text from `valueSources[0]` ([visual.ts:629](src/visual.ts#L629)), and `cachedFormatString` ([visual.ts:202](src/visual.ts#L202)) applies measure #1's format to every column.
+- [~] **Per-column format strings — DONE (2026-09-17).** `buildValueFormats()` resolves one format per leaf column, cycling through `valueSources`, so measure #2 no longer inherits measure #1's format. Verified: `$#,0` and `0.0%` on two measures render as `-$1,415,676` and `12.3%`. **Distinct measure headers are still outstanding** — Multiple measures currently all render the same header text from `valueSources[0]` ([visual.ts:629](src/visual.ts#L629)), and `cachedFormatString` ([visual.ts:202](src/visual.ts#L202)) applies measure #1's format to every column.
 - [ ] Take real subtotals from parent-node `values` instead of summing leaves ([visual.ts:353](src/visual.ts#L353)). Leaf-summing is wrong for any non-additive measure — average, distinct count, ratio, YoY%. Declare a `subTotals` capability object so Power BI supplies them.
 - [ ] Key node IDs off `node.identity`, not the display value ([visual.ts:1121](src/visual.ts#L1121)). Duplicate sibling labels currently collide and share expand state.
 - [ ] Stop blanking legitimate zeros: `subtotal !== 0 ? … : ""` ([visual.ts:785](src/visual.ts#L785)).

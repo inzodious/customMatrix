@@ -126,20 +126,43 @@ Three of these share a root cause worth remembering: **`position: sticky` is sil
 
 ---
 
-### Phase 2 — Data correctness
+### Format strings in a matrix — where they actually live (2026-09-17)
 
-- [ ] Use **leaf** columns for the column axis. `processColumns` ([visual.ts:466](src/visual.ts#L466)) takes only `matrix.columns.root.children` (level 0), so a 2-level column hierarchy misaligns every cell — `row.values[j]` is indexed by leaf column.
-- [~] **Per-column format strings — DONE (2026-09-17).** `buildValueFormats()` resolves one format per leaf column, cycling through `valueSources`, so measure #2 no longer inherits measure #1's format. Verified: `$#,0` and `0.0%` on two measures render as `-$1,415,676` and `12.3%`. **Distinct measure headers are still outstanding** — Multiple measures currently all render the same header text from `valueSources[0]` ([visual.ts:629](src/visual.ts#L629)), and `cachedFormatString` ([visual.ts:202](src/visual.ts#L202)) applies measure #1's format to every column.
-- [ ] Take real subtotals from parent-node `values` instead of summing leaves ([visual.ts:353](src/visual.ts#L353)). Leaf-summing is wrong for any non-additive measure — average, distinct count, ratio, YoY%. Declare a `subTotals` capability object so Power BI supplies them.
-- [ ] Key node IDs off `node.identity`, not the display value ([visual.ts:1121](src/visual.ts#L1121)). Duplicate sibling labels currently collide and share expand state.
-- [ ] Stop blanking legitimate zeros: `subtotal !== 0 ? … : ""` ([visual.ts:785](src/visual.ts#L785)).
+Four rounds of fixes failed here, so it is worth recording plainly.
 
-### Phase 3 — The promised features
+**In a matrix dataView, a measure's format string is on each value cell, not on the column.** The host sends the format on every `DataViewMatrixNodeValue`:
 
-- [ ] Animations settings card — enable / style / duration — driving the now-functional animations.
-- [ ] Dynamic coloring. Colors declare `instanceKind: ConstantOrRule` ([settings.ts:111](src/settings.ts#L111) and siblings), so the pane offers conditional formatting, but the code only reads `.value.value` and never reads per-node/per-cell `objects` from the dataView. Conditional formatting currently does nothing.
-- [ ] Layout card: cell padding, row height, indentation. Indent is hardcoded `level * 20px` ([visual.ts:659](src/visual.ts#L659)); padding is hardcoded `10px` in LESS.
-- [ ] Icon-set dropdown using the existing [assets/icon-collapsed.png](assets/icon-collapsed.png) / [icon-expanded.png](assets/icon-expanded.png) — unused leftovers from the 2025-03-01 "Image icon implementation, saving for later" commit. Toggles are currently hardcoded `▲`/`▼` ([visual.ts:718](src/visual.ts#L718)).
+```json
+"values": { "0": { "value": 206323.05,
+                   "objects": { "general": { "formatString": "\$#,0;(\$#,0);\$#,0" } } } }
+```
+
+and sends **nothing** on `matrix.valueSources[i]` or on the matching `dataView.metadata.columns[i]` — no `format`, no `objects`. Every column-based lookup therefore found nothing and fell through to the numeric default `#,0.00`, which is exactly the "two decimals, comma separated" the visual rendered for a currency measure.
+
+`harvestCellFormats()` now walks the row tree until it has a format for every leaf column, stopping early; `formatFromValueCell()` gives an individual cell's own format priority over the column-level one. The column-metadata resolution stays as a fallback for hosts that do populate it.
+
+Diagnosis took a temporary `console.log` of the whole dataView against the real model. That should have been the first step, not the fifth: the column-based theories were all plausible and all wrong, and local testing could never have found it, because the fixtures encoded the same wrong assumption as the code.
+
+**A regression introduced and fixed in the same round:** keying node ids off `node.identity` produced ids like `level_0_id_{"identityIndex":19}`. Those go into attribute selectors (`.grid-row[data-parent-id="..."]`), where `{`, `"` and `}` are invalid, so `querySelectorAll` threw `SyntaxError` on every expand/collapse and the visual froze. `toSafeToken()` now reduces any identity to `[A-Za-z0-9_-]` plus a djb2 hash, so stripping punctuation cannot make two identities collide.
+
+---
+
+### Phase 2 — Data correctness — **DONE (2026-09-17), except distinct measure headers**
+
+- [x] **Use leaf columns for the column axis — DONE (2026-09-17).** `flattenColumnLeaves()` walks the column hierarchy to its leaves, so a 2-level hierarchy renders N*M headers matching `row.values[j]` instead of N. Each leaf keeps a `levelValues` ancestor trail, and its format comes from the source at *its own* level rather than level 0's. Verified: 2 years x 2 quarters renders 4 headers and 4 aligned cells. `processColumns` ([visual.ts:466](src/visual.ts#L466)) takes only `matrix.columns.root.children` (level 0), so a 2-level column hierarchy misaligns every cell — `row.values[j]` is indexed by leaf column.
+- [x] **Per-column and per-cell format strings, DONE (2026-09-17).** See "Format strings in a matrix" above for where they really live. `buildValueFormats()` resolves one format per leaf column, cycling through `valueSources`, so measure #2 no longer inherits measure #1's format. Verified: `$#,0` and `0.0%` on two measures render as `-$1,415,676` and `12.3%`. **Distinct measure headers are still outstanding** — Multiple measures currently all render the same header text from `valueSources[0]` ([visual.ts:629](src/visual.ts#L629)), and `cachedFormatString` ([visual.ts:202](src/visual.ts#L202)) applies measure #1's format to every column.
+- [x] **Take real subtotals from parent-node `values` — DONE (2026-09-17).** `calculateSubtotalForColumn()` returns the parent's own aggregate when the host supplies one and only falls back to summing leaves otherwise, and `subtotals.matrix.rowSubtotals/columnSubtotals` is now declared in capabilities so the host actually supplies them. This is what makes averages, distinct counts, ratios and YoY% correct. Verified both ways: a parent carrying 15 renders 15 (not the leaf sum of 30), and a parent with no own value still sums to 30. Superseded item: ([visual.ts:353](src/visual.ts#L353)). Leaf-summing is wrong for any non-additive measure — average, distinct count, ratio, YoY%. Declare a `subTotals` capability object so Power BI supplies them.
+- [x] **Key node IDs off `node.identity` — DONE (2026-09-17).** `getNodeId()` prefers `identity.key`, falling back to the display value when the host supplies no identity. Duplicate sibling labels no longer collide into one expand/collapse state. Superseded item: ([visual.ts:1121](src/visual.ts#L1121)). Duplicate sibling labels currently collide and share expand state.
+- [x] **Stop blanking legitimate zeros — DONE (2026-09-17).** The test was `subtotal !== 0`, so a subtotal that genuinely nets to zero rendered as an empty cell. It now blanks only when there is no value at all. Superseded item:: `subtotal !== 0 ? … : ""` ([visual.ts:785](src/visual.ts#L785)).
+
+### Phase 3 — The promised features — **DONE (2026-09-17)**
+
+- [x] **Animations settings card** — enable / style / expand duration / collapse duration / row stagger ([settings.ts:271](src/settings.ts#L271)). The durations used to live in two places that had to be kept in step by hand: the `ANIM` constant and the LESS keyframes. `applyThemeProperties()` ([visual.ts:607](src/visual.ts#L607)) now publishes them as custom properties on the grid, so the stylesheet reads whatever the card says and there is a single source of truth. `style: fade` swaps the wave for an opacity-only animation; disabling sets `.anim-off`, which also short-circuits the safety timeout.
+- [x] **Dynamic coloring.** The pickers always declared `instanceKind: ConstantOrRule`, so the pane has always offered the *fx* button — nothing read the result. Conditional colours arrive in the dataView's per-node and per-cell `objects` bags, exactly like the format string does. `readObjectColor()` ([visual.ts:471](src/visual.ts#L471)) reads them; they are stashed on the element as `data-cf-*` attributes at creation and re-applied by `applyConditionalColors()` ([visual.ts:1604](src/visual.ts#L1604)) as the **last** step of `applyFormatting`. The stash is not incidental: `formatCellsByType()` re-runs over every cell after creation and would otherwise overwrite the conditional colour with the card's constant. Wired for data cells (`fontFormat`), subtotals (`subtotalFormat`), and row headers (`rowHeaderFormat` / `subtotalFormat`).
+- [x] **Layout card**: cell padding, row height, indentation ([settings.ts:320](src/settings.ts#L320)). Padding and row height ship as `--cell-padding` / `--fixed-row-height`; indent comes from `indentPerLevel()` ([visual.ts:630](src/visual.ts#L630)) instead of the hardcoded `level * 20px`.
+- [x] **Icon-set dropdown** ([settings.ts:339](src/settings.ts#L339)): triangles (default), carets, chevrons, plus/minus, arrows, and the images. `pbiviz` only bundles `assets/icon.png`, so the two leftover PNGs are inlined as data URIs in [src/icons.ts](src/icons.ts) to make them reachable at runtime. `paintToggle()` ([visual.ts:1293](src/visual.ts#L1293)) is the one place that draws a toggle — creation and the repaint-on-toggle used to carry their own copies of the glyphs, and the repaint is the half that silently keeps working with the wrong icons. A negative control confirms the test catches exactly that.
+
+Verified by `phase3-test.cjs` (14 checks) and `icon-test.cjs` (11 checks); full suite is 132 checks across 12 files.
 
 ### Phase 4 — Power BI citizenship
 
@@ -159,13 +182,13 @@ Promised in [README.md](README.md), absent from code:
 
 | README claim | Reality |
 | --- | --- |
-| Animations settings card (enable / style / duration) | No such card; animation params hardcoded in LESS |
-| Dynamic coloring — color scale / rules / value-based | Pickers exist, per-cell `objects` never read; no effect |
-| Cell padding, row height, header indentation settings | Hardcoded: `10px` padding, `level * 20px` indent |
-| Selectable icon sets for hierarchy | Hardcoded `▲`/`▼`; PNG assets unused |
-| Performance-focused, smooth with large datasets | No virtualization; all rows in DOM; formatting applied twice per cell |
+| Animations settings card (enable / style / duration) | **Shipped** (Phase 3) |
+| Dynamic coloring — color scale / rules / value-based | **Shipped** (Phase 3) — rules and field-bound colours; a built-in colour *scale* is still absent |
+| Cell padding, row height, header indentation settings | **Shipped** (Phase 3) |
+| Selectable icon sets for hierarchy | **Shipped** (Phase 3) — six sets, including the two PNGs |
+| Performance-focused, smooth with large datasets | **Shipped** (Phase 1) — virtualized past 150 rows; 18ms at 2400 rows |
 
-Either build these in Phase 3, or trim the README to match shipped behavior before publishing a release.
+Phase 3 built all of these. The one remaining gap is the README's "color scale": conditional formatting is wired through the host's rules and field bindings, so the *Gradient* and *Rules* modes of the fx dialog work, but there is no gradient defined by the visual itself.
 
 ---
 

@@ -18,11 +18,11 @@ import IVisual = powerbi.extensibility.visual.IVisual;
 import DataView = powerbi.DataView;
 
 import { VisualFormattingSettingsModel } from "./settings";
+import { ICON_SETS, DEFAULT_ICON_SET, IconSet } from "./icons";
+import { buildLandingPage, LANDING_PAGES } from "./landingPage";
 
 // Import landing page HTML templates
-const landingPage1HTML = require("!!raw-loader!../style/landingPage1.html").default;
-const landingPage2HTML = require("!!raw-loader!../style/landingPage2.html").default;
-const landingPage3HTML = require("!!raw-loader!../style/landingPage3.html").default;
+
 
 // Interface for matrix data
 interface MatrixNode {
@@ -43,6 +43,15 @@ interface MatrixNode {
 // Where Power BI delivers a format string the user overrode in the report.
 // valueFormatter.getFormatString() reads this; getFormatStringByColumn() reads
 // column.format instead. Neither reads both, so resolveFormatString() does.
+// Conditional colours are stashed on the element under these attributes so a
+// later formatCellsByType() pass cannot overwrite them with the card's
+// constant colour.
+const CF_ATTR = {
+    COLOR: "data-cf-color",
+    BACKGROUND: "data-cf-background",
+    BORDER: "data-cf-border",
+};
+
 const FORMAT_STRING_PROP: powerbi.DataViewObjectPropertyIdentifier = {
     objectName: "general",
     propertyName: "formatString",
@@ -67,6 +76,8 @@ interface RowEntry {
 }
 
 const ANIM = {
+    // Defaults. The Animations card overrides these per report; see
+    // Visual.animationTiming().
     EXPAND_MS: 280,
     COLLAPSE_MS: 220,
     STAGGER_MS: 22,
@@ -116,8 +127,12 @@ const CSS_CLASSES = {
 export class Visual implements IVisual {
     // DOM elements
     private target: HTMLElement;
+    /** The grid's outermost element, tracked so it can be torn down again. */
+    private container: HTMLElement;
     private tableDiv: HTMLDivElement;
     private contextMenu: HTMLElement;
+    /** Removes the document-level click listener the context menu installs. */
+    private detachDocumentClick: () => void = null;
     
     // State tracking
     private formattingSettings: VisualFormattingSettingsModel;
@@ -179,22 +194,56 @@ export class Visual implements IVisual {
         this.createContainerElements();
     }
 
+    /**
+     * Builds the grid container and context menu.
+     *
+     * Idempotent: hideLandingPage() calls this on every transition back to
+     * data, and it used to append a second container and a second context menu
+     * each time, leaving the earlier ones in the DOM with their listeners still
+     * attached. Tearing down first is what makes repeat calls safe.
+     */
     private createContainerElements(): void {
+        this.destroyContainerElements();
+
         // Create main container
         const container = document.createElement("div");
         container.className = CSS_CLASSES.VISUAL_CONTAINER;
         container.style.overflow = "hidden";
         this.target.appendChild(container);
-        
+        this.container = container;
+
         // Create table container
         this.tableDiv = document.createElement("div");
         this.tableDiv.className = CSS_CLASSES.TABLE_CONTAINER;
         this.tableDiv.style.overflow = "auto";
         this.tableDiv.style.position = "relative";
         container.appendChild(this.tableDiv);
-    
+
         // Create context menu
         this.createContextMenu();
+    }
+
+    /**
+     * Removes the grid container and context menu, and detaches the listeners
+     * that outlive their elements. Safe to call when nothing has been built.
+     */
+    private destroyContainerElements(): void {
+        this.detachScrollListener();
+
+        if (this.detachDocumentClick) {
+            this.detachDocumentClick();
+            this.detachDocumentClick = null;
+        }
+
+        this.container?.parentNode?.removeChild(this.container);
+        this.contextMenu?.parentNode?.removeChild(this.contextMenu);
+
+        this.container = null;
+        this.tableDiv = null;
+        this.contextMenu = null;
+        this.gridBody = null;
+        this.topSpacer = null;
+        this.bottomSpacer = null;
     }
 
     private createContextMenu(): void {
@@ -269,7 +318,7 @@ export class Visual implements IVisual {
         }
         
         // Clear previous content
-        this.tableDiv.innerHTML = '';
+        this.tableDiv.textContent = '';
         
         // Validate data
         if (!options?.dataViews?.[0]) return;
@@ -370,6 +419,11 @@ export class Visual implements IVisual {
             if (byType) return byType;
         }
 
+        // Last resort before the hardcoded default: a value cell, which is
+        // where a matrix actually carries the measure's format.
+        const harvested = this.harvestCellFormats(dataView.matrix, 1);
+        if (harvested[0]) return harvested[0];
+
         return "#,0.00"; // Default fallback format
     }
 
@@ -435,14 +489,112 @@ export class Visual implements IVisual {
     }
 
     /**
-     * One format per leaf column. With several measures the leaf columns cycle
-     * through them, so measure #2 no longer inherits measure #1's format.
+     * Reads a format string off a single matrix value cell.
+     *
+     * This is where Power BI actually puts a measure's format for a matrix:
+     * on each `DataViewMatrixNodeValue`, not on the column metadata. A model
+     * whose measure is formatted as currency sends nothing on valueSources or
+     * metadata.columns and everything here, which is why column-based lookups
+     * found nothing and every value fell back to the numeric default.
+     */
+    /**
+     * Pulls a colour out of a dataView `objects` bag.
+     *
+     * This is where conditional formatting arrives: when a colour picker is
+     * bound to a rule or a field, the host puts the resolved colour on the
+     * individual node or value cell rather than on the settings model. A fill
+     * is `{ solid: { color } }`; some hosts send a bare string.
+     */
+    private readObjectColor(objects: any, objectName: string, propertyName: string): string {
+        const raw = objects?.[objectName]?.[propertyName];
+        if (!raw) return null;
+        if (typeof raw === 'string') return raw;
+        const solid = raw.solid?.color;
+        return typeof solid === 'string' ? solid : null;
+    }
+
+    /**
+     * Records the conditional colours for an element so that applyFormatting()
+     * can re-apply them after the constant settings have been written.
+     *
+     * They are stashed on the element rather than applied directly because
+     * formatCellsByType() re-runs over every cell after creation and would
+     * otherwise overwrite them with the card's constant colour.
+     */
+    private stashConditionalColors(
+        element: HTMLElement,
+        objects: any,
+        objectName: string
+    ): void {
+        if (!objects) return;
+
+        const color = this.readObjectColor(objects, objectName, 'color');
+        if (color) element.setAttribute(CF_ATTR.COLOR, color);
+
+        const background = this.readObjectColor(objects, objectName, 'backgroundColor');
+        if (background) element.setAttribute(CF_ATTR.BACKGROUND, background);
+
+        const border = this.readObjectColor(objects, 'borderSettings', 'color');
+        if (border) element.setAttribute(CF_ATTR.BORDER, border);
+    }
+
+    private formatFromValueCell(cell: any): string {
+        const fmt = cell?.objects?.general?.formatString;
+        return (typeof fmt === 'string' && fmt.length) ? fmt : null;
+    }
+
+    /**
+     * Walks the row tree until a format string has been found for every leaf
+     * column, since only value cells carry them. Stops as soon as the set is
+     * complete, so it does not traverse the whole matrix.
+     */
+    private harvestCellFormats(matrix: powerbi.DataViewMatrix, columnCount: number): string[] {
+        const found: string[] = new Array(columnCount).fill(null);
+        let remaining = columnCount;
+
+        const visit = (node: any): void => {
+            if (remaining === 0 || !node) return;
+
+            if (node.values) {
+                for (let j = 0; j < columnCount; j++) {
+                    if (found[j]) continue;
+                    const fmt = this.formatFromValueCell(node.values[j]);
+                    if (fmt) {
+                        found[j] = fmt;
+                        remaining--;
+                    }
+                }
+            }
+
+            if (node.children) {
+                for (const child of node.children) {
+                    if (remaining === 0) return;
+                    visit(child);
+                }
+            }
+        };
+
+        visit(matrix?.rows?.root);
+        return found;
+    }
+
+    /**
+     * One format per leaf column, most authoritative first:
+     *   1. the format on the value cells themselves (where a matrix puts it)
+     *   2. the value source / metadata column resolution
+     * With several measures the leaf columns cycle through them, so measure #2
+     * no longer inherits measure #1's format.
      */
     private buildValueFormats(dataView: DataView, columnCount: number): string[] {
         const sources = dataView.matrix?.valueSources ?? [];
+        const fromCells = this.harvestCellFormats(dataView.matrix, columnCount);
         const formats: string[] = [];
 
         for (let j = 0; j < columnCount; j++) {
+            if (fromCells[j]) {
+                formats.push(fromCells[j]);
+                continue;
+            }
             const source = sources.length ? sources[j % sources.length] : null;
             formats.push(source
                 ? this.resolveFormatString(source, dataView)
@@ -455,6 +607,68 @@ export class Visual implements IVisual {
     private formatForColumn(j: number): string {
         return this.valueFormats[j] || this.cachedFormatString;
     }
+
+    /** Animation timing, from the Animations card with the constants as defaults. */
+    private animationTiming(): { expand: number; collapse: number; stagger: number; enabled: boolean } {
+        const card = this.formattingSettings?.animationSettings;
+        const positive = (n: any, fallback: number) =>
+            (typeof n === 'number' && n >= 0) ? n : fallback;
+
+        return {
+            enabled: card?.enabled?.value !== false,
+            expand: positive(card?.expandDuration?.value, ANIM.EXPAND_MS),
+            collapse: positive(card?.collapseDuration?.value, ANIM.COLLAPSE_MS),
+            stagger: positive(card?.stagger?.value, ANIM.STAGGER_MS),
+        };
+    }
+
+    /** Per-row stagger, shrunk so the whole run fits the stagger budget. */
+    private staggerFor(count: number): number {
+        if (count <= 1) return 0;
+        const { stagger } = this.animationTiming();
+        return Math.min(stagger, ANIM.MAX_STAGGER_TOTAL_MS / (count - 1));
+    }
+
+    /** Wall time for a staggered run, used to size the animation safety timeout. */
+    private animationTotalMs(count: number, isExpand: boolean): number {
+        const timing = this.animationTiming();
+        if (!timing.enabled) return 0;
+        const duration = isExpand ? timing.expand : timing.collapse;
+        return duration + this.staggerFor(count) * Math.max(0, count - 1) + 120;
+    }
+
+    /**
+     * Publishes the layout and animation settings as custom properties on the
+     * grid, so visual.less reads the card's values instead of hardcoded ones.
+     */
+    private applyThemeProperties(grid: HTMLElement): void {
+        const layout = this.formattingSettings?.layoutSettings;
+        const timing = this.animationTiming();
+
+        const padding = layout?.cellPadding?.value;
+        grid.style.setProperty('--cell-padding',
+            `${typeof padding === 'number' && padding >= 0 ? padding : 10}px`);
+
+        const rowHeight = layout?.rowHeight?.value;
+        grid.style.setProperty('--fixed-row-height',
+            (typeof rowHeight === 'number' && rowHeight > 0) ? `${rowHeight}px` : 'auto');
+
+        grid.style.setProperty('--expand-duration', `${timing.expand}ms`);
+        grid.style.setProperty('--collapse-duration', `${timing.collapse}ms`);
+
+        // 'fade' drops the height overshoot and animates opacity alone.
+        const style = this.formattingSettings?.animationSettings?.style?.value;
+        const styleName = (style && (style as any).value) ? String((style as any).value) : 'wave';
+        grid.classList.toggle('anim-fade', styleName === 'fade');
+        grid.classList.toggle('anim-off', !timing.enabled);
+    }
+
+    /** Indent applied per hierarchy level, from the Layout card. */
+    private indentPerLevel(): number {
+        const indent = this.formattingSettings?.layoutSettings?.indentation?.value;
+        return (typeof indent === 'number' && indent >= 0) ? indent : 20;
+    }
+
 
     private formatNumber(value: number, formatString?: string): string {
         formatString = formatString || this.cachedFormatString;
@@ -534,28 +748,48 @@ export class Visual implements IVisual {
     }
 
     // Calculate subtotal for a parent node and column
+    /**
+     * A subtotal for `parentNode`, preferring the value Power BI computed.
+     *
+     * Summing the leaves is only correct for additive measures. An average, a
+     * distinct count, a ratio or a YoY% summed across its children gives a
+     * number that is simply wrong. When `subTotals` is declared in
+     * capabilities, Power BI puts the real aggregate on the parent node's own
+     * `values`, so use that whenever it is there and keep leaf-summing purely
+     * as a fallback.
+     */
     private calculateSubtotalForColumn(parentNode: any, columnIndex: number): number {
-        if (!parentNode?.children?.length) {
+        if (!parentNode) return 0;
+
+        const own = parentNode.values?.[columnIndex]?.value;
+        if (typeof own === 'number') {
+            return own;
+        }
+
+        if (!parentNode.children?.length) {
             return 0;
         }
-        
+
+        // Fallback: additive roll-up of the leaves.
         let total = 0;
-        
+
         for (const child of parentNode.children) {
             if (child.children?.length > 0) {
-                // Recursively get subtotals from children
                 total += this.calculateSubtotalForColumn(child, columnIndex);
             } else {
-                // Leaf node with values
-                if (child.values?.[columnIndex]?.value !== null && 
-                    child.values[columnIndex]?.value !== undefined &&
-                    typeof child.values[columnIndex].value === 'number') {
-                    total += child.values[columnIndex].value;
+                const value = child.values?.[columnIndex]?.value;
+                if (typeof value === 'number') {
+                    total += value;
                 }
             }
         }
-        
+
         return total;
+    }
+
+    /** True when Power BI supplied a real aggregate for this node. */
+    private hasOwnSubtotal(node: any, columnIndex: number): boolean {
+        return typeof node?.values?.[columnIndex]?.value === 'number';
     }
     
     private calculateGrandTotals(matrix: powerbi.DataViewMatrix, columns: any[]): number[] {
@@ -616,6 +850,7 @@ export class Visual implements IVisual {
         // One shared track definition drives every row, which is what keeps
         // columns aligned without a table layout algorithm.
         this.applyGridTemplate(table, columns.length);
+        this.applyThemeProperties(table);
         
         // Create grid header
         this.createTableHeader(table, columns, columnFormats);
@@ -676,25 +911,61 @@ export class Visual implements IVisual {
         grid.style.setProperty('--row-header-width', `${rowHeaderWidth}px`);
     }
 
+    /**
+     * Flattens the column hierarchy to its LEAVES, in order.
+     *
+     * `row.values[j]` is indexed by leaf column, so taking only
+     * `columns.root.children` (level 0) misaligned every cell as soon as the
+     * column hierarchy had more than one level: a 2-level hierarchy produced
+     * N top-level headers for N*M values.
+     *
+     * Each leaf keeps a `levelValues` trail of its ancestors so a header can
+     * show the full path, and `depth` so callers know how deep the axis goes.
+     */
+    private flattenColumnLeaves(root: any): any[] {
+        const leaves: any[] = [];
+
+        const walk = (node: any, trail: any[]) => {
+            const path = node === root ? trail : trail.concat([node]);
+
+            if (node.children?.length) {
+                node.children.forEach((child: any) => walk(child, path));
+            } else if (node !== root) {
+                leaves.push(Object.assign({}, node, { levelValues: path }));
+            }
+        };
+
+        walk(root, []);
+        return leaves;
+    }
+
     private processColumns(matrix: powerbi.DataViewMatrix, measureName: string): { columns: any[], columnFormats: string[] } {
         let columns: any[] = [];
         let columnFormats: string[] = [];
-        
+
         if (matrix.columns?.root?.children) {
-            columns = matrix.columns.root.children;
-            
-            // Extract column formats if columns are dates
-            if (matrix.columns.levels?.[0]?.sources?.[0]?.format) {
-                const columnSource = matrix.columns.levels[0].sources[0];
-                // Use the same format for all columns if they come from the same source
-                columnFormats = columns.map(() => columnSource.format);
+            columns = this.flattenColumnLeaves(matrix.columns.root);
+
+            // Fall back to the top level if flattening found nothing usable.
+            if (!columns.length) {
+                columns = matrix.columns.root.children;
             }
+
+            // Format for each leaf comes from the source at ITS level, so a
+            // date level and a text level in the same hierarchy each format
+            // correctly instead of sharing level 0's format.
+            const levels = matrix.columns.levels;
+            columnFormats = columns.map(col => {
+                const depth = col.levelValues ? col.levelValues.length - 1 : 0;
+                const source = levels?.[depth]?.sources?.[0] ?? levels?.[0]?.sources?.[0];
+                return source?.format ?? "";
+            });
         } else {
             // If no columns, create a single column for the measure
             columns = [{ value: null }]; // Empty column header
             columnFormats = [""];
         }
-        
+
         return { columns, columnFormats };
     }
     
@@ -910,10 +1181,16 @@ export class Visual implements IVisual {
         this.renderVisibleWindow();
     }
 
-    private attachScrollListener(): void {
+    /** Removes the scroll listener, if one is attached. */
+    private detachScrollListener(): void {
         if (this.onScroll) {
-            this.tableDiv.removeEventListener('scroll', this.onScroll);
+            this.tableDiv?.removeEventListener('scroll', this.onScroll);
+            this.onScroll = null;
         }
+    }
+
+    private attachScrollListener(): void {
+        this.detachScrollListener();
         this.onScroll = () => {
             if (this.visibleRows.length <= VIRTUAL.THRESHOLD) return;
             if (this.scrollRafPending) return;
@@ -982,7 +1259,7 @@ export class Visual implements IVisual {
         // Create header content
         const headerContent = document.createElement("div");
         headerContent.className = "row-header-content";
-        headerContent.style.marginLeft = `${level * 20}px`;
+        headerContent.style.marginLeft = `${level * this.indentPerLevel()}px`;
         headerContent.style.display = "flex";
         headerContent.style.alignItems = "center";
     
@@ -1006,13 +1283,19 @@ export class Visual implements IVisual {
         headerContent.appendChild(label);
         rowHeader.appendChild(headerContent);
         
+        // Conditional formatting for a row header arrives on the row node.
+        this.stashConditionalColors(
+            rowHeader,
+            (row as any)?.objects,
+            isLevel0 ? 'subtotalFormat' : 'rowHeaderFormat');
+
         // Apply formatting based on level
         if (isLevel0) {
             this.applyFormatting(rowHeader, 'subtotal');
         } else {
             this.applyFormatting(rowHeader, 'rowHeader');
         }
-        
+
         return rowHeader;
     }
 
@@ -1038,10 +1321,44 @@ export class Visual implements IVisual {
         return label;
     }
 
+    /** The icon set chosen on the Layout card, falling back to the triangles. */
+    private resolveIconSet(): IconSet {
+        const chosen: any = this.formattingSettings?.layoutSettings?.iconSet?.value;
+        const key = (chosen && chosen.value) ? String(chosen.value) : DEFAULT_ICON_SET;
+        return ICON_SETS[key] || ICON_SETS[DEFAULT_ICON_SET];
+    }
+
+    /**
+     * Draws the toggle for the given state. Kept in one place because the
+     * button is repainted on every toggle as well as on creation, and the two
+     * used to carry their own copies of the glyphs.
+     */
+    private paintToggle(button: HTMLElement, isExpanded: boolean): void {
+        const icons = this.resolveIconSet();
+        const icon = isExpanded ? icons.expanded : icons.collapsed;
+
+        if (!icons.isImage) {
+            // Assigning textContent also clears an <img> left by an earlier set.
+            button.textContent = icon;
+            return;
+        }
+
+        // Reuse the existing <img> so a toggle does not churn the DOM.
+        let img = button.firstElementChild as HTMLImageElement;
+        if (!img || img.tagName !== 'IMG') {
+            button.textContent = "";
+            img = document.createElement("img");
+            img.className = "toggle-icon";
+            img.alt = "";
+            button.appendChild(img);
+        }
+        img.src = icon;
+    }
+
     private createToggleButton(nodeId: string, isExpanded: boolean): HTMLSpanElement {
         const toggleButton = document.createElement("span");
         toggleButton.className = "toggle-button";
-        toggleButton.textContent = isExpanded ? '▲' : '▼';
+        this.paintToggle(toggleButton, isExpanded);
         toggleButton.style.cursor = "pointer";
         
         toggleButton.onclick = (event) => {
@@ -1066,9 +1383,15 @@ export class Visual implements IVisual {
             
             // Width comes from the grid template, not per-cell styles.
             
-            // Get cell value and format it with this column's format string
+            // Get cell value and format it. The cell's own format string wins:
+            // in a matrix that is where the measure's format actually lives.
             const value = row.values[j];
-            td.textContent = this.formatCellValue(value, this.formatForColumn(j));
+            const format = this.formatFromValueCell(value) || this.formatForColumn(j);
+            td.textContent = this.formatCellValue(value, format);
+
+            // Conditional formatting bound to the Data Values card arrives on
+            // the value cell itself.
+            this.stashConditionalColors(td, (value as any)?.objects, 'fontFormat');
             
             // Store the raw value as a data attribute
             if (value && typeof value.value === 'number') {
@@ -1099,10 +1422,16 @@ export class Visual implements IVisual {
             // Calculate subtotal
             const subtotal = this.calculateSubtotalForColumn(row, j);
             
-            // Only display non-zero subtotals
-            td.textContent = subtotal !== 0
+            // A zero is a real value. Only blank the cell when there is nothing
+            // to show at all -- blanking on `!== 0` hid legitimate zeros.
+            const hasValue = this.hasOwnSubtotal(row, j) || (row.children?.length > 0);
+            td.textContent = hasValue
                 ? this.formatNumber(subtotal, this.formatForColumn(j))
                 : "";
+
+            // A subtotal cell takes its conditional colours from the parent
+            // node's own value cell, which is where the host puts them.
+            this.stashConditionalColors(td, (row as any)?.values?.[j]?.objects, 'subtotalFormat');
             
             // Apply alignment from subtotal settings for subtotal cells
             const alignment = this.formattingSettings.subtotalFormatSettings.alignment?.value?.value;
@@ -1307,6 +1636,23 @@ export class Visual implements IVisual {
                 }
             }
         }
+
+        // Conditional colours win over the card's constants. They are applied
+        // last precisely because this method re-runs over cells that were
+        // already built, and the constants above would otherwise clobber them.
+        this.applyConditionalColors(element);
+    }
+
+    /** Re-applies any conditional colours stashed on the element. */
+    private applyConditionalColors(element: HTMLElement): void {
+        const color = element.getAttribute(CF_ATTR.COLOR);
+        if (color) element.style.color = color;
+
+        const background = element.getAttribute(CF_ATTR.BACKGROUND);
+        if (background) element.style.backgroundColor = background;
+
+        const border = element.getAttribute(CF_ATTR.BORDER);
+        if (border) element.style.borderColor = border;
     }
 
     private applyGlobalBorders(table: HTMLElement): void {
@@ -1355,8 +1701,17 @@ export class Visual implements IVisual {
     //=========================================================================
 
     private getNodeId(node: any, level: number): string {
+        // Prefer the node's identity. Two siblings can share a display value
+        // -- two "Other" rows under different parents, or a genuinely repeated
+        // label -- and keying off the label alone made them collide, so they
+        // shared one expand/collapse state and toggled together.
+        const identityKey = this.getIdentityKey(node);
+        if (identityKey) {
+            return `level_${level}_id_${identityKey}`;
+        }
+
         let value;
-        
+
         // Ensure we have a consistent string representation
         if (node.value !== null && node.value !== undefined) {
             // For date values, get a consistent string representation
@@ -1376,6 +1731,49 @@ export class Visual implements IVisual {
         
         // Create a consistent node ID
         return `level_${level}_${value}`;
+    }
+
+    /**
+     * A stable string for a matrix node's identity, or null when the host did
+     * not supply one (which is the case in older hosts and in unit tests).
+     *
+     * The result is ALWAYS selector-safe. Node ids end up inside attribute
+     * selectors (`.grid-row[data-node-id="..."]`), and a raw identity is often
+     * JSON like `{"identityIndex":19}` -- the braces and quotes make the
+     * selector invalid and querySelectorAll throws, which froze the visual.
+     */
+    private getIdentityKey(node: any): string {
+        const identity = node?.identity;
+        if (!identity) return null;
+
+        let raw: string;
+        // DataViewScopeIdentity exposes a comparison key; fall back to the
+        // expression tree if a host omits it.
+        if (typeof identity.key === 'string' && identity.key.length) {
+            raw = identity.key;
+        } else {
+            try {
+                raw = JSON.stringify(identity.expr ?? identity);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        return raw ? this.toSafeToken(raw) : null;
+    }
+
+    /**
+     * Reduces an arbitrary string to `[A-Za-z0-9_-]` so it is safe inside a CSS
+     * attribute selector, appending a short hash so two different inputs cannot
+     * collide once their punctuation is stripped.
+     */
+    private toSafeToken(raw: string): string {
+        let hash = 5381;
+        for (let i = 0; i < raw.length; i++) {
+            hash = ((hash << 5) + hash + raw.charCodeAt(i)) | 0;   // djb2
+        }
+        const cleaned = raw.replace(/[^A-Za-z0-9_-]+/g, '_').slice(0, 60);
+        return `${cleaned}_${(hash >>> 0).toString(36)}`;
     }
 
     private toggleExpanded(nodeId: string): void {
@@ -1423,14 +1821,14 @@ export class Visual implements IVisual {
         const toggleButton = this.tableDiv.querySelector(
             `.grid-row[data-node-id="${nodeId}"] .toggle-button`) as HTMLElement;
         if (toggleButton) {
-            toggleButton.textContent = !isExpanded ? '▲' : '▼';
+            this.paintToggle(toggleButton, !isExpanded);
         }
 
         // Safety timeout, sized to the actual staggered run so it cannot fire
         // while rows are still animating.
         const timeout = window.setTimeout(() => {
             this.cleanupAnimation(nodeId);
-        }, ANIM.totalMs(animatingRows.length, !isExpanded));
+        }, this.animationTotalMs(animatingRows.length, !isExpanded));
 
         this.animationTimeouts.set(nodeId, timeout);
 
@@ -1496,7 +1894,7 @@ export class Visual implements IVisual {
         void rows[0].offsetHeight;
         
         // Apply animation with staggered delay
-        const stagger = ANIM.staggerFor(rows.length);
+        const stagger = this.staggerFor(rows.length);
         rows.forEach((row, index) => {
             row.style.animationDelay = `${index * stagger}ms`;
             row.classList.add('expanding-wave');
@@ -1532,7 +1930,7 @@ export class Visual implements IVisual {
         void rows[0].offsetHeight;
         
         // Apply animation with staggered delay (reversed for collapse)
-        const stagger = ANIM.staggerFor(rows.length);
+        const stagger = this.staggerFor(rows.length);
         rows.slice().reverse().forEach((row, index) => {
             row.style.animationDelay = `${index * stagger}ms`;
             row.classList.add('collapsing-wave');
@@ -1635,10 +2033,14 @@ export class Visual implements IVisual {
             }
         });
         
-        // Hide menu when clicking elsewhere
-        document.addEventListener('click', () => {
-            this.contextMenu.style.display = 'none';
-        });
+        // Hide menu when clicking elsewhere. Kept removable: the menu element
+        // is replaced whenever the landing page comes and goes, and a listener
+        // closing over a detached one would leak.
+        const onDocumentClick = () => {
+            if (this.contextMenu) this.contextMenu.style.display = 'none';
+        };
+        document.addEventListener('click', onDocumentClick);
+        this.detachDocumentClick = () => document.removeEventListener('click', onDocumentClick);
     }
 
     private copyValueToClipboard(): void {
@@ -1656,31 +2058,22 @@ export class Visual implements IVisual {
             textToCopy = this.activeCell.textContent || '';
         }
         
-        try {
-            // Create a temporary textarea element that's properly visible/focused
-            const textArea = document.createElement('textarea');
-            textArea.value = textToCopy;
-            textArea.style.position = 'absolute';
-            textArea.style.left = '0';
-            textArea.style.top = '0';
-            
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            
-            const successful = document.execCommand('copy');
-            
-            if (successful) {
-                this.showToast('Copied to clipboard');
-            } else {
-                this.showToast('Copy failed - try again');
-            }            
-            
-            document.body.removeChild(textArea);
-        } catch (err) {
-            this.showToast('Copy failed - browser restriction');
-            console.error('Copy failed:', err);
+        // document.execCommand('copy') is deprecated and blocks certification.
+        // The async clipboard API needs a permission that a sandboxed visual
+        // iframe is not always granted, so a failure is reported rather than
+        // silently swallowed.
+        const clipboard = navigator?.clipboard;
+        if (!clipboard?.writeText) {
+            this.showToast('Copy not supported here');
+            return;
         }
+
+        clipboard.writeText(textToCopy).then(
+            () => this.showToast('Copied to clipboard'),
+            (err) => {
+                this.showToast('Copy failed - browser restriction');
+                console.error('Copy failed:', err);
+            });
     }
     
     private showToast(message: string): void {
@@ -1799,7 +2192,7 @@ export class Visual implements IVisual {
 
         const timeout = window.setTimeout(() => {
             this.cleanupBatchAnimation(batchId, onScreen, expand);
-        }, ANIM.totalMs(onScreen.length, expand));
+        }, this.animationTotalMs(onScreen.length, expand));
 
         this.animationTimeouts.set(batchId, timeout);
     }
@@ -1807,7 +2200,7 @@ export class Visual implements IVisual {
     private animateRowsBatch(rows: HTMLElement[], isExpand: boolean): void {
         if (rows.length === 0) return;
 
-        const stagger = ANIM.staggerFor(rows.length);
+        const stagger = this.staggerFor(rows.length);
 
         if (isExpand) {
             // As in animateExpand, the keyframes own height/opacity/transform
@@ -1880,29 +2273,22 @@ export class Visual implements IVisual {
 
     private showLandingPage(): void {
         if (this.isLandingPageOn) return;
-        
-        // Clear existing content
-        this.target.innerHTML = '';
-        
-        // Create container for landing page
+
+        // Take the grid down properly rather than wiping target.innerHTML,
+        // which orphaned tableDiv and contextMenu with their listeners live.
+        this.destroyContainerElements();
+
+        // Sizing and colour now come from visual.less.
         const container = document.createElement('div');
         container.className = 'landing-page-container';
-        container.style.width = '100%';
-        container.style.height = '100%';
-        container.style.overflow = 'hidden';
-        container.style.position = 'relative';
-        container.style.background = '#13141a';
-        
-        // Insert the HTML
-        container.innerHTML = this.getLandingPageHTML();
-        
-        // Store reference and add to DOM
+        container.appendChild(buildLandingPage(this.currentLandingPage));
+
         this.landingPageElement = container;
         this.target.appendChild(container);
-        
+
         // Add event listeners for navigation
         this.setupLandingPageNavigation();
-        
+
         this.isLandingPageOn = true;
     }
     
@@ -1924,14 +2310,7 @@ export class Visual implements IVisual {
         this.createContainerElements();
     }
 
-    private getLandingPageHTML(): string {
-        switch (this.currentLandingPage) {
-            case 1: return landingPage1HTML;
-            case 2: return landingPage2HTML;
-            case 3: return landingPage3HTML;
-            default: return landingPage1HTML;
-        }
-    }
+
     
     private setupLandingPageNavigation(): void {
         const nextButtons = this.landingPageElement.querySelectorAll('[data-action="next"]');
@@ -1942,7 +2321,7 @@ export class Visual implements IVisual {
         nextButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.preventDefault();
-                if (this.currentLandingPage < 3) {
+                if (this.currentLandingPage < LANDING_PAGES.length) {
                     this.transitionToPage(this.currentLandingPage + 1);
                 }
             });
@@ -1980,15 +2359,9 @@ export class Visual implements IVisual {
             // Update the current page
             this.currentLandingPage = newPageNumber;
             
-            // Create new container with updated content
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = this.getLandingPageHTML();
-            
-            // Replace the old content
-            this.landingPageElement.innerHTML = '';
-            while (tempDiv.firstChild) {
-                this.landingPageElement.appendChild(tempDiv.firstChild);
-            }
+            // Swap in the new page.
+            this.landingPageElement.textContent = '';
+            this.landingPageElement.appendChild(buildLandingPage(this.currentLandingPage));
             
             // Set up navigation for the new page
             this.setupLandingPageNavigation();

@@ -266,6 +266,101 @@ class BlankRowSettings extends FormattingSettingsCard {
 }
 
 /**
+ * Animation Settings Card
+ */
+class AnimationSettings extends FormattingSettingsCard {
+    enabled = new formattingSettings.ToggleSwitch({
+        name: "enabled",
+        displayName: "Enable Animations",
+        value: true
+    });
+
+    style = new formattingSettings.ItemDropdown({
+        name: "style",
+        displayName: "Style",
+        items: [
+            { value: "wave", displayName: "Wave" },
+            { value: "fade", displayName: "Fade" },
+        ],
+        value: { value: "wave", displayName: "Wave" }
+    });
+
+    expandDuration = new formattingSettings.NumUpDown({
+        name: "expandDuration",
+        displayName: "Expand Duration (ms)",
+        value: 280
+    });
+
+    collapseDuration = new formattingSettings.NumUpDown({
+        name: "collapseDuration",
+        displayName: "Collapse Duration (ms)",
+        value: 220
+    });
+
+    stagger = new formattingSettings.NumUpDown({
+        name: "stagger",
+        displayName: "Row Stagger (ms)",
+        value: 22
+    });
+
+    name: string = "animationSettings";
+    displayName: string = "Animations";
+    slices: Array<FormattingSettingsSlice> = [
+        this.enabled,
+        this.style,
+        this.expandDuration,
+        this.collapseDuration,
+        this.stagger
+    ];
+}
+
+/**
+ * Layout Settings Card
+ */
+class LayoutSettings extends FormattingSettingsCard {
+    cellPadding = new formattingSettings.NumUpDown({
+        name: "cellPadding",
+        displayName: "Cell Padding (px)",
+        value: 10
+    });
+
+    rowHeight = new formattingSettings.NumUpDown({
+        name: "rowHeight",
+        displayName: "Row Height (px, 0 = auto)",
+        value: 0
+    });
+
+    indentation = new formattingSettings.NumUpDown({
+        name: "indentation",
+        displayName: "Hierarchy Indent (px)",
+        value: 20
+    });
+
+    iconSet = new formattingSettings.ItemDropdown({
+        name: "iconSet",
+        displayName: "Expand/Collapse Icons",
+        items: [
+            { value: "triangle", displayName: "Triangles" },
+            { value: "caret", displayName: "Carets" },
+            { value: "chevron", displayName: "Chevrons" },
+            { value: "plusMinus", displayName: "Plus / Minus" },
+            { value: "arrow", displayName: "Arrows" },
+            { value: "image", displayName: "Images" },
+        ],
+        value: { value: "triangle", displayName: "Triangles" }
+    });
+
+    name: string = "layoutSettings";
+    displayName: string = "Layout";
+    slices: Array<FormattingSettingsSlice> = [
+        this.cellPadding,
+        this.rowHeight,
+        this.indentation,
+        this.iconSet
+    ];
+}
+
+/**
  * Grand Total Settings Card
  */
 class GrandTotalSettings extends BaseFormatSettings {
@@ -312,6 +407,8 @@ export class VisualFormattingSettingsModel extends FormattingSettingsModel {
     subtotalFormatSettings = new SubtotalFormatSettings();
     blankRowSettings = new BlankRowSettings();
     grandTotalSettings = new GrandTotalSettings();
+    animationSettings = new AnimationSettings();
+    layoutSettings = new LayoutSettings();
 
     cards = [
         this.generalSettings,
@@ -321,6 +418,8 @@ export class VisualFormattingSettingsModel extends FormattingSettingsModel {
         this.rowHeaderFormatSettings,
         this.subtotalFormatSettings,
         this.blankRowSettings,
-        this.grandTotalSettings
+        this.grandTotalSettings,
+        this.animationSettings,
+        this.layoutSettings
     ];
 }

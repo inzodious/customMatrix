@@ -1,566 +1,683 @@
 {
-    "dataRoles": [
-        {
-            "displayName": "Rows",
-            "name": "rows",
-            "kind": "Grouping"
-        },
-        {
-            "displayName": "Columns",
-            "name": "columns",
-            "kind": "Grouping"
-        },
-        {
-            "displayName": "Values",
-            "name": "values",
-            "kind": "Measure"
-        }
-    ],
-    "objects": {
-        "general": {
-            "displayName": "General",
-            "description": "General settings",
-            "properties": {
-                "formatString": {
-                    "type": {
-                        "formatting": {
-                            "formatString": true
-                        }
-                    }
-                },
-                "fontFamily": {
-                    "displayName": "Font Family",
-                    "description": "Default font family for all text",
-                    "type": {
-                        "text": true
-                    }
-                },
-                "fontSize": {
-                    "displayName": "Font Size",
-                    "description": "Global font size for all text in the matrix",
-                    "type": {
-                        "numeric": true
-                    }
-                },
-                "columnWidth": {
-                    "displayName": "Column Width",
-                    "description": "Width of table columns (pixels)",
-                    "type": {
-                        "numeric": true
-                    }
-                },
-                "rowHeaderWidth": {
-                    "displayName": "Row Header Width",
-                    "description": "Width of row header column (pixels)",
-                    "type": {
-                        "numeric": true
-                    }
-                }
-            }
-        },
-        "borderSettings": {
-            "displayName": "Borders",
-            "description": "Border settings for all elements",
-            "properties": {
-                "show": {
-                    "displayName": "Show Borders",
-                    "description": "Show cell borders",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "color": {
-                    "displayName": "Border Color",
-                    "description": "Border color",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "width": {
-                    "displayName": "Border Width",
-                    "description": "Border width in pixels",
-                    "type": {
-                        "numeric": true
-                    }
-                },
-                "horizontalBorders": {
-                    "displayName": "Horizontal Borders",
-                    "description": "Show horizontal borders",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "verticalBorders": {
-                    "displayName": "Vertical Borders",
-                    "description": "Show vertical borders",
-                    "type": {
-                        "bool": true
-                    }
-                }
-            }
-        },
-        "fontFormat": {
-            "displayName": "Data Values",
-            "description": "Data cell formatting options",
-            "properties": {
-                "color": {
-                    "displayName": "Font Color",
-                    "description": "Data cell font color",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "fontSize": {
-                    "displayName": "Font Size",
-                    "description": "Font size",
-                    "type": {
-                        "numeric": true
-                    }
-                },
-                "bold": {
-                    "displayName": "Bold",
-                    "description": "Bold text",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "italic": {
-                    "displayName": "Italic",
-                    "description": "Italic text",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "underline": {
-                    "displayName": "Underline",
-                    "description": "Underline text",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "backgroundColor": {
-                    "displayName": "Background Color",
-                    "description": "Data cell background color",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "alignment": {
-                    "displayName": "Text Alignment",
-                    "description": "Alignment of data values in cells",
-                    "type": {
-                        "enumeration": [
-                            {
-                                "displayName": "Left",
-                                "value": "left"
-                            },
-                            {
-                                "displayName": "Center",
-                                "value": "center"
-                            },
-                            {
-                                "displayName": "Right",
-                                "value": "right"
-                            }
-                        ]
-                    }
-                }
-            }
-        },
-        "columnHeaderFormat": {
-            "displayName": "Column Headers",
-            "description": "Column header formatting options",
-            "properties": {
-                "color": {
-                    "displayName": "Font Color",
-                    "description": "Font color for column headers",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "fontSize": {
-                    "displayName": "Font Size",
-                    "description": "Font size",
-                    "type": {
-                        "numeric": true
-                    }
-                },
-                "bold": {
-                    "displayName": "Bold",
-                    "description": "Bold text for column headers",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "italic": {
-                    "displayName": "Italic",
-                    "description": "Italic text for column headers",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "underline": {
-                    "displayName": "Underline",
-                    "description": "Underline text for column headers",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "backgroundColor": {
-                    "displayName": "Background Color",
-                    "description": "Background color for column headers",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "alignment": {
-                    "displayName": "Text Alignment",
-                    "description": "Alignment of column header text",
-                    "type": {
-                        "enumeration": [
-                            {
-                                "displayName": "Left",
-                                "value": "left"
-                            },
-                            {
-                                "displayName": "Center",
-                                "value": "center"
-                            },
-                            {
-                                "displayName": "Right",
-                                "value": "right"
-                            }
-                        ]
-                    }
-                }
-            }
-        },
-        "rowHeaderFormat": {
-            "displayName": "Row Headers",
-            "description": "Row header formatting options",
-            "properties": {
-                "color": {
-                    "displayName": "Font Color",
-                    "description": "Font color for row headers",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "fontSize": {
-                    "displayName": "Font Size",
-                    "description": "Font size",
-                    "type": {
-                        "numeric": true
-                    }
-                },
-                "bold": {
-                    "displayName": "Bold",
-                    "description": "Bold text for row headers",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "italic": {
-                    "displayName": "Italic",
-                    "description": "Italic text for row headers",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "underline": {
-                    "displayName": "Underline",
-                    "description": "Underline text for row headers",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "backgroundColor": {
-                    "displayName": "Background Color",
-                    "description": "Background color for row headers",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "alignment": {
-                    "displayName": "Text Alignment",
-                    "description": "Alignment of row header text",
-                    "type": {
-                        "enumeration": [
-                            {
-                                "displayName": "Left",
-                                "value": "left"
-                            },
-                            {
-                                "displayName": "Center",
-                                "value": "center"
-                            },
-                            {
-                                "displayName": "Right",
-                                "value": "right"
-                            }
-                        ]
-                    }
-                }
-            }
-        },
-        "blankRowSettings": {
-            "displayName": "Blank Rows",
-            "description": "Settings for blank rows between Level 0 items",
-            "properties": {
-                "enableBlankRows": {
-                    "displayName": "Add Blank Rows",
-                    "description": "Insert blank rows between Level 0 items",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "backgroundColor": {
-                    "displayName": "Background Color",
-                    "description": "Background color for blank rows",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "height": {
-                    "displayName": "Row Height",
-                    "description": "Height of blank rows in pixels",
-                    "type": {
-                        "numeric": true
-                    }
-                }
-            }
-        },
-        "subtotalFormat": {
-            "displayName": "Subtotals",
-            "description": "Subtotal formatting options",
-            "properties": {
-                "color": {
-                    "displayName": "Font Color",
-                    "description": "Font color for subtotal cells",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "fontSize": {
-                    "displayName": "Font Size",
-                    "description": "Font size",
-                    "type": {
-                        "numeric": true
-                    }
-                },
-                "bold": {
-                    "displayName": "Bold",
-                    "description": "Bold text for subtotals",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "italic": {
-                    "displayName": "Italic",
-                    "description": "Italic text for subtotals",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "underline": {
-                    "displayName": "Underline",
-                    "description": "Underline text for subtotals",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "backgroundColor": {
-                    "displayName": "Background Color",
-                    "description": "Background color for subtotal cells",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "alignment": {
-                    "displayName": "Text Alignment",
-                    "description": "Alignment of subtotal values",
-                    "type": {
-                        "enumeration": [
-                            {
-                                "displayName": "Left",
-                                "value": "left"
-                            },
-                            {
-                                "displayName": "Center",
-                                "value": "center"
-                            },
-                            {
-                                "displayName": "Right",
-                                "value": "right"
-                            }
-                        ]
-                    }
-                }
-            }
-        },
-        "grandTotalSettings": {
-            "displayName": "Grand Total",
-            "description": "Settings for grand total row",
-            "properties": {
-                "show": {
-                    "displayName": "Show Grand Total",
-                    "description": "Show grand total row at the bottom",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "label": {
-                    "displayName": "Total Label",
-                    "description": "Label for the grand total row",
-                    "type": {
-                        "text": true
-                    }
-                },
-                "color": {
-                    "displayName": "Font Color",
-                    "description": "Font color for grand total row",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "fontSize": {
-                    "displayName": "Font Size",
-                    "description": "Font size",
-                    "type": {
-                        "numeric": true
-                    }
-                },
-                "bold": {
-                    "displayName": "Bold",
-                    "description": "Bold text for grand total",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "italic": {
-                    "displayName": "Italic",
-                    "description": "Italic text for grand total",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "underline": {
-                    "displayName": "Underline",
-                    "description": "Underline text for grand total",
-                    "type": {
-                        "bool": true
-                    }
-                },
-                "backgroundColor": {
-                    "displayName": "Background Color",
-                    "description": "Background color for grand total row",
-                    "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "alignment": {
-                    "displayName": "Text Alignment",
-                    "description": "Alignment of grand total values",
-                    "type": {
-                        "enumeration": [
-                            {
-                                "displayName": "Left",
-                                "value": "left"
-                            },
-                            {
-                                "displayName": "Center",
-                                "value": "center"
-                            },
-                            {
-                                "displayName": "Right",
-                                "value": "right"
-                            }
-                        ]
-                    }
-                }
-            }
-        }
+  "dataRoles": [
+    {
+      "displayName": "Rows",
+      "name": "rows",
+      "kind": "Grouping"
     },
-    "dataViewMappings": [
-        {
-            "matrix": {
-                "rows": {
-                    "for": {
-                        "in": "rows"
-                    },
-                    "dataReductionAlgorithm": {
-                        "window": {
-                            "count": 1000
-                        }
-                    }
-                },
-                "columns": {
-                    "for": {
-                        "in": "columns"
-                    },
-                    "dataReductionAlgorithm": {
-                        "top": {
-                            "count": 100
-                        }
-                    }
-                },
-                "values": {
-                    "for": {
-                        "in": "values"
-                    }
-                }
+    {
+      "displayName": "Columns",
+      "name": "columns",
+      "kind": "Grouping"
+    },
+    {
+      "displayName": "Values",
+      "name": "values",
+      "kind": "Measure"
+    }
+  ],
+  "objects": {
+    "general": {
+      "displayName": "General",
+      "description": "General settings",
+      "properties": {
+        "formatString": {
+          "type": {
+            "formatting": {
+              "formatString": true
             }
+          }
+        },
+        "fontFamily": {
+          "displayName": "Font Family",
+          "description": "Default font family for all text",
+          "type": {
+            "text": true
+          }
+        },
+        "fontSize": {
+          "displayName": "Font Size",
+          "description": "Global font size for all text in the matrix",
+          "type": {
+            "numeric": true
+          }
+        },
+        "columnWidth": {
+          "displayName": "Column Width",
+          "description": "Width of table columns (pixels)",
+          "type": {
+            "numeric": true
+          }
+        },
+        "rowHeaderWidth": {
+          "displayName": "Row Header Width",
+          "description": "Width of row header column (pixels)",
+          "type": {
+            "numeric": true
+          }
         }
-    ],
-    "supportsLandingPage": true,
-    "supportsEmptyDataView": true,
-    "privileges": []
+      }
+    },
+    "borderSettings": {
+      "displayName": "Borders",
+      "description": "Border settings for all elements",
+      "properties": {
+        "show": {
+          "displayName": "Show Borders",
+          "description": "Show cell borders",
+          "type": {
+            "bool": true
+          }
+        },
+        "color": {
+          "displayName": "Border Color",
+          "description": "Border color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "width": {
+          "displayName": "Border Width",
+          "description": "Border width in pixels",
+          "type": {
+            "numeric": true
+          }
+        },
+        "horizontalBorders": {
+          "displayName": "Horizontal Borders",
+          "description": "Show horizontal borders",
+          "type": {
+            "bool": true
+          }
+        },
+        "verticalBorders": {
+          "displayName": "Vertical Borders",
+          "description": "Show vertical borders",
+          "type": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "fontFormat": {
+      "displayName": "Data Values",
+      "description": "Data cell formatting options",
+      "properties": {
+        "color": {
+          "displayName": "Font Color",
+          "description": "Data cell font color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "fontSize": {
+          "displayName": "Font Size",
+          "description": "Font size",
+          "type": {
+            "numeric": true
+          }
+        },
+        "bold": {
+          "displayName": "Bold",
+          "description": "Bold text",
+          "type": {
+            "bool": true
+          }
+        },
+        "italic": {
+          "displayName": "Italic",
+          "description": "Italic text",
+          "type": {
+            "bool": true
+          }
+        },
+        "underline": {
+          "displayName": "Underline",
+          "description": "Underline text",
+          "type": {
+            "bool": true
+          }
+        },
+        "backgroundColor": {
+          "displayName": "Background Color",
+          "description": "Data cell background color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "alignment": {
+          "displayName": "Text Alignment",
+          "description": "Alignment of data values in cells",
+          "type": {
+            "enumeration": [
+              {
+                "displayName": "Left",
+                "value": "left"
+              },
+              {
+                "displayName": "Center",
+                "value": "center"
+              },
+              {
+                "displayName": "Right",
+                "value": "right"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "columnHeaderFormat": {
+      "displayName": "Column Headers",
+      "description": "Column header formatting options",
+      "properties": {
+        "color": {
+          "displayName": "Font Color",
+          "description": "Font color for column headers",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "fontSize": {
+          "displayName": "Font Size",
+          "description": "Font size",
+          "type": {
+            "numeric": true
+          }
+        },
+        "bold": {
+          "displayName": "Bold",
+          "description": "Bold text for column headers",
+          "type": {
+            "bool": true
+          }
+        },
+        "italic": {
+          "displayName": "Italic",
+          "description": "Italic text for column headers",
+          "type": {
+            "bool": true
+          }
+        },
+        "underline": {
+          "displayName": "Underline",
+          "description": "Underline text for column headers",
+          "type": {
+            "bool": true
+          }
+        },
+        "backgroundColor": {
+          "displayName": "Background Color",
+          "description": "Background color for column headers",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "alignment": {
+          "displayName": "Text Alignment",
+          "description": "Alignment of column header text",
+          "type": {
+            "enumeration": [
+              {
+                "displayName": "Left",
+                "value": "left"
+              },
+              {
+                "displayName": "Center",
+                "value": "center"
+              },
+              {
+                "displayName": "Right",
+                "value": "right"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "rowHeaderFormat": {
+      "displayName": "Row Headers",
+      "description": "Row header formatting options",
+      "properties": {
+        "color": {
+          "displayName": "Font Color",
+          "description": "Font color for row headers",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "fontSize": {
+          "displayName": "Font Size",
+          "description": "Font size",
+          "type": {
+            "numeric": true
+          }
+        },
+        "bold": {
+          "displayName": "Bold",
+          "description": "Bold text for row headers",
+          "type": {
+            "bool": true
+          }
+        },
+        "italic": {
+          "displayName": "Italic",
+          "description": "Italic text for row headers",
+          "type": {
+            "bool": true
+          }
+        },
+        "underline": {
+          "displayName": "Underline",
+          "description": "Underline text for row headers",
+          "type": {
+            "bool": true
+          }
+        },
+        "backgroundColor": {
+          "displayName": "Background Color",
+          "description": "Background color for row headers",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "alignment": {
+          "displayName": "Text Alignment",
+          "description": "Alignment of row header text",
+          "type": {
+            "enumeration": [
+              {
+                "displayName": "Left",
+                "value": "left"
+              },
+              {
+                "displayName": "Center",
+                "value": "center"
+              },
+              {
+                "displayName": "Right",
+                "value": "right"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "blankRowSettings": {
+      "displayName": "Blank Rows",
+      "description": "Settings for blank rows between Level 0 items",
+      "properties": {
+        "enableBlankRows": {
+          "displayName": "Add Blank Rows",
+          "description": "Insert blank rows between Level 0 items",
+          "type": {
+            "bool": true
+          }
+        },
+        "backgroundColor": {
+          "displayName": "Background Color",
+          "description": "Background color for blank rows",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "height": {
+          "displayName": "Row Height",
+          "description": "Height of blank rows in pixels",
+          "type": {
+            "numeric": true
+          }
+        }
+      }
+    },
+    "subtotalFormat": {
+      "displayName": "Subtotals",
+      "description": "Subtotal formatting options",
+      "properties": {
+        "color": {
+          "displayName": "Font Color",
+          "description": "Font color for subtotal cells",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "fontSize": {
+          "displayName": "Font Size",
+          "description": "Font size",
+          "type": {
+            "numeric": true
+          }
+        },
+        "bold": {
+          "displayName": "Bold",
+          "description": "Bold text for subtotals",
+          "type": {
+            "bool": true
+          }
+        },
+        "italic": {
+          "displayName": "Italic",
+          "description": "Italic text for subtotals",
+          "type": {
+            "bool": true
+          }
+        },
+        "underline": {
+          "displayName": "Underline",
+          "description": "Underline text for subtotals",
+          "type": {
+            "bool": true
+          }
+        },
+        "backgroundColor": {
+          "displayName": "Background Color",
+          "description": "Background color for subtotal cells",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "alignment": {
+          "displayName": "Text Alignment",
+          "description": "Alignment of subtotal values",
+          "type": {
+            "enumeration": [
+              {
+                "displayName": "Left",
+                "value": "left"
+              },
+              {
+                "displayName": "Center",
+                "value": "center"
+              },
+              {
+                "displayName": "Right",
+                "value": "right"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "grandTotalSettings": {
+      "displayName": "Grand Total",
+      "description": "Settings for grand total row",
+      "properties": {
+        "show": {
+          "displayName": "Show Grand Total",
+          "description": "Show grand total row at the bottom",
+          "type": {
+            "bool": true
+          }
+        },
+        "label": {
+          "displayName": "Total Label",
+          "description": "Label for the grand total row",
+          "type": {
+            "text": true
+          }
+        },
+        "color": {
+          "displayName": "Font Color",
+          "description": "Font color for grand total row",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "fontSize": {
+          "displayName": "Font Size",
+          "description": "Font size",
+          "type": {
+            "numeric": true
+          }
+        },
+        "bold": {
+          "displayName": "Bold",
+          "description": "Bold text for grand total",
+          "type": {
+            "bool": true
+          }
+        },
+        "italic": {
+          "displayName": "Italic",
+          "description": "Italic text for grand total",
+          "type": {
+            "bool": true
+          }
+        },
+        "underline": {
+          "displayName": "Underline",
+          "description": "Underline text for grand total",
+          "type": {
+            "bool": true
+          }
+        },
+        "backgroundColor": {
+          "displayName": "Background Color",
+          "description": "Background color for grand total row",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "alignment": {
+          "displayName": "Text Alignment",
+          "description": "Alignment of grand total values",
+          "type": {
+            "enumeration": [
+              {
+                "displayName": "Left",
+                "value": "left"
+              },
+              {
+                "displayName": "Center",
+                "value": "center"
+              },
+              {
+                "displayName": "Right",
+                "value": "right"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "animationSettings": {
+      "displayName": "Animations",
+      "description": "Expand and collapse animation",
+      "properties": {
+        "enabled": {
+          "displayName": "Enable Animations",
+          "type": {
+            "bool": true
+          }
+        },
+        "style": {
+          "displayName": "Style",
+          "type": {
+            "enumeration": [
+              {
+                "value": "wave",
+                "displayName": "Wave"
+              },
+              {
+                "value": "fade",
+                "displayName": "Fade"
+              }
+            ]
+          }
+        },
+        "expandDuration": {
+          "displayName": "Expand Duration (ms)",
+          "description": "How long the expand animation runs",
+          "type": {
+            "numeric": true
+          }
+        },
+        "collapseDuration": {
+          "displayName": "Collapse Duration (ms)",
+          "description": "How long the collapse animation runs",
+          "type": {
+            "numeric": true
+          }
+        },
+        "stagger": {
+          "displayName": "Row Stagger (ms)",
+          "description": "Delay between consecutive rows",
+          "type": {
+            "numeric": true
+          }
+        }
+      }
+    },
+    "layoutSettings": {
+      "displayName": "Layout",
+      "description": "Spacing and indentation",
+      "properties": {
+        "cellPadding": {
+          "displayName": "Cell Padding (px)",
+          "description": "Padding inside every cell",
+          "type": {
+            "numeric": true
+          }
+        },
+        "rowHeight": {
+          "displayName": "Row Height (px, 0 = auto)",
+          "description": "Fixed row height, 0 to size to content",
+          "type": {
+            "numeric": true
+          }
+        },
+        "indentation": {
+          "displayName": "Hierarchy Indent (px)",
+          "description": "Indent applied per hierarchy level",
+          "type": {
+            "numeric": true
+          }
+        },
+        "iconSet": {
+          "displayName": "Expand/Collapse Icons",
+          "description": "Glyphs used by the hierarchy toggles",
+          "type": {
+            "enumeration": [
+              {
+                "value": "triangle",
+                "displayName": "Triangles"
+              },
+              {
+                "value": "caret",
+                "displayName": "Carets"
+              },
+              {
+                "value": "chevron",
+                "displayName": "Chevrons"
+              },
+              {
+                "value": "plusMinus",
+                "displayName": "Plus / Minus"
+              },
+              {
+                "value": "arrow",
+                "displayName": "Arrows"
+              },
+              {
+                "value": "image",
+                "displayName": "Images"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "dataViewMappings": [
+    {
+      "matrix": {
+        "rows": {
+          "for": {
+            "in": "rows"
+          },
+          "dataReductionAlgorithm": {
+            "window": {
+              "count": 1000
+            }
+          }
+        },
+        "columns": {
+          "for": {
+            "in": "columns"
+          },
+          "dataReductionAlgorithm": {
+            "top": {
+              "count": 100
+            }
+          }
+        },
+        "values": {
+          "for": {
+            "in": "values"
+          }
+        }
+      }
+    }
+  ],
+  "supportsLandingPage": true,
+  "supportsEmptyDataView": true,
+  "privileges": [],
+  "subtotals": {
+    "matrix": {
+      "rowSubtotals": {
+        "defaultValue": true
+      },
+      "columnSubtotals": {
+        "defaultValue": true
+      }
+    }
+  }
 }
